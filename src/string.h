@@ -112,18 +112,9 @@ public:
         size_ += step;
         return *this;
     }
-    StrBuff& c(char* str) {
-        size_t step = strlen(str);
-        grow_by_(step);
-        memcpy(val_+size_, str, step);
-        size_ += step;
-        return *this;
-    }
     StrBuff& c(String &s) { return c(s.c_str());  }
+    StrBuff& c(char ch) { return c(std::to_string(ch).c_str()); } //Cpp
     StrBuff& c(size_t v) { return c(std::to_string(v).c_str());  } // Cpp
-    StrBuff& c(int v) { return c(std::to_string(v).c_str()); } // Cpp
-    StrBuff& c(float v) { return c(std::to_string(v).c_str()); } // Cpp
-
 
     String* get() {
         assert(val_ != nullptr); // can be called only once
