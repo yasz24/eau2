@@ -3,9 +3,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "string.h"
-#include "dataframe.h"
-#include "column.h"
+#include "../string.h"
+#include "../dataframe.h"
+#include "../row.h"
+#include "sorer_column.h"
 //adapted from euhlmann
 //https://github.ccs.neu.edu/euhlmann/CS4500-A1-part1
 /**
@@ -393,16 +394,16 @@ class SorParser : public Object {
             case ColumnType::STRING:
                 slice.trim(STRING_QUOTE);
                 assert(slice.getLength() <= MAX_STRING);
-                dynamic_cast<StringColumn*>(column)->append(slice.toCString());
+                dynamic_cast<SorerStringColumn*>(column)->append(slice.toCString());
                 break;
             case ColumnType::INTEGER:
-                dynamic_cast<IntegerColumn*>(column)->append(slice.toInt());
+                dynamic_cast<SorerIntegerColumn*>(column)->append(slice.toInt());
                 break;
             case ColumnType::FLOAT:
-                dynamic_cast<FloatColumn*>(column)->append(slice.toFloat());
+                dynamic_cast<SorerFloatColumn*>(column)->append(slice.toFloat());
                 break;
             case ColumnType::BOOL:
-                dynamic_cast<BoolColumn*>(column)->append(slice.toInt() == 1);
+                dynamic_cast<SorerBoolColumn*>(column)->append(slice.toInt() == 1);
                 break;
             default:
                 assert(false);
@@ -589,49 +590,54 @@ class SorParser : public Object {
      * Takes the original columnSet data structure and converts it to the more modern
      * Dataframe
      */ 
-    Dataframe* getDataFrame() {
+    DataFrame* getDataFrame() {
         assert(_columns != nullptr);
         //generate schema
         StrBuff* sb = new StrBuff();
         for(int i = 0; i < _num_columns; i++) {
-            sb->c(_columns->getColumn(i)->getType());
+            sb->c(columnTypeToChar(_columns->getColumn(i)->getType()));
         }
         String* temp = sb->get();
+        std::cout<<"schema string: "<<temp->c_str()<<"\n";
         Schema* s = new Schema(temp->c_str());
         //create new Dataframe
-        Dataframe* df = new Dataframe(s);
+        DataFrame* df = new DataFrame(*s);
         //now to populate with values...
-        Row* r = new Row(s);
-        for(int j = 0; j < _columns->getColumn(0)->getLength; j++) {
+        Row* r = new Row(*s);
+        for(int j = 0; j < _columns->getColumn(0)->getLength(); j++) {
             //do the thing
              for(int i = 0; i < _num_columns; i++) {
                 BaseColumn* thisColumn = _columns->getColumn(i);
                 switch (thisColumn->getType()) {
-                    case ColumnType::STRING:
-                        StringColumn* sc = dynamic_cast<StringColumn*>(thisColumn);
-                        String* value = new String(sc->getEntry(j));
-                        r->set(i, value);
+                    case ColumnType::STRING: {
+                        SorerStringColumn* sc = dynamic_cast<SorerStringColumn*>(thisColumn);
+                        String* svalue = new String(sc->getEntry(j));
+                        r->set(i, svalue);
                         break;
-                    case ColumnType::INTEGER:
-                        IntegerColumn* ic = dynamic_cast<IntegerColumn*>(thisColumn);
-                        int value = ic->getEntry(j);
-                        r->set(i, value);
+                    }
+                    case ColumnType::INTEGER: {
+                        SorerIntegerColumn* ic = dynamic_cast<SorerIntegerColumn*>(thisColumn);
+                        int ivalue = ic->getEntry(j);
+                        r->set(i, ivalue);
                         break;
-                    case ColumnType::FLOAT:
-                        FloatColumn* fc = dynamic_cast<FloatColumn*>(thisColumn);
-                        float value = fc->getEntry(j);
-                        r->set(i, value);
+                    }
+                    case ColumnType::FLOAT: {
+                        SorerFloatColumn* fc = dynamic_cast<SorerFloatColumn*>(thisColumn);
+                        float fvalue = fc->getEntry(j);
+                        r->set(i, fvalue);
                         break;
-                    case ColumnType::BOOL:
-                        BoolColumn* bc = dynamic_cast<BoolColumn*>(thisColumn);
-                        bool value = bc->getEntry(j);
-                        r->set(i, value);
+                    }
+                    case ColumnType::BOOL: {
+                        SorerBoolColumn* bc = dynamic_cast<SorerBoolColumn*>(thisColumn);
+                        bool bvalue = bc->getEntry(j);
+                        r->set(i, bvalue);
                         break;
+                    }
                     default:
                         assert(false);
                 }
             }
-            df->add_row(r);
+            df->add_row(*r);
             //add row to df
         }
         return df;

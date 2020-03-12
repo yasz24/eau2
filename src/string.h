@@ -113,7 +113,6 @@ public:
         return *this;
     }
     StrBuff& c(String &s) { return c(s.c_str());  }
-    StrBuff& c(char ch) { return c(std::to_string(ch).c_str()); } //Cpp
     StrBuff& c(size_t v) { return c(std::to_string(v).c_str());  } // Cpp
 
     String* get() {

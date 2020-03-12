@@ -1,439 +1,481 @@
-// Lang::CwC
+//lang: CwC
 #pragma once
+#include "string.h"
+#include "array.h"
+#include<stdarg.h>
+#include<stdio.h>
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
+//Authors: Shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 
-#include "object.h"
-//adapted from euhlmann
-//https://github.ccs.neu.edu/euhlmann/CS4500-A1-part1
-
-/**
- * Enum for the different types of SoR columns this code supports.
- */
-enum class ColumnType { STRING, INTEGER, FLOAT, BOOL, UNKNOWN };
-
-/**
- * Converts the given ColumnType to a string.
- * @param type the column type
- * @return A string representing this column type. Do not free or modify this string.
- */
-const char* columnTypeToString(ColumnType type) {
-    switch (type) {
-        case ColumnType::STRING:
-            return "STRING";
-        case ColumnType::INTEGER:
-            return "INTEGER";
-        case ColumnType::FLOAT:
-            return "FLOAT";
-        case ColumnType::BOOL:
-            return "BOOL";
-        default:
-            return "UNKNOWN";
-    }
-}
-
-const char columnTypeToChar(ColumnType type) {
-    switch (type) {
-        case ColumnType::STRING:
-            return 'S';
-        case ColumnType::INTEGER:
-            return 'I';
-        case ColumnType::FLOAT:
-            return 'F';
-        case ColumnType::BOOL:
-            return 'B';
-        default:
-            return 'U';
-    }
-}
-
-/**
- * Base class containing common code for columns of all types
- */
-class BaseColumn : public Object {
-   public:
-    /** Initial arraylist capacity */
-    static const size_t DEFAULT_CAPACITY = 16;
-    /** What kind of column this is */
-    ColumnType _type;
-    /** Array of booleans indicating whether entry is present or missing */
-    bool* _entry_present;
-    /** Length of entries in this column */
-    size_t _length;
-    /** Capacity of arrays before reallocation is necessary */
-    size_t _capacity;
-
-    /**
-     * Constructs a BaseColumn type.
-     * @param type The type of column
-     * @param initial_capacity The initial capacity of the arraylists
-     */
-    BaseColumn(ColumnType type, size_t initial_capacity) : Object() {
-        _type = type;
-        _capacity = initial_capacity;
-        _length = 0;
-        _entry_present = new bool[_capacity];
-    }
-
-    /** Frees this BaseColumn */
-    virtual ~BaseColumn() { delete[] _entry_present; }
-
-    /**
-     * Resizes the internal arrays if length has reached capacity.
-     */
-    virtual void _resize_if_necessary() {
-        if (_length == _capacity) {
-            size_t new_cap = _capacity * 2;
-            _resize_entries(new_cap);
-            _capacity = new_cap;
-        }
-    }
-
-    /**
-     * Resizes the entry present/missing bool array to a new size.
-     * @param new_cap the requested size
-     */
-    virtual void _resize_entry_present(size_t new_cap) {
-        bool* new_entry_present = new bool[new_cap];
-        memcpy(new_entry_present, _entry_present, _capacity * sizeof(bool));
-        delete[] _entry_present;
-        _entry_present = new_entry_present;
-    }
-
-    /**
-     * Marks a given entry as present or not present
-     * @param which The entry index
-     * @param present Whether this entry is present (true) or missing (false)
-     */
-    virtual void _set_entry_present(size_t which, bool present) { _entry_present[which] = present; }
-
-    /**
-     * Method to be implemented by subclasses that resizes their array of the actual entries.
-     * @param new_cap The requested size. Will always be greater than the current capacity.
-     */
-    virtual void _resize_entries(size_t new_cap) = 0;
-    /**
-     * Appends a missing entry.
-     */
-    virtual void appendMissing() = 0;
-    /**
-     * Prints the entry with the given index to stdout. Internal unchecked method for subclasses to
-     * implement.
-     * @param which The entry index, guaranteed to represent a valid non-missing entry
-     */
-    virtual void _printEntry(size_t which) = 0;
-
-    /**
-     * Prints the given entry to stdout, or <MISSING> if it's missing.
-     * Terminates if which >= getLength()
-     * @param which The entry to print
-     */
-    virtual void printEntry(size_t which) {
-        assert(which < _length);
-        if (!isEntryPresent(which)) {
-            printf("<MISSING>\n");
-        } else {
-            _printEntry(which);
-        }
-    }
-
-    /**
-     * Gets the type of this column.
-     * @return The type
-     */
-    virtual ColumnType getType() { return _type; }
-
-    /**
-     * Returns the number of entries the column currently has.
-     * @return The number of entries
-     */
-    virtual size_t getLength() { return _length; }
-
-    /**
-     * Checks if a given entry is present. Terminates if which >= getLength().
-     * @param which The entry index
-     */
-    virtual bool isEntryPresent(size_t which) {
-        assert(which < _length);
-        return _entry_present[which];
-    }
+ /**************************************************************************
+ * Column ::
+ * Represents one column of a data frame which holds values of a single type.
+ * This abstract class defines methods overriden in subclasses. There is
+ * one subclass per element type. Columns are mutable, equality is pointer
+ * equality. */
+class IntColumn;
+class FloatColumn;
+class BoolColumn;
+class StringColumn;
+class Column : public Object {
+ public:
+ 
+  /** Type converters: Return same column under its actual type, or
+   *  nullptr if of the wrong type.  */
+  virtual IntColumn* as_int() = 0;
+  virtual BoolColumn*  as_bool() = 0;
+  virtual FloatColumn* as_float() = 0;
+  virtual StringColumn* as_string() = 0;
+ 
+  /** Type appropriate push_back methods. Calling the wrong method results
+    * in no data change. **/
+  virtual void push_back(int val) = 0;
+  virtual void push_back(bool val) = 0;
+  virtual void push_back(float val) = 0;
+  virtual void push_back(String* val) = 0;
+ 
+ /** Returns the number of elements in the column. */
+  virtual size_t size() = 0;
+ 
+  /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
+  virtual char get_type() = 0;
 };
+//Column methods were made pure virtual to enforce the abstract nature of Column
 
-/**
- * Subclass of BaseColumn holding strings.
- * Expects ownership of each appended string to be transferred to the StringColumn.
- * Frees contained strings in the destructor.
+/*************************************************************************
+ * IntColumn::
+ * Holds int values.
  */
-class StringColumn : public BaseColumn {
-   public:
-    const char** _entries;
-    StringColumn() : BaseColumn(ColumnType::STRING, DEFAULT_CAPACITY) {
-        _entries = new const char*[_capacity];
-    }
+class IntColumn : public Column {
+ public:
+  Array* val_;
+  int listLength_ = 0;
+  int arraySize_ = 1024;
+  int metaArrayStartSize_ = 10;
 
-    virtual ~StringColumn() {
-        for (size_t i = 0; i < _length; i++) {
-            if (_entries[i] != nullptr) {
-                delete[] _entries[i];
-            }
+  IntColumn() {
+    val_ = new Array();
+    for(int i = 0; i < metaArrayStartSize_; i++) {
+      val_->pushBack(new IntArray(arraySize_));
+    }
+  };
+
+  IntColumn(int n, ...) {
+    val_ = new Array();
+    for(int i = 0; i < metaArrayStartSize_; i++) {
+      val_->pushBack(new IntArray(arraySize_));
+    }
+    va_list ap;
+    va_start (ap, n);
+    for (int i = 0; i < n; i++) {
+      push_back(va_arg (ap, int)); 
+    }
+    va_end (ap);
+  }
+
+  ~IntColumn() {
+   // delete val_;
+  }
+
+  /** get int value at idx. An out of bound idx triggers an assert error.  */
+  int get(size_t idx) {
+    assert(idx < listLength_);
+    int arrays_index = idx / arraySize_;
+    int index = idx - arrays_index*arraySize_;
+    IntArray* ia = dynamic_cast<IntArray*>(val_->get(arrays_index));
+    return ia->get(index);
+  };
+  /** Set value at idx. An out of bound idx triggers an assert error.  */
+  void set(size_t idx, int val) {
+    assert(idx < listLength_);
+    int arrays_index = idx / arraySize_;
+    int index = idx - arrays_index*arraySize_;
+    IntArray* ia = dynamic_cast<IntArray*>(val_->get(arrays_index));
+    ia->set(index, val);
+  };
+  /** returns length of int column */
+  size_t size() { return listLength_; };
+  /** returns this intColumn as an IntColumn */
+  IntColumn* as_int() { 
+    return this;
+   };
+  /** returns a nullptr for each type of Column this intColumn is Not */
+  BoolColumn*  as_bool() { return nullptr; };
+  FloatColumn* as_float() { return nullptr; };
+  StringColumn* as_string() { return nullptr; };
+ 
+  /** Type appropriate push_back methods. Calling the wrong method results
+    * in no data change. **/
+  void push_back(int val) {
+    if(arraySize_*val_->length() >= listLength_ - 1) {
+      val_->pushBack(new IntArray(arraySize_));
+    }
+    int array_index = listLength_ / arraySize_;
+    IntArray* ia = dynamic_cast<IntArray*>(val_->get(array_index));
+    ia->pushBack(val);
+    listLength_++;
+
+  };
+  void push_back(bool val) {};
+  void push_back(float val) {};
+  void push_back(String* val) {};
+ 
+  /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
+  char get_type() { return 'I'; };
+
+  /** returns a hash generated by summing all the elements together */
+  size_t hash_me() {
+    size_t hash = 0;
+    for(int i = 0; i < val_->length(); i++) {
+      IntArray* ia = dynamic_cast<IntArray*>(val_->get(i));
+      for(int j = 0; j < ia->length(); j++) {
+        hash += ia->get(j);
+      }
+    }
+    return hash;
+  }
+
+  bool equals(Object * o) {
+    if(o == nullptr) return false;
+    IntColumn* other_ic = dynamic_cast<IntColumn*>(o);
+    if(other_ic == nullptr) return false;
+    if(other_ic->size() != size()) return false;
+    for(int i = 0; i < val_->length(); i++) {
+      IntArray* ia = dynamic_cast<IntArray*>(val_->get(i));
+      IntArray* other_ia = dynamic_cast<IntArray*>(other_ic->val_->get(i));
+      for(int j = 0; j < ia->length(); j++) {
+        if(ia->get(j) != other_ia->get(j)) {
+          return false;
         }
-        delete[] _entries;
+      }
     }
-
-    virtual void _resize_entries(size_t new_cap) {
-        _resize_entry_present(new_cap);
-        const char** new_entries = new const char*[new_cap];
-        memcpy(new_entries, _entries, _capacity * sizeof(char*));
-        delete[] _entries;
-        _entries = new_entries;
-    }
-
-    /**
-     * Appends a given string to the column.
-     * Takes ownership of entry, which means
-     * references to entry after calling this method may be invalid.
-     * @param entry The string. Must not be null
-     */
-    virtual void append(const char* entry) {
-        _resize_if_necessary();
-        _set_entry_present(_length, true);
-
-        _entries[_length] = entry;
-
-        _length += 1;
-    }
-
-    virtual void appendMissing() {
-        _resize_if_necessary();
-        _set_entry_present(_length, false);
-
-        _entries[_length] = nullptr;
-        _length += 1;
-    }
-
-    virtual const char* getEntry(size_t which) {
-        assert(which < _length);
-        assert(isEntryPresent(which));
-        return _entries[which];
-    }
-
-    virtual void _printEntry(size_t which) { printf("\"%s\"\n", _entries[which]); }
+    return true;
+  }
 };
-
-/**
- * Subclass of BaseColumn holding integers.
+/*************************************************************************
+ * FloatColumn::
+ * Holds float values.
  */
-class IntegerColumn : public BaseColumn {
-   public:
-    int* _entries;
-    IntegerColumn() : BaseColumn(ColumnType::INTEGER, DEFAULT_CAPACITY) {
-        _entries = new int[_capacity];
+class FloatColumn : public Column {
+ public:
+  Array* val_;
+  int listLength_ = 0;
+  int arraySize_ = 1024;
+  int metaArrayStartSize_ = 10;
+
+  FloatColumn() {
+    val_ = new Array();
+    for(int i = 0; i < metaArrayStartSize_; i++) {
+      val_->pushBack(new FloatArray(arraySize_));
     }
-    virtual ~IntegerColumn() { delete[] _entries; }
+  };
 
-    virtual void _resize_entries(size_t new_cap) {
-        _resize_entry_present(new_cap);
-        int* new_entries = new int[new_cap];
-        memcpy(new_entries, _entries, _capacity * sizeof(int));
-        delete[] _entries;
-        _entries = new_entries;
+  FloatColumn(int n, ...) {
+    val_ = new Array();
+    for(int i = 0; i < metaArrayStartSize_; i++) {
+      val_->pushBack(new FloatArray(arraySize_));
     }
-
-    virtual void append(int entry) {
-        _resize_if_necessary();
-        _set_entry_present(_length, true);
-
-        _entries[_length] = entry;
-        _length += 1;
+    va_list ap;
+    va_start (ap, n);
+    for (int i = 0; i < n; i++) {
+      push_back(va_arg (ap, float)); 
     }
+    va_end (ap);
+  }
 
-    virtual void appendMissing() {
-        _resize_if_necessary();
-        _set_entry_present(_length, false);
+  ~FloatColumn() {
+   // delete val_;
+  }
 
-        _entries[_length] = 0;
-        _length += 1;
+  /** get value at idx. An out of bound idx triggers an assert error.  */
+  float get(size_t idx) {
+    assert(idx < listLength_);
+    int arrays_index = idx / arraySize_;
+    int index = idx - arrays_index*arraySize_;
+    FloatArray* fa = dynamic_cast<FloatArray*>(val_->get(arrays_index));
+    return fa->get(index);
+  };
+
+  /** Set value at idx. An out of bound idx triggers an assert error.  */
+  void set(size_t idx, float val) {
+    assert(idx < listLength_);
+    int arrays_index = idx / arraySize_;
+    int index = idx - arrays_index*arraySize_;
+    FloatArray* fa = dynamic_cast<FloatArray*>(val_->get(arrays_index));
+    fa->set(index, val);
+  };
+  /** returns length of column */
+  size_t size() { return listLength_; };
+
+  /** returns this column for the appropriate column, and nullptr for everything else */
+  IntColumn* as_int() { return nullptr; };
+  BoolColumn*  as_bool() { return nullptr; };
+  FloatColumn* as_float() { return this; };
+  StringColumn* as_string() { return nullptr; };
+ 
+  /** Type appropriate push_back methods. Calling the wrong method results 
+    * in no data change. **/
+  void push_back(float val) {
+    if(arraySize_*val_->length() >= listLength_ - 1) {
+      val_->pushBack(new FloatArray(arraySize_));
     }
+    int array_index = listLength_ / arraySize_;
+    FloatArray* fa = dynamic_cast<FloatArray*>(val_->get(array_index));
+    fa->pushBack(val);
+    listLength_++;
 
-    virtual int getEntry(size_t which) {
-        assert(which < _length);
-        assert(isEntryPresent(which));
-        return _entries[which];
+  };
+  void push_back(bool val) {};
+  void push_back(int val) {};
+  void push_back(String* val) {};
+ 
+/** returns a hash created by summing int representations of the float values */
+  size_t hash_me() {
+    float hash = 0;
+    for(int i = 0; i < val_->length(); i++) {
+      FloatArray* fa = dynamic_cast<FloatArray*>(val_->get(i));
+      for(int j = 0; j < fa->length(); j++) {
+        hash += fa->get(j);
+      }
     }
+    return ((size_t)hash);
+  }
 
-    virtual void _printEntry(size_t which) { printf("%d\n", _entries[which]); }
-};
-
-/**
- * Subclass of BaseColumn holding floats.
- */
-class FloatColumn : public BaseColumn {
-   public:
-    float* _entries;
-    FloatColumn() : BaseColumn(ColumnType::FLOAT, DEFAULT_CAPACITY) {
-        _entries = new float[_capacity];
-    }
-    virtual ~FloatColumn() { delete[] _entries; }
-
-    virtual void _resize_entries(size_t new_cap) {
-        _resize_entry_present(new_cap);
-        float* new_entries = new float[new_cap];
-        memcpy(new_entries, _entries, _capacity * sizeof(float));
-        delete[] _entries;
-        _entries = new_entries;
-    }
-
-    virtual void append(float entry) {
-        _resize_if_necessary();
-        _set_entry_present(_length, true);
-
-        _entries[_length] = entry;
-        _length += 1;
-    }
-
-    virtual void appendMissing() {
-        _resize_if_necessary();
-        _set_entry_present(_length, false);
-
-        _entries[_length] = 0;
-        _length += 1;
-    }
-
-    virtual float getEntry(size_t which) {
-        assert(which < _length);
-        assert(isEntryPresent(which));
-        return _entries[which];
-    }
-
-    virtual void _printEntry(size_t which) { printf("%e\n", _entries[which]); }
-};
-
-/**
- * Subclass of BaseColumn holding booleans.
- */
-class BoolColumn : public BaseColumn {
-   public:
-    bool* _entries;
-    BoolColumn() : BaseColumn(ColumnType::BOOL, DEFAULT_CAPACITY) {
-        _entries = new bool[_capacity];
-    }
-    virtual ~BoolColumn() { delete[] _entries; }
-
-    virtual void _resize_entries(size_t new_cap) {
-        _resize_entry_present(new_cap);
-        bool* new_entries = new bool[new_cap];
-        memcpy(new_entries, _entries, _capacity * sizeof(bool));
-        delete[] _entries;
-        _entries = new_entries;
-    }
-
-    virtual void append(bool entry) {
-        _resize_if_necessary();
-        _set_entry_present(_length, true);
-
-        _entries[_length] = entry;
-        _length += 1;
-    }
-
-    virtual void appendMissing() {
-        _resize_if_necessary();
-        _set_entry_present(_length, false);
-
-        _entries[_length] = 0;
-        _length += 1;
-    }
-
-    virtual bool getEntry(size_t which) {
-        assert(which < _length);
-        assert(isEntryPresent(which));
-        return _entries[which];
-    }
-
-    virtual void _printEntry(size_t which) { printf("%d\n", _entries[which]); }
-};
-
-/**
- * Creates the right subclass of BaseColumn based on the given type.
- * @param type The type of column to create
- * @return The newly created column. Caller must free.
- */
-BaseColumn* makeColumnFromType(ColumnType type) {
-    switch (type) {
-        case ColumnType::STRING:
-            return new StringColumn();
-        case ColumnType::INTEGER:
-            return new IntegerColumn();
-        case ColumnType::FLOAT:
-            return new FloatColumn();
-        case ColumnType::BOOL:
-            return new BoolColumn();
-        default:
-            assert(false);
-    }
-}
-
-/**
- * Represents a fixed-size set of columns of potentially different types.
- */
-class ColumnSet : public Object {
-   public:
-    /** The array of columns */
-    BaseColumn** _columns;
-    /** The number of columns we have */
-    size_t _length;
-    /**
-     * Creates a new ColumnSet that can hold the given number of columns.
-     * Caller must also call initializeColumn for each column to fully initialize this class.
-     * @param num_columns The max number of columns that can be held
-     */
-    ColumnSet(size_t num_columns) : Object() {
-        _columns = new BaseColumn*[num_columns];
-        _length = num_columns;
-        for (size_t i = 0; i < num_columns; i++) {
-            _columns[i] = nullptr;
+  bool equals(Object * o) {
+    if(o == nullptr) return false;
+    FloatColumn* other_ic = dynamic_cast<FloatColumn*>(o);
+    if(other_ic == nullptr) return false;
+    if(other_ic->size() != size()) return false;
+    for(int i = 0; i < val_->length(); i++) {
+      FloatArray* ia = dynamic_cast<FloatArray*>(val_->get(i));
+      FloatArray* other_ia = dynamic_cast<FloatArray*>(other_ic->val_->get(i));
+      for(int j = 0; j < ia->length(); j++) {
+        if(ia->get(j) != other_ia->get(j)) {
+          return false;
         }
+      }
     }
-    /**
-     * Destructor for ColumnSet
-     */
-    virtual ~ColumnSet() {
-        for (size_t i = 0; i < _length; i++) {
-            if (_columns[i] != nullptr) {
-                delete _columns[i];
-            }
+    return true;
+  }
+
+  /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
+  char get_type() { return 'F'; };
+};
+/*************************************************************************
+ * BoolColumn::
+ * Holds bool values.
+ */
+class BoolColumn : public Column {
+ public:
+  Array* val_;
+  int listLength_ = 0;
+  int arraySize_ = 1024;
+  int metaArrayStartSize_ = 10;
+
+  BoolColumn() {
+    val_ = new Array();
+    for(int i = 0; i < metaArrayStartSize_; i++) {
+      val_->pushBack(new BoolArray(arraySize_));
+    }
+  };
+
+  BoolColumn(int n, ...) {
+    val_ = new Array();
+    for(int i = 0; i < metaArrayStartSize_; i++) {
+      val_->pushBack(new BoolArray(arraySize_));
+    }
+    va_list ap;
+    va_start (ap, n);
+    for (int i = 0; i < n; i++) {
+      push_back(va_arg (ap, bool)); 
+    }
+    va_end (ap);
+  }
+
+  ~BoolColumn() {
+   // delete val_;  
+  }
+
+  /** get value at idx. An out of bound idx triggers an assert error.  */
+  bool get(size_t idx) {
+    assert(idx < listLength_);
+    int arrays_index = idx / arraySize_;
+    int index = idx - arrays_index*arraySize_;
+    BoolArray* ba = dynamic_cast<BoolArray*>(val_->get(arrays_index));
+    return ba->get(index);
+  };
+
+  /** Set value at idx. An out of bound idx triggers an assert error. */
+  void set(size_t idx, bool val) {
+    assert(idx < listLength_);
+    int arrays_index = idx / arraySize_;
+    int index = idx - arrays_index*arraySize_;
+    BoolArray* ba = dynamic_cast<BoolArray*>(val_->get(arrays_index));
+    ba->set(index, val);
+  };
+  /** returns the length of boolColumn */
+  size_t size() { return listLength_; };
+
+  /** returns this for correct type of column, nullptr for everything else */
+  IntColumn* as_int() { return nullptr; };
+  BoolColumn*  as_bool() { return this; };
+  FloatColumn* as_float() { return nullptr; };
+  StringColumn* as_string() { return nullptr; };
+ 
+  /** Type appropriate push_back methods. Calling the wrong method results in
+    * no data change. **/
+  void push_back(bool val) {
+    if(arraySize_*val_->length() >= listLength_ - 1) {
+      val_->pushBack(new BoolArray(arraySize_));
+    }
+    int array_index = listLength_ / arraySize_;
+    BoolArray* ba = dynamic_cast<BoolArray*>(val_->get(array_index));
+    ba->pushBack(val);
+    listLength_++;
+
+  };
+  void push_back(float val) {};
+  void push_back(int val) {};
+  void push_back(String* val) {};
+ /** returns a hash of the values created by adding position and value of bool to hash */
+  size_t hash_me() {
+    size_t hash = 0;
+    for(int i = 0; i < val_->length(); i++) {
+      BoolArray* fa = dynamic_cast<BoolArray*>(val_->get(i));
+      for(int j = 0; j < fa->length(); j++) {
+        int val = 1;
+        if(fa->get(j)) {
+          val = 0;
         }
-        delete[] _columns;
+        hash += (i + j + val);
+      }
     }
+    return hash;
+  }
 
-    /**
-     * Gets the number of columns that can be held in this ColumnSet.
-     * @return The number of columns
-     */
-    virtual size_t getLength() { return _length; }
-
-    /**
-     * Initializes the given column to the given type. Can only be called exactly once per index.
-     * @param which The index for the column to initialize
-     * @param type The type of column to create
-     */
-    virtual void initializeColumn(size_t which, ColumnType type) {
-        assert(which < _length);
-        assert(_columns[which] == nullptr);
-        BaseColumn* col = makeColumnFromType(type);
-        _columns[which] = col;
+  bool equals(Object * o) {
+    if(o == nullptr) return false;
+    BoolColumn* other_ic = dynamic_cast<BoolColumn*>(o);
+    if(other_ic == nullptr) return false;
+    if(other_ic->size() != size()) return false;
+    for(int i = 0; i < val_->length(); i++) {
+      BoolArray* ia = dynamic_cast<BoolArray*>(val_->get(i));
+      BoolArray* other_ia = dynamic_cast<BoolArray*>(other_ic->val_->get(i));
+      for(int j = 0; j < ia->length(); j++) {
+        if(ia->get(j) != other_ia->get(j)) {
+          return false;
+        }
+      }
     }
+    return true;
+  }
 
-    /**
-     * Gets the column with the given index. initializeColumn must have been called for this index
-     * first.
-     * @param which The column index to retrieve
-     * @return The column with the given index
-     */
-    virtual BaseColumn* getColumn(size_t which) {
-        assert(which < _length);
-        assert(_columns[which] != nullptr);
-        return _columns[which];
+  /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
+  char get_type() { return 'B'; };
+};
+/*************************************************************************
+ * StringColumn::
+ * Holds bool values.
+ */
+class StringColumn : public Column {
+ public:
+  Array* val_;
+  int listLength_ = 0;
+  int arraySize_ = 1024;
+  int metaArrayStartSize_ = 10;
+
+  StringColumn() {
+    val_ = new Array();
+    for(int i = 0; i < metaArrayStartSize_; i++) {
+      val_->pushBack(new StringArray(arraySize_));
     }
+  };
+
+  StringColumn(int n, ...) {
+    val_ = new Array();
+    for(int i = 0; i < metaArrayStartSize_; i++) {
+      val_->pushBack(new StringArray(arraySize_));
+    }
+    va_list ap;
+    va_start (ap, n);
+    for (int i = 0; i < n; i++) {
+      push_back(va_arg (ap, String*)); 
+    }
+    va_end (ap);
+  }
+
+  ~StringColumn() {
+   // delete val_;
+  }
+
+/** Get pointer at idx. An out of bound idx triggers an assert error. */
+  String* get(size_t idx) {
+    assert(idx < listLength_);
+    int arrays_index = idx / arraySize_;
+    int index = idx - arrays_index*arraySize_;
+   StringArray* a = dynamic_cast<StringArray*>(val_->get(arrays_index));
+    String* s = dynamic_cast<String*>(a->get(index));
+    return s;
+  };
+  /** Set pointer at idx. An out of bound idx is undefined.  */
+  void set(size_t idx, String* val) {
+    assert(idx < listLength_);
+    int arrays_index = idx / arraySize_;
+    int index = idx - arrays_index*arraySize_;
+    StringArray* a = dynamic_cast<StringArray*>(val_->get(arrays_index));
+    a->set(index, val);
+  };
+  size_t size() { return listLength_; };
+  /** returns this for StringColumn*, nullptr for everything else */
+  IntColumn* as_int() { return nullptr; };
+  BoolColumn*  as_bool() { return nullptr; };
+  FloatColumn* as_float() { return nullptr; };
+  StringColumn* as_string() { return this; };
+ 
+  /** Type appropriate push_back methods. Calling the wrong method is
+    * undefined behavior. **/
+  void push_back(String* val) {
+    if(arraySize_*val_->length() >= listLength_ - 1) {
+      val_->pushBack(new StringArray(arraySize_));
+    }
+    int array_index = listLength_ / arraySize_;
+    StringArray* a = dynamic_cast<StringArray*>(val_->get(array_index));
+    a->pushBack(val);
+    listLength_++;
+
+  };
+  void push_back(bool val) {};
+  void push_back(float val) {};
+  void push_back(int val) {};
+/** returns a hash generated by summing the hash of all the strings in the column */
+  size_t hash_me() {
+    size_t hash = 0;
+    for(int i = 0; i < val_->length(); i++) {
+      StringArray* fa = dynamic_cast<StringArray*>(val_->get(i));
+      for(int j = 0; j < fa->length(); j++) {
+        hash += fa->get(j)->hash_me();
+      }
+    }
+    return hash;
+  }
+
+  bool equals(Object * o) {
+    if(o == nullptr) return false;
+    StringColumn* other_ic = dynamic_cast<StringColumn*>(o);
+    if(other_ic == nullptr) return false;
+    if(other_ic->size() != size()) return false;
+    for(int i = 0; i < val_->length(); i++) {
+      StringArray* ia = dynamic_cast<StringArray*>(val_->get(i));
+      StringArray* other_ia = dynamic_cast<StringArray*>(other_ic->val_->get(i));
+      for(int j = 0; j < ia->length(); j++) {
+        if(!ia->get(j)->equals(other_ia->get(j))) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+ 
+  /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
+  char get_type() { return 'S'; };
 };
