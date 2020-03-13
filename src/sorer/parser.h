@@ -598,7 +598,6 @@ class SorParser : public Object {
             sb->c(columnTypeToChar(_columns->getColumn(i)->getType()));
         }
         String* temp = sb->get();
-        std::cout<<"schema string: "<<temp->c_str()<<"\n";
         Schema* s = new Schema(temp->c_str());
         //create new Dataframe
         DataFrame* df = new DataFrame(*s);
