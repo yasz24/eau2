@@ -2,6 +2,7 @@
 
 #include "object.h"
 #include "string.h"
+//authors: shetty.y@husky.neu.edu and eldrid.s@husky.neu.edu
 /*****************************************************************************
  * Fielder::
  * A field vistor invoked by Row.

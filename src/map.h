@@ -6,7 +6,7 @@
 #include "keyVal.h"
 
 //todo: Map should delete all keys, values.
-
+//authors: eldrid.s@husky.neu.edu and shetty.y@husky.neu.edu
 /**
 * An object that represents a map to store keys and values.
 * Map does not own any objects passed to it.

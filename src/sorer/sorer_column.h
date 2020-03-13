@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "../object.h"
-//adapted from euhlmann
+//adapted from euhlmann by eldrid.s@husky.neu.edu and shetty.y@husky.neu.edu
 //https://github.ccs.neu.edu/euhlmann/CS4500-A1-part1
 
 /**

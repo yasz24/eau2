@@ -1,5 +1,6 @@
 // Lang::CwC
-
+//provided by euhlmann, used as reference by eldrid.s@husky.neu.edu and shetty.y@husky.neu.edu
+//https://github.ccs.neu.edu/euhlmann/CS4500-A1-part1
 #include <stdio.h>
 #include <stdlib.h>
 

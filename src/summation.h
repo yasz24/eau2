@@ -2,7 +2,7 @@
 #include "rower.h"
 #include "row.h"
 #include "dataframe.h"
-
+//Written by Chev Eldrid and Yash Shetty
 class Summation : public Rower {  
 
 public:

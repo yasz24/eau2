@@ -10,9 +10,6 @@
 #include <thread>
 
 //authors: eldrid.s@husky.neu.edu shetty.y@husky.neu.edu
-//break others others code: add column with size != the numrows. 
-//provide outofbounds rows/cols on get*
-//hash works properly.
 
 /****************************************************************************
  * DataFrame::

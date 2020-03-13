@@ -7,7 +7,7 @@
 #include "../dataframe.h"
 #include "../row.h"
 #include "sorer_column.h"
-//adapted from euhlmann
+//adapted from euhlmann by Chev Eldrid and Yash Shetty
 //https://github.ccs.neu.edu/euhlmann/CS4500-A1-part1
 /**
  * The maximum allowed length for string columns.

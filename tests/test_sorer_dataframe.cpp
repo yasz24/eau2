@@ -1,5 +1,7 @@
 // Lang::CwC
-
+//adapted from main.cpp supplied by euhlmann for Sorer writing
+//used by Chev Eldrid and Yash Shetty
+//https://github.ccs.neu.edu/euhlmann/CS4500-A1-part1
 #include <stdio.h>
 #include <stdlib.h>
 
