@@ -15,7 +15,7 @@ public:
     virtual ~Object() { }
 
     /** Return the hash value of this object */
-    size_t hash() { return hash_ != 0 ? hash_ : hash_ = hash_me(); }
+    virtual size_t hash() { return hash_ != 0 ? hash_ : hash_ = hash_me(); }
 
     /** Subclasses should redefine */
     virtual bool equals(Object  * other) { return this == other;  }
