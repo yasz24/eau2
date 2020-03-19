@@ -1,6 +1,8 @@
 //lang::CwC
 #pragma once
 #include "../object.h"
+#include "../store/key.h"
+#include "../store/kvstore.h"
 #include "schema.h"
 #include "column.h"
 #include "row.h"
@@ -494,5 +496,9 @@ public:
             }
         }
         return true;
+    }
+
+    static DataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
+      
     }
 };
