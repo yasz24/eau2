@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../object.h"
-#include "string.h"
+#include "../utils/string.h"
 //authors: shetty.y@husky.neu.edu and eldrid.s@husky.neu.edu
 /*****************************************************************************
  * Fielder::
