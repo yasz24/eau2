@@ -1,6 +1,6 @@
 #pragma once
 #include "string.h"
-#include "object.h"
+#include "../object.h"
 #include "array.h"
 #include "queue.h"
 #include "keyVal.h"

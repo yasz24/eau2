@@ -1,6 +1,6 @@
 //lang: CwC
 #pragma once
-#include "object.h"
+#include "../object.h"
 //authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /**
  * A simple object that represents a key-value pair.

@@ -1,6 +1,8 @@
 //lang: CwC
 #pragma once
-#include "object.h"
+#include "../object.h"
+#include "../utils/string.h"
+
 //Authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /** Array class: creates a resizeable array of Objects */
 class Array: public Object{

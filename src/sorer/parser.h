@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../string.h"
-#include "../dataframe.h"
-#include "../row.h"
+#include "../utils/string.h"
+#include "../dataframe/dataframe.h"
+#include "../dataframe/row.h"
 #include "sorer_column.h"
 //adapted from euhlmann by Chev Eldrid and Yash Shetty
 //https://github.ccs.neu.edu/euhlmann/CS4500-A1-part1

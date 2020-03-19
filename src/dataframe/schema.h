@@ -1,9 +1,9 @@
 //lang::CwC
 #pragma once
-#include "object.h"
+#include "../object.h"
 #include "string.h"
-#include "map.h"
-#include "primatives.h"
+#include "../utils/map.h"
+#include "../utils/primatives.h"
 #include <iostream>
 
 //authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu

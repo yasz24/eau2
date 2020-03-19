@@ -1,6 +1,6 @@
 //lang::CwC
 #pragma once
-#include "object.h"
+#include "../object.h"
 #include "string.h"
 #include "listNode.h"
 #include <iostream>

@@ -1,7 +1,7 @@
 //lang: CwC
 #pragma once
-#include "string.h"
-#include "array.h"
+#include "../utils/string.h"
+#include "../utils/array.h"
 #include<stdarg.h>
 #include<stdio.h>
 
