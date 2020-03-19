@@ -3,7 +3,7 @@
 #include <cstring>
 #include <string>
 #include <cassert>
-#include "object.h"
+#include "../object.h"
 
 /** An immutable string class that wraps a character array.
  * The character array is zero terminated. The size() of the

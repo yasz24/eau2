@@ -1,5 +1,5 @@
 //lang::CwC
-#include "object.h"
+#include "../object.h"
 #include <iostream>
 //authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /**

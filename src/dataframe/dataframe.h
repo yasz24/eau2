@@ -1,11 +1,11 @@
 //lang::CwC
 #pragma once
-#include "object.h"
+#include "../object.h"
 #include "schema.h"
 #include "column.h"
 #include "row.h"
 #include "rower.h"
-#include "primatives.h"
+#include "../utils/primatives.h"
 #include <iostream>
 #include <thread>
 

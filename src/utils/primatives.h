@@ -1,6 +1,6 @@
 //lang::CwC 
 #pragma once
-#include "object.h"
+#include "../object.h"
 //authors: eldrid.s@husky.neu.edu shetty.y@husky.neu.edu
 //todo: primative destructors.
 
