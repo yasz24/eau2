@@ -1,0 +1,127 @@
+//lang: CwC
+#pragma once
+#include "../object.h"
+#include "../utils/string.h"
+#include "../store/kvstore.h"
+#include "array.h"
+#include "../store/value.h"
+#include "jsonHelper.h"
+#include "serial.h"
+#include "string.h"
+
+#include <math.h>
+#include <string>
+//Authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
+/** Builds a specific type of array with similar behavior to Array class but of fixed length and Ints */
+class IntDistributedArray: public Object {
+    public:
+    KVStore* kv_; //underlying key value store that distributes data
+    Array* keys_; //array of keys that list what's in this array
+    size_t uid_; //unique identifier for this array - used for chunks
+    size_t chunkSize_; //number of elements to host in each chunk
+    size_t chunkCount_; //total number of chunks in array
+    size_t itemCount_; //total number of items in array
+    size_t curNode_; //current node the chunk we're adding to is located on
+    size_t totalNodes_; //total number of nodes in system
+
+    IntDistributedArray(KVStore* kv, size_t chunkSize, size_t uid) {
+        kv_ = kv;
+        chunkSize_ = chunkSize;
+        totalNodes_ = kv->num_nodes_;
+        uid_ = uid;
+        curNode_ = 0;
+        itemCount_ = 0;
+        chunkCount_ = 0;
+        keys_ = new Array();
+    }
+    /*
+    *   Gets the int at a given index
+    */ 
+   int get(size_t index) {
+        assert(index < itemCount_);
+        Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
+        char* serlializedNode = v->data; 
+        char* payload = JSONHelper::getPayloadValue(serlializedNode)->c_str(); //returns the payload (IntArray) of serialized data
+        IntArray* intVals = IntArray::deserialize(payload); //turns payload into IntArray object
+        return intVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
+    };
+    /*
+    * Given an index, updates the value at that index
+    */
+  int set(size_t index, int val) {
+        assert(index < itemCount_);
+        Key* curKey = dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_))); //gets key of given characteristics
+        Value* v = kv_->get(curKey); //use curKey to get value from kvStore
+        char* serlializedNode = v->data;
+        char* payload = JSONHelper::getPayloadValue(serlializedNode)->c_str(); //returns the payload (IntArray) of serialized data
+        IntArray* intVals = IntArray::deserialize(payload); //turns payload into IntArray object
+
+        int prevVal = intVals->get(index % chunkSize_); //get int at given index for this array in this chunk
+        intVals->set((index % chunkSize_), val); //sets index of this array to provided val
+        kv_->put(curKey, new Value(intVals->serialize(), 0)); //reserialize IntArray with updated value and using same key - put into kv
+        return prevVal;
+  }; //sets the object at index to be o, returns former object
+    
+    /*
+    *   Adds a new int to the back of the Distributed Int Array
+    */ 
+    void pushBack(int val) {
+        if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
+            curNode_+=1;
+            chunkCount_+=1;
+            if(curNode_ == totalNodes_) { //starts cycle of chunks on nodes again
+                curNode_ = 0;
+            }
+            //creates a unique keyname based on provided ID - could be modified to randomly pick number?
+            StrBuff* sb = new StrBuff();
+            sb->c(uid_); 
+            sb->c("_dist_int_array_chunk_");
+            sb->c(chunkCount_);
+            String* s = sb->get();
+            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            keys_->pushBack(k);
+            IntArray* valuesArray = new IntArray(); //creates new Int array to store values in this chunk
+            valuesArray->pushBack(val);
+            kv_->put(k, new Value(valuesArray->serialize(), 0)); //adds new IntArray to kvStore
+        } else {
+            Key* curKey = dynamic_cast<Key*>(keys_->get(chunkCount_)); //get current Key to change its value....
+            Value* kv_val = kv_->get(curKey);
+            char* payload = JSONHelper::getPayloadValue(kv_val->data)->c_str();
+            IntArray* intArr = IntArray::deserialize(payload); //get IntArray to update
+            intArr->pushBack(val);
+            kv_->put(curKey, new Value(intArr->serialize(), 0)); //put new IntArray with same key into Kv
+        }
+        itemCount_ +=1;
+    }; //add o to end of array
+
+  bool empty() {
+      return itemCount_ == 0;
+  }; //checks if there are any items in the array
+
+  bool equals(Object * o) {
+      if ( o == nullptr) return false;
+        IntDistributedArray *s = dynamic_cast<IntDistributedArray*>(o);
+        if(s == nullptr) return false;
+        if(itemCount_ != s->itemCount_) return false;
+        for(int i = 0; i < itemCount_; i++) {
+            bool sameInt = s->get(i) == get(i);
+            if(!sameInt) {
+                return false;
+            }
+        }
+        return true;
+  }; //checks if this is equal to o
+
+  size_t length() {
+      return itemCount_;
+  }; //returns the number of elements in the array
+
+  /** Return the hash value of this object */
+  size_t hash_me() {
+      int temp = 0;
+      for(int i = 0; i < itemCount_; i++) {
+          temp *= get(i);
+      }
+      return temp;
+  }
+};
