@@ -439,6 +439,7 @@ class BoolArray: public Object {
              ia->pushBack(std::stoi(JSONHelper::getArrayValueAt(values, i)->c_str()));
          }
          return ia;
+     }
 };
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Strings* */
 class StringArray: public Object {
