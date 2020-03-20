@@ -413,6 +413,32 @@ class BoolArray: public Object {
         }
         return temp;
      }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("BoolArray");
+        sb->write("listLength_", listLength_);
+        sb->write("arraySize_", arraySize_);
+        sb->write("vals_", vals_, listLength_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+     }
+
+     /**
+     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
+     */ 
+     static BoolArray* deserialize(char* s) {
+         size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+         size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+         String* vals = JSONHelper::getValueFromKey("vals_", s);
+         char* values = vals->c_str();
+         BoolArray* ia = new BoolArray(arraySize);
+         for(int i = 0; i < listLength; i++) {
+             ia->pushBack(std::stoi(JSONHelper::getArrayValueAt(values, i)->c_str()));
+         }
+         return ia;
 };
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Strings* */
 class StringArray: public Object {
