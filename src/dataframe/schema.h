@@ -255,7 +255,7 @@ public:
     }
 
     bool valid_col_char_(char c) {
-        return (c == 'S' || c == 'B' || c == 'I' || c == 'F');
+        return (c == 'S' || c == 'B' || c == 'I' || c == 'F' || c == 'D');
     }
 
      /** Compare two Schema's. Does not consider number of rows in the schema*/

@@ -46,6 +46,9 @@ public:
         case 'F':
           col = new FloatColumn();
           break;
+        case 'D':
+          col = new DoubleColumn();
+          break;
         default:
           col = nullptr;
           break;
@@ -77,6 +80,9 @@ public:
           break;
         case 'F':
           col = new FloatColumn();
+          break;
+        case 'D':
+          col = new DoubleColumn();
           break;
         default:
           col = nullptr;
@@ -140,6 +146,13 @@ public:
             }
             break;
           }
+        case 'D': {
+          DoubleColumn* doublCol = col->as_double();
+          for (size_t i = col_size; i < this->schema_->length(); i++) {
+            doublCol->push_back((double) 0);
+          }
+          break;
+        }
         default:
           //do nothing.
           break;
@@ -157,6 +170,17 @@ public:
       IntColumn* intCol = dynamic_cast<IntColumn*>(this->cols_->get(col));
       assert(row < this->schema_->length());
       return intCol->get(row);
+    }
+
+      /** Return the value at the given column and row. Accessing rows or
+     *  columns out of bounds would exit*/
+    int get_double(size_t col, size_t row) {
+      assert(col < this->schema_->width());
+      char col_type = this->schema_->col_type(col);
+      assert(col_type == 'D');
+      DoubleColumn* doubCol = dynamic_cast<DoubleColumn*>(this->cols_->get(col));
+      assert(row < this->schema_->length());
+      return doubCol->get(row);
     }
 
     /** Return the value at the given column and row. Accessing rows or
@@ -212,6 +236,27 @@ public:
           IntColumn* intCol = dynamic_cast<IntColumn*>(this->cols_->get(col));
           if (row < this->schema_->length()) {
             intCol->set(row, val);
+          } else {
+            return;
+          }
+        } else {
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+
+    /** Set the value at the given column and row to the given value.
+      * If the column is not  of the right type or the indices are out of
+      * bound, the result is to do nothing. */
+    void set(size_t col, size_t row, double val) {
+      if (col < this->schema_->width()) {
+        char col_type = this->schema_->col_type(col);
+        if (col_type == 'D') {
+          DoubleColumn* doubCol = dynamic_cast<DoubleColumn*>(this->cols_->get(col));
+          if (row < this->schema_->length()) {
+            doubCol->set(row, val);
           } else {
             return;
           }
@@ -319,6 +364,11 @@ public:
                 row.set(i, floatCol->get(idx));
                 break;
               }
+            case 'D': {
+                DoubleColumn* doubCol = dynamic_cast<DoubleColumn*>(this->cols_->get(i));
+                row.set(i, doubCol->get(idx));
+                break;
+              }
             default:
               //do nothing.
               break;
@@ -360,6 +410,11 @@ public:
             case 'F': {
                 FloatColumn* floatCol = dynamic_cast<FloatColumn*>(this->cols_->get(i));
                 floatCol->push_back(row.get_float(i));  
+                break;
+              }
+            case 'D': {
+                DoubleColumn* doubleCol = dynamic_cast<DoubleColumn*>(this->cols_->get(i));
+                doubleCol->push_back(row.get_double(i));  
                 break;
               }
             default:
@@ -499,6 +554,6 @@ public:
     }
 
     static DataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
-      
+      Schema* s = new Schema("");
     }
 };

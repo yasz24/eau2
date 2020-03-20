@@ -55,6 +55,13 @@ class Row : public Object {
       ic->set(0, val);
     }
   };
+  void set(size_t col, double val) {
+    assert(col < schema.width());
+    if(val_[col]->get_type() == 'D') {
+      DoubleColumn* dc = val_[col]->as_double();
+      dc->set(0, val);
+    }
+  };
   void set(size_t col, float val) {
     assert(col < schema.width());
     if(val_[col]->get_type() == 'F') {
@@ -95,6 +102,13 @@ class Row : public Object {
     assert(col_type(col) == 'I');
     IntColumn* ic = val_[col]->as_int();
     return ic->get(0);
+  };
+
+  double get_double(size_t col) {
+    assert(col < schema.width());
+    assert(col_type(col) == 'D');
+    DoubleColumn* dc = val_[col]->as_double();
+    return dc->get(0);
   };
 
   bool get_bool(size_t col) {
