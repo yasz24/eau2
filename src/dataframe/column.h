@@ -2,6 +2,7 @@
 #pragma once
 #include "../utils/string.h"
 #include "../utils/array.h"
+#include "../utils/distributedArray.h"
 #include<stdarg.h>
 #include<stdio.h>
 
@@ -59,14 +60,14 @@ class IntColumn : public Column {
   IntColumn() {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new IntArray(arraySize_));
+      val_->pushBack(new IntDistributedArray(arraySize_));
     }
   };
 
   IntColumn(int n, ...) {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new IntArray(arraySize_));
+      val_->pushBack(new IntDistributedArray(arraySize_));
     }
     va_list ap;
     va_start (ap, n);
@@ -85,7 +86,7 @@ class IntColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-    IntArray* ia = dynamic_cast<IntArray*>(val_->get(arrays_index));
+    IntDistributedArray* ia = dynamic_cast<IntDistributedArray*>(val_->get(arrays_index));
     return ia->get(index);
   };
   /** Set value at idx. An out of bound idx triggers an assert error.  */
@@ -93,7 +94,7 @@ class IntColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-    IntArray* ia = dynamic_cast<IntArray*>(val_->get(arrays_index));
+    IntDistributedArray* ia = dynamic_cast<IntDistributedArray*>(val_->get(arrays_index));
     ia->set(index, val);
   };
   /** returns length of int column */
@@ -112,10 +113,10 @@ class IntColumn : public Column {
     * in no data change. **/
   void push_back(int val) {
     if(arraySize_*val_->length() >= listLength_ - 1) {
-      val_->pushBack(new IntArray(arraySize_));
+      val_->pushBack(new IntDistributedArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;
-    IntArray* ia = dynamic_cast<IntArray*>(val_->get(array_index));
+    IntDistributedArray* ia = dynamic_cast<IntDistributedArray*>(val_->get(array_index));
     ia->pushBack(val);
     listLength_++;
 
@@ -132,7 +133,7 @@ class IntColumn : public Column {
   size_t hash_me() {
     size_t hash = 0;
     for(int i = 0; i < val_->length(); i++) {
-      IntArray* ia = dynamic_cast<IntArray*>(val_->get(i));
+      IntDistributedArray* ia = dynamic_cast<IntDistributedArray*>(val_->get(i));
       for(int j = 0; j < ia->length(); j++) {
         hash += ia->get(j);
       }
@@ -146,8 +147,8 @@ class IntColumn : public Column {
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     for(int i = 0; i < val_->length(); i++) {
-      IntArray* ia = dynamic_cast<IntArray*>(val_->get(i));
-      IntArray* other_ia = dynamic_cast<IntArray*>(other_ic->val_->get(i));
+      IntDistributedArray* ia = dynamic_cast<IntDistributedArray*>(val_->get(i));
+      IntDistributedArray* other_ia = dynamic_cast<IntDistributedArray*>(other_ic->val_->get(i));
       for(int j = 0; j < ia->length(); j++) {
         if(ia->get(j) != other_ia->get(j)) {
           return false;
@@ -171,14 +172,14 @@ class DoubleColumn : public Column {
   DoubleColumn() {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new DoubleArray(arraySize_));
+      val_->pushBack(new DoubleDistributedArray(arraySize_));
     }
   };
 
   DoubleColumn(int n, ...) {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new DoubleArray(arraySize_));
+      val_->pushBack(new DoubleDistributedArray(arraySize_));
     }
     va_list ap;
     va_start (ap, n);
@@ -197,7 +198,7 @@ class DoubleColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-    DoubleArray* da = dynamic_cast<DoubleArray*>(val_->get(arrays_index));
+    DoubleDistributedArray* da = dynamic_cast<DoubleDistributedArray*>(val_->get(arrays_index));
     return da->get(index);
   };
   /** Set value at idx. An out of bound idx triggers an assert error.  */
@@ -205,7 +206,7 @@ class DoubleColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-    DoubleArray* da = dynamic_cast<DoubleArray*>(val_->get(arrays_index));
+    DoubleDistributedArray* da = dynamic_cast<DoubleDistributedArray*>(val_->get(arrays_index));
     da->set(index, val);
   };
   /** returns length of int column */
@@ -224,10 +225,10 @@ class DoubleColumn : public Column {
     * in no data change. **/
   void push_back(double val) {
     if(arraySize_*val_->length() >= listLength_ - 1) {
-      val_->pushBack(new DoubleArray(arraySize_));
+      val_->pushBack(new DoubleDistributedArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;
-    DoubleArray* da = dynamic_cast<DoubleArray*>(val_->get(array_index));
+    DoubleDistributedArray* da = dynamic_cast<DoubleDistributedArray*>(val_->get(array_index));
     da->pushBack(val);
     listLength_++;
 
@@ -244,7 +245,7 @@ class DoubleColumn : public Column {
   size_t hash_me() {
     size_t hash = 0;
     for(int i = 0; i < val_->length(); i++) {
-      DoubleArray* ia = dynamic_cast<DoubleArray*>(val_->get(i));
+      DoubleDistributedArray* ia = dynamic_cast<DoubleDistributedArray*>(val_->get(i));
       for(int j = 0; j < ia->length(); j++) {
         hash += ia->get(j);
       }
@@ -258,8 +259,8 @@ class DoubleColumn : public Column {
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     for(int i = 0; i < val_->length(); i++) {
-      DoubleArray* ia = dynamic_cast<DoubleArray*>(val_->get(i));
-      DoubleArray* other_ia = dynamic_cast<DoubleArray*>(other_ic->val_->get(i));
+      DoubleDistributedArray* ia = dynamic_cast<DoubleDistributedArray*>(val_->get(i));
+      DoubleDistributedArray* other_ia = dynamic_cast<DoubleDistributedArray*>(other_ic->val_->get(i));
       for(int j = 0; j < ia->length(); j++) {
         if(ia->get(j) != other_ia->get(j)) {
           return false;
@@ -283,14 +284,14 @@ class FloatColumn : public Column {
   FloatColumn() {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new FloatArray(arraySize_));
+      val_->pushBack(new FloatDistributedArray(arraySize_));
     }
   };
 
   FloatColumn(int n, ...) {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new FloatArray(arraySize_));
+      val_->pushBack(new FloatDistributedArray(arraySize_));
     }
     va_list ap;
     va_start (ap, n);
@@ -309,7 +310,7 @@ class FloatColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-    FloatArray* fa = dynamic_cast<FloatArray*>(val_->get(arrays_index));
+    FloatDistributedArray* fa = dynamic_cast<FloatDistributedArray*>(val_->get(arrays_index));
     return fa->get(index);
   };
 
@@ -318,7 +319,7 @@ class FloatColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-    FloatArray* fa = dynamic_cast<FloatArray*>(val_->get(arrays_index));
+    FloatDistributedArray* fa = dynamic_cast<FloatDistributedArray*>(val_->get(arrays_index));
     fa->set(index, val);
   };
   /** returns length of column */
@@ -335,10 +336,10 @@ class FloatColumn : public Column {
     * in no data change. **/
   void push_back(float val) {
     if(arraySize_*val_->length() >= listLength_ - 1) {
-      val_->pushBack(new FloatArray(arraySize_));
+      val_->pushBack(new FloatDistributedArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;
-    FloatArray* fa = dynamic_cast<FloatArray*>(val_->get(array_index));
+    FloatDistributedArray* fa = dynamic_cast<FloatDistributedArray*>(val_->get(array_index));
     fa->pushBack(val);
     listLength_++;
 
@@ -352,7 +353,7 @@ class FloatColumn : public Column {
   size_t hash_me() {
     float hash = 0;
     for(int i = 0; i < val_->length(); i++) {
-      FloatArray* fa = dynamic_cast<FloatArray*>(val_->get(i));
+      FloatDistributedArray* fa = dynamic_cast<FloatDistributedArray*>(val_->get(i));
       for(int j = 0; j < fa->length(); j++) {
         hash += fa->get(j);
       }
@@ -366,8 +367,8 @@ class FloatColumn : public Column {
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     for(int i = 0; i < val_->length(); i++) {
-      FloatArray* ia = dynamic_cast<FloatArray*>(val_->get(i));
-      FloatArray* other_ia = dynamic_cast<FloatArray*>(other_ic->val_->get(i));
+      FloatDistributedArray* ia = dynamic_cast<FloatDistributedArray*>(val_->get(i));
+      FloatDistributedArray* other_ia = dynamic_cast<FloatDistributedArray*>(other_ic->val_->get(i));
       for(int j = 0; j < ia->length(); j++) {
         if(ia->get(j) != other_ia->get(j)) {
           return false;
@@ -394,14 +395,14 @@ class BoolColumn : public Column {
   BoolColumn() {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new BoolArray(arraySize_));
+      val_->pushBack(new BoolDistributedArray(arraySize_));
     }
   };
 
   BoolColumn(int n, ...) {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new BoolArray(arraySize_));
+      val_->pushBack(new BoolDistributedArray(arraySize_));
     }
     va_list ap;
     va_start (ap, n);
@@ -420,7 +421,7 @@ class BoolColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-    BoolArray* ba = dynamic_cast<BoolArray*>(val_->get(arrays_index));
+    BoolDistributedArray* ba = dynamic_cast<BoolDistributedArray*>(val_->get(arrays_index));
     return ba->get(index);
   };
 
@@ -429,7 +430,7 @@ class BoolColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-    BoolArray* ba = dynamic_cast<BoolArray*>(val_->get(arrays_index));
+    BoolDistributedArray* ba = dynamic_cast<BoolDistributedArray*>(val_->get(arrays_index));
     ba->set(index, val);
   };
   /** returns the length of boolColumn */
@@ -446,10 +447,10 @@ class BoolColumn : public Column {
     * no data change. **/
   void push_back(bool val) {
     if(arraySize_*val_->length() >= listLength_ - 1) {
-      val_->pushBack(new BoolArray(arraySize_));
+      val_->pushBack(new BoolDistributedArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;
-    BoolArray* ba = dynamic_cast<BoolArray*>(val_->get(array_index));
+    BoolDistributedArray* ba = dynamic_cast<BoolDistributedArray*>(val_->get(array_index));
     ba->pushBack(val);
     listLength_++;
 
@@ -462,7 +463,7 @@ class BoolColumn : public Column {
   size_t hash_me() {
     size_t hash = 0;
     for(int i = 0; i < val_->length(); i++) {
-      BoolArray* fa = dynamic_cast<BoolArray*>(val_->get(i));
+      BoolDistributedArray* fa = dynamic_cast<BoolDistributedArray*>(val_->get(i));
       for(int j = 0; j < fa->length(); j++) {
         int val = 1;
         if(fa->get(j)) {
@@ -480,8 +481,8 @@ class BoolColumn : public Column {
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     for(int i = 0; i < val_->length(); i++) {
-      BoolArray* ia = dynamic_cast<BoolArray*>(val_->get(i));
-      BoolArray* other_ia = dynamic_cast<BoolArray*>(other_ic->val_->get(i));
+      BoolDistributedArray* ia = dynamic_cast<BoolDistributedArray*>(val_->get(i));
+      BoolDistributedArray* other_ia = dynamic_cast<BoolDistributedArray*>(other_ic->val_->get(i));
       for(int j = 0; j < ia->length(); j++) {
         if(ia->get(j) != other_ia->get(j)) {
           return false;
@@ -508,14 +509,14 @@ class StringColumn : public Column {
   StringColumn() {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new StringArray(arraySize_));
+      val_->pushBack(new StringDistributedArray(arraySize_));
     }
   };
 
   StringColumn(int n, ...) {
     val_ = new Array();
     for(int i = 0; i < metaArrayStartSize_; i++) {
-      val_->pushBack(new StringArray(arraySize_));
+      val_->pushBack(new StringDistributedArray(arraySize_));
     }
     va_list ap;
     va_start (ap, n);
@@ -534,7 +535,7 @@ class StringColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-   StringArray* a = dynamic_cast<StringArray*>(val_->get(arrays_index));
+   StringDistributedArray* a = dynamic_cast<StringDistributedArray*>(val_->get(arrays_index));
     String* s = dynamic_cast<String*>(a->get(index));
     return s;
   };
@@ -543,7 +544,7 @@ class StringColumn : public Column {
     assert(idx < listLength_);
     int arrays_index = idx / arraySize_;
     int index = idx - arrays_index*arraySize_;
-    StringArray* a = dynamic_cast<StringArray*>(val_->get(arrays_index));
+    StringDistributedArray* a = dynamic_cast<StringDistributedArray*>(val_->get(arrays_index));
     a->set(index, val);
   };
   size_t size() { return listLength_; };
@@ -558,10 +559,10 @@ class StringColumn : public Column {
     * undefined behavior. **/
   void push_back(String* val) {
     if(arraySize_*val_->length() >= listLength_ - 1) {
-      val_->pushBack(new StringArray(arraySize_));
+      val_->pushBack(new StringDistributedArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;
-    StringArray* a = dynamic_cast<StringArray*>(val_->get(array_index));
+    StringDistributedArray* a = dynamic_cast<StringDistributedArray*>(val_->get(array_index));
     a->pushBack(val);
     listLength_++;
 
@@ -574,7 +575,7 @@ class StringColumn : public Column {
   size_t hash_me() {
     size_t hash = 0;
     for(int i = 0; i < val_->length(); i++) {
-      StringArray* fa = dynamic_cast<StringArray*>(val_->get(i));
+      StringDistributedArray* fa = dynamic_cast<StringDistributedArray*>(val_->get(i));
       for(int j = 0; j < fa->length(); j++) {
         hash += fa->get(j)->hash_me();
       }
@@ -588,8 +589,8 @@ class StringColumn : public Column {
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     for(int i = 0; i < val_->length(); i++) {
-      StringArray* ia = dynamic_cast<StringArray*>(val_->get(i));
-      StringArray* other_ia = dynamic_cast<StringArray*>(other_ic->val_->get(i));
+      StringDistributedArray* ia = dynamic_cast<StringDistributedArray*>(val_->get(i));
+      StringDistributedArray* other_ia = dynamic_cast<StringDistributedArray*>(other_ic->val_->get(i));
       for(int j = 0; j < ia->length(); j++) {
         if(!ia->get(j)->equals(other_ia->get(j))) {
           return false;

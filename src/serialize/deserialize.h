@@ -1,9 +1,9 @@
 //LANGUAGE: CwC
 #pragma once
 #include <string.h>
-#include "object.h"
+#include "../object.h"
 #include "jsonHelper.h"
-#include "string.h"
+#include "../utils/string.h"
 
 /**
  * A generic Deserialize method that calls the correct deserialization method of the given serialized class

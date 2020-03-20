@@ -21,6 +21,7 @@ public:
         size_t hash_ = 0;
         hash_ += this->name_->hash();
         hash_ = hash_ * this->node_; 
+        return hash_;
     }
 
     bool equals(Object* other) {

@@ -1,8 +1,8 @@
 //LANGUAGE: CwC
 #pragma once
 #include <string.h>
-#include "object.h"
-#include "array.h"
+#include "../object.h"
+#include "../utils/array.h"
 
 /**
  * Set of useful helper methods for parsing Serialized data. Used primarily in deserialization to

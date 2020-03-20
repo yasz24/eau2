@@ -1,7 +1,7 @@
 //lang: CwC
 #pragma once
-#include "object.h"
-#include "string.h"
+#include "../object.h"
+#include "../utils/string.h"
 #include "jsonHelper.h"
 #include "serial.h"
 #include <string>

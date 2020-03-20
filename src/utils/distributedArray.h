@@ -5,8 +5,8 @@
 #include "../store/kvstore.h"
 #include "array.h"
 #include "../store/value.h"
-#include "jsonHelper.h"
-#include "serial.h"
+#include "../serialize/jsonHelper.h"
+#include "../serialize/serial.h"
 #include "string.h"
 
 #include <math.h>
@@ -78,7 +78,7 @@ class IntDistributedArray: public Object {
             sb->c("_dist_int_array_chunk_");
             sb->c(chunkCount_);
             String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
             keys_->pushBack(k);
             IntArray* valuesArray = new IntArray(); //creates new Int array to store values in this chunk
             valuesArray->pushBack(val);
@@ -191,7 +191,7 @@ class FloatDistributedArray: public Object {
             sb->c("_dist_int_array_chunk_");
             sb->c(chunkCount_);
             String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
             keys_->pushBack(k);
             FloatArray* valuesArray = new FloatArray(); //creates new Int array to store values in this chunk
             valuesArray->pushBack(val);
@@ -304,7 +304,7 @@ class StringDistributedArray: public Object {
             sb->c("_dist_int_array_chunk_");
             sb->c(chunkCount_);
             String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
             keys_->pushBack(k);
             StringArray* valuesArray = new StringArray(); //creates new Int array to store values in this chunk
             valuesArray->pushBack(val);
@@ -313,7 +313,7 @@ class StringDistributedArray: public Object {
             Key* curKey = dynamic_cast<Key*>(keys_->get(chunkCount_)); //get current Key to change its value....
             Value* kv_val = kv_->get(curKey);
             char* payload = JSONHelper::getPayloadValue(kv_val->data)->c_str();
-            StringArray* intArr = IntArray::deserialize(payload); //get IntArray to update
+            StringArray* intArr = StringArray::deserialize(payload); //get IntArray to update
             intArr->pushBack(val);
             kv_->put(curKey, new Value(intArr->serialize(), 0)); //put new IntArray with same key into Kv
         }
@@ -409,7 +409,7 @@ class BoolDistributedArray: public Object {
             sb->c("_dist_int_array_chunk_");
             sb->c(chunkCount_);
             String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
             keys_->pushBack(k);
             BoolArray* valuesArray = new BoolArray(); //creates new Int array to store values in this chunk
             valuesArray->pushBack(val);
@@ -514,7 +514,7 @@ class DoubleDistributedArray: public Object {
             sb->c("_dist_int_array_chunk_");
             sb->c(chunkCount_);
             String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
             keys_->pushBack(k);
             DoubleArray* valuesArray = new DoubleArray(); //creates new Int array to store values in this chunk
             valuesArray->pushBack(val);

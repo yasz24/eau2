@@ -8,6 +8,7 @@
 #include "../src/sorer/parser.h"
 #include "../src/helper.h"
 #include "../src/dataframe/summation.h"
+#include "../src/dataframe/dataframe.h"
 /**
  * Enum representing different states of parsing command line arguments.
  */

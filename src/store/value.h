@@ -1,3 +1,4 @@
+#pragma once
 #include "../object.h"
 //todo: write hash, equals
 class Value : public Object{
