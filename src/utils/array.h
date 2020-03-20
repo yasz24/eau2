@@ -1,9 +1,9 @@
 //lang: CwC
 #pragma once
 #include "object.h"
-#include "string.h"
-#include "jsonHelper.h"
-#include "serial.h"
+#include "../utils/string.h"
+#include "../serialize/jsonHelper.h"
+#include "../serialize/serial.h"
 #include <string>
 //Authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /** Array class: creates a resizeable array of Objects */
@@ -240,6 +240,109 @@ class IntArray: public Object {
          return ia;
      }
 };
+/** Builds a specific type of array with similar behavior to Array class but of fixed length and doubles */
+class DoubleArray: public Object {
+    public:
+    double* vals_;
+    size_t listLength_ = 0;
+    size_t arraySize_;
+
+    DoubleArray() {
+        arraySize_ = 32;
+        vals_=new double[arraySize_];
+    }
+
+    DoubleArray(int as) {
+        arraySize_ = as;
+        vals_=new double[arraySize_];
+    }
+
+    double get(size_t index) {
+        assert(index < listLength_);
+        return vals_[index];
+    }; //returns the object at index
+
+  double set(size_t index, double val) {
+     assert(index < listLength_);
+    double prev = vals_[index];
+    vals_[index] = val;
+    return prev;
+  }; //sets the object at index to be o, returns former object
+    
+    void pushBack(double val) {
+        vals_[listLength_] = val;
+        listLength_++;
+    }; //add o to end of array
+
+  bool empty() {
+      return listLength_ == 0;
+  }; //checks if there are any items in the array
+
+  bool equals(Object * o) {
+      if ( o == nullptr) return false;
+        DoubleArray *s = dynamic_cast<DoubleArray*>(o);
+        if(s == nullptr) return false;
+        if(listLength_ != s->listLength_) return false;
+        for(int i = 0; i < listLength_; i++) {
+            bool sameDoub = s->get(i) == get(i);
+            if(!sameDoub) {
+                return false;
+            }
+        }
+        return true;
+  }; //checks if this is equal to o
+
+  size_t length() {
+      return listLength_;
+  }; //returns the number of elements in the array
+
+  /** Return the hash value of this object */
+  size_t hash_me() {
+      double temp = 0;
+      for(int i = 0; i < listLength_; i++) {
+          temp *= vals_[i];
+      }
+      return temp;
+  }
+
+    /** Return a copy of the object; nullptr is considered an error */
+    virtual Object* clone() { 
+        IntArray* temp = new IntArray();
+        for(int i = 0; i < listLength_; i++) {
+            int value = vals_[i];
+            temp->pushBack(value);
+        }
+        return temp;
+     }
+     /**
+     * Creates a char* serialized version of this class, storing all necessary fields and variables in a JSON string
+     */    
+     char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("DoubleArray");
+        sb->write("listLength_", listLength_);
+        sb->write("arraySize_", arraySize_);
+        sb->write("vals_", vals_, listLength_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+     }
+    /**
+     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
+     */ 
+     static DoubleArray* deserialize(char* s) {
+         size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+         size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+         String* vals = JSONHelper::getValueFromKey("vals_", s);
+         char* values = vals->c_str();
+         DoubleArray* da = new DoubleArray(arraySize);
+         for(int i = 0; i < listLength; i++) {
+             da->pushBack(std::stoi(JSONHelper::getArrayValueAt(values, i)->c_str()));
+         }
+         return da;
+     }
+};
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Floats */
 class FloatArray: public Object {
     public:
@@ -264,7 +367,7 @@ class FloatArray: public Object {
 
   float set(size_t index, float val) {
      assert(index < listLength_);
-    int prev = vals_[index];
+    float prev = vals_[index];
     vals_[index] = val;
     return prev;
   }; //sets the object at index to be o, returns former object
