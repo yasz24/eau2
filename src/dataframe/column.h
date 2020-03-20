@@ -156,6 +156,19 @@ class IntColumn : public Column {
     }
     return true;
   }
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("IntColumn");
+    sb->write("val_", val_);
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };
 /*************************************************************************
  * DoubleColumn::
@@ -268,6 +281,19 @@ class DoubleColumn : public Column {
     }
     return true;
   }
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("DoubleColumn");
+    sb->write("val_", val_);
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };
 /*************************************************************************
  * FloatColumn::
@@ -379,6 +405,19 @@ class FloatColumn : public Column {
 
   /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
   char get_type() { return 'F'; };
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("FloatColumn");
+    sb->write("val_", val_);
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };
 /*************************************************************************
  * BoolColumn::
@@ -493,6 +532,19 @@ class BoolColumn : public Column {
 
   /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
   char get_type() { return 'B'; };
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("BoolColumn");
+    sb->write("val_", val_);
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };
 /*************************************************************************
  * StringColumn::

@@ -4,6 +4,7 @@
 #include "string.h"
 #include "../utils/map.h"
 #include "../utils/primatives.h"
+#include "../serialize/serial.h"
 #include <iostream>
 
 //authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
@@ -282,5 +283,19 @@ public:
         }
         
         return hash_;
+    }
+
+    //will lose the row/column names with serialization
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Schema");
+         sb->write("capacity_", capacity_);
+        sb->write("val_", this->val_);
+        sb->write("empty_index_", empty_index_);
+        sb->write("num_rows_", num_rows_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
     }
 };

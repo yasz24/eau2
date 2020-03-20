@@ -552,8 +552,22 @@ public:
         }
         return true;
     }
+     /**
+     * Creates a char* serialized version of this class, storing all necessary fields and variables in a JSON string
+     */    
+     char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("DataFrame");
+        sb->write("schema_", schema_);
+        sb->write("cols_", cols_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+     }
 
     static DataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
-      Schema* s = new Schema("");
+      Schema* s = new Schema("D");
+
     }
 };

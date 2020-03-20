@@ -8,6 +8,7 @@
 //Authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /** Array class: creates a resizeable array of Objects */
 
+class Serializable;
 /**Includes unique serialization and deserialization methods for IntArray, FloatArray, and StringArray 
  * that allow these classes to be interpreted as JSON strings*/
 class Array: public Object{
@@ -136,6 +137,18 @@ public:
 
     /** Returned c_str is owned by the object, don't modify nor delete. */
     virtual char* c_str() { return nullptr; }
+    
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Array");
+        sb->write("listLength_", listLength_);
+        sb->write("arraySize_", arraySize_);
+        sb->write("objs_", objs_, listLength_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+    }
 };
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Ints */
 class IntArray: public Object {
