@@ -1,6 +1,6 @@
 //lang: CwC
 #pragma once
-#include "object.h"
+#include "../object.h"
 #include "../utils/string.h"
 #include "../serialize/jsonHelper.h"
 #include "../serialize/serial.h"

@@ -558,8 +558,10 @@ public:
      char* serialize() {
         Serializable* sb = new Serializable();
         sb->initSerialize("DataFrame");
-        sb->write("schema_", schema_);
-        sb->write("cols_", cols_);
+        char * serializedschema = schema_->serialize();
+        sb->write("schema_", serializedschema);
+        char * seralizedcols = cols_->serialize();
+        sb->write("cols_", seralizedcols);
         sb->endSerialize();
         char* value = sb->get();
         delete sb;

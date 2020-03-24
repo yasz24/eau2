@@ -1,8 +1,8 @@
 //lang::CwC 
 #pragma once
-#include "object.h"  // Your file with the CwC declaration of Object
+#include "../object.h"  // Your file with the CwC declaration of Object
 #include "string.h"  // Your file with the String class
-#include "array.h"
+#include "../utils/array.h"
 #include "serial.h"
 #include "network.h"
 #include "deserialize.h"

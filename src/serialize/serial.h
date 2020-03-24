@@ -4,8 +4,6 @@
 #include "../object.h"
 #include "jsonHelper.h"
 #include "../utils/string.h"
-#include "../utils/array.h"
-#include "../dataframe/dataframe.h"
 
 /**
  * A serialization class that provides all the necessary formatting for taking
@@ -100,7 +98,7 @@ public:
     }
 
     void write(const char* name, char* val) {
-        char str[1000];
+        char str[strlen(val)];
         sprintf(str, "'%s' : '%s', ", name, val);
         buff->c(str);
     }
@@ -160,17 +158,17 @@ public:
         buff->c("], ");
     }
     
-    void write(const char* name, Array* arr) {
-        char * seralizedArr = arr->serialize();
-        char str[10000];
-        sprintf(str, "'%s' : '%s',", name, seralizedArr);
-    }
+    // void write(const char* name, Array* arr) {
+    //     char * seralizedArr = arr->serialize();
+    //     char str[10000];
+    //     sprintf(str, "'%s' : '%s',", name, seralizedArr);
+    // }
 
-    void write(const char* name, Schema* sch) {
-        char * schemaSerialized = sch->serialize();
-        char str[10000];
-        sprintf(str, "'%s' : '%s',", name, schemaSerialized);
-    }
+    // void write(const char* name, Schema* sch) {
+    //     char * schemaSerialized = sch->serialize();
+    //     char str[10000];
+    //     sprintf(str, "'%s' : '%s',", name, schemaSerialized);
+    // }
 
     /**
      * Called to close brackets of JSON after all necessary data written

@@ -160,7 +160,8 @@ class IntColumn : public Column {
   char* serialize() {
     Serializable* sb = new Serializable();
     sb->initSerialize("IntColumn");
-    sb->write("val_", val_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr);
     sb->write("listLength_", listLength_);
     sb->write("arraySize_", arraySize_);
     sb->write("metaArrayStartSize__", metaArrayStartSize_);
@@ -285,7 +286,8 @@ class DoubleColumn : public Column {
   char* serialize() {
     Serializable* sb = new Serializable();
     sb->initSerialize("DoubleColumn");
-    sb->write("val_", val_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr);
     sb->write("listLength_", listLength_);
     sb->write("arraySize_", arraySize_);
     sb->write("metaArrayStartSize__", metaArrayStartSize_);
@@ -409,7 +411,8 @@ class FloatColumn : public Column {
   char* serialize() {
     Serializable* sb = new Serializable();
     sb->initSerialize("FloatColumn");
-    sb->write("val_", val_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr);
     sb->write("listLength_", listLength_);
     sb->write("arraySize_", arraySize_);
     sb->write("metaArrayStartSize__", metaArrayStartSize_);
@@ -536,7 +539,8 @@ class BoolColumn : public Column {
   char* serialize() {
     Serializable* sb = new Serializable();
     sb->initSerialize("BoolColumn");
-    sb->write("val_", val_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr);
     sb->write("listLength_", listLength_);
     sb->write("arraySize_", arraySize_);
     sb->write("metaArrayStartSize__", metaArrayStartSize_);
