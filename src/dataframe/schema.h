@@ -289,7 +289,7 @@ public:
     char* serialize() {
         Serializable* sb = new Serializable();
         sb->initSerialize("Schema");
-         sb->write("capacity_", capacity_);
+        sb->write("capacity_", capacity_);
         sb->write("val_", this->val_);
         sb->write("empty_index_", empty_index_);
         sb->write("num_rows_", num_rows_);
@@ -297,5 +297,13 @@ public:
         char* value = sb->get();
         delete sb;
         return value;
+    }
+
+    static Schema* deserialize(char* s) {
+        char* val = JSONHelper::getValueFromKey("val_", s)->c_str();
+        size_t num_rows = std::stoi(JSONHelper::getValueFromKey("num_rows_", s)->c_str());
+        Schema* sch = new Schema(val);
+        sch->num_rows_ = num_rows;
+        return sch;
     }
 };

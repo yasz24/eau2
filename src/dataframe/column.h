@@ -76,6 +76,11 @@ class IntColumn : public Column {
     va_end (ap);
   }
 
+  IntColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
+  }
+
   ~IntColumn() {
    // delete val_;
   }
@@ -170,6 +175,16 @@ class IntColumn : public Column {
     delete sb;
     return value;
   }
+
+  static IntColumn* deserialize(char* s) {
+    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+    String* arr_string = JSONHelper::getValueFromKey("val_", s);
+    char* arr_cstr = arr_string->c_str();
+    Array* arr = dynamic_cast<Array*>(Deserializable::deserialize(arr_cstr));
+    IntColumn* ic = new IntColumn(arr, listLength);
+    return ic;
+  }
 };
 /*************************************************************************
  * DoubleColumn::
@@ -200,6 +215,11 @@ class DoubleColumn : public Column {
       push_back(va_arg (ap, double)); 
     }
     va_end (ap);
+  }
+
+  DoubleColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
   }
 
   ~DoubleColumn() {
@@ -296,6 +316,16 @@ class DoubleColumn : public Column {
     delete sb;
     return value;
   }
+
+  static DoubleColumn* deserialize(char* s) {
+    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+    String* arr_string = JSONHelper::getValueFromKey("val_", s);
+    char* arr_cstr = arr_string->c_str();
+    Array* arr = dynamic_cast<Array*>(Deserializable::deserialize(arr_cstr));
+    DoubleColumn* dc = new DoubleColumn(arr, listLength);
+    return dc;
+  }
 };
 /*************************************************************************
  * FloatColumn::
@@ -326,6 +356,11 @@ class FloatColumn : public Column {
       push_back(va_arg (ap, float)); 
     }
     va_end (ap);
+  }
+
+  FloatColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
   }
 
   ~FloatColumn() {
@@ -421,6 +456,16 @@ class FloatColumn : public Column {
     delete sb;
     return value;
   }
+
+  static FloatColumn* deserialize(char* s) {
+    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+    String* arr_string = JSONHelper::getValueFromKey("val_", s);
+    char* arr_cstr = arr_string->c_str();
+    Array* arr = dynamic_cast<Array*>(Deserializable::deserialize(arr_cstr));
+    FloatColumn* fc = new FloatColumn(arr, listLength);
+    return fc;
+  }
 };
 /*************************************************************************
  * BoolColumn::
@@ -451,6 +496,11 @@ class BoolColumn : public Column {
       push_back(va_arg (ap, bool)); 
     }
     va_end (ap);
+  }
+
+  BoolColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
   }
 
   ~BoolColumn() {
@@ -549,6 +599,16 @@ class BoolColumn : public Column {
     delete sb;
     return value;
   }
+
+  static BoolColumn* deserialize(char* s) {
+    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+    String* arr_string = JSONHelper::getValueFromKey("val_", s);
+    char* arr_cstr = arr_string->c_str();
+    Array* arr = dynamic_cast<Array*>(Deserializable::deserialize(arr_cstr));
+    BoolColumn* bc = new BoolColumn(arr, listLength);
+    return bc;
+  }
 };
 /*************************************************************************
  * StringColumn::
@@ -579,6 +639,11 @@ class StringColumn : public Column {
       push_back(va_arg (ap, String*)); 
     }
     va_end (ap);
+  }
+
+  StringColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
   }
 
   ~StringColumn() {
@@ -657,4 +722,27 @@ class StringColumn : public Column {
  
   /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
   char get_type() { return 'S'; };
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("StringColumn");
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr);
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
+  static StringColumn* deserialize(char* s) {
+    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+    String* arr_string = JSONHelper::getValueFromKey("val_", s);
+    char* arr_cstr = arr_string->c_str();
+    Array* arr = dynamic_cast<Array*>(Deserializable::deserialize(arr_cstr));
+    StringColumn* sc = new StringColumn(arr, listLength);
+    return sc;
+  }
 };

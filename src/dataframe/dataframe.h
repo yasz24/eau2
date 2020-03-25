@@ -95,6 +95,11 @@ public:
       }
 
     }
+
+    DataFrame(Schema* sch, Array* cols) {
+      this->schema_ = sch;
+      this->cols_ = cols;
+    }
   
     /** Returns the dataframe's schema as a copy Schema. Modifying the schema after a dataframe
       * wouldn't change internal schema. */
@@ -567,6 +572,13 @@ public:
         delete sb;
         return value;
      }
+
+    static DataFrame* deserialize(char* s) {
+        Schema* sch = dynamic_cast<Schema*>(DataFrame::deserialize(JSONHelper::getValueFromKey("schema_", s)->c_str()));
+        Array* cols = dynamic_cast<Array*>(Deserializable::deserialize(JSONHelper::getValueFromKey("cols_", s)->c_str()));
+        DataFrame* df = new DataFrame(sch, cols);
+        return df;
+    }
 
     static DataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
       Schema* s = new Schema("D");

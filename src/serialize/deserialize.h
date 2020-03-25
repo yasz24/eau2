@@ -4,7 +4,16 @@
 #include "../object.h"
 #include "jsonHelper.h"
 #include "string.h"
+#include "../dataframe/dataframe.h"
+#include "../dataframe/schema.h"
 
+
+class IntArray;
+class FloatArray;
+class StringArray;
+class DoubleArray;
+class StringColumn;
+class Array;
 /**
  * A generic Deserialize method that calls the correct deserialization method of the given serialized class
  * 
@@ -32,6 +41,22 @@ public:
             return StringArray::deserialize(valueName);
         } else if(0 == strncmp(className,"DoubleArray", strlen(className))) {
             return DoubleArray::deserialize(valueName);
+        } else if(0 == strncmp(className,"StringColumn", strlen(className))) {
+            return StringColumn::deserialize(valueName);
+        } else if(0 == strncmp(className,"FloatColumn", strlen(className))) {
+            return FloatColumn::deserialize(valueName);
+        } else if(0 == strncmp(className,"DoubleColumn", strlen(className))) {
+            return DoubleColumn::deserialize(valueName);
+        } else if(0 == strncmp(className,"IntColumn", strlen(className))) {
+            return IntColumn::deserialize(valueName);
+        } else if(0 == strncmp(className,"BoolColumn", strlen(className))) {
+            return BoolColumn::deserialize(valueName);
+        } else if(0 == strncmp(className, "DataFrame", strlen(className))) {
+            return DataFrame::deserialize(valueName);
+        } else if(0 == strncmp(className, "Schema", strlen(className))) {
+            return Schema::deserialize(valueName);
+        } else if(0 == strncmp(className, "Array", strlen(className))) {
+            return Array::deserialize(valueName);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

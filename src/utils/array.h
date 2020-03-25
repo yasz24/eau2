@@ -4,6 +4,7 @@
 #include "../utils/string.h"
 #include "../serialize/jsonHelper.h"
 #include "../serialize/serial.h"
+#include "../serialize/deserialize.h"
 #include <string>
 //Authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /** Array class: creates a resizeable array of Objects */
@@ -148,6 +149,19 @@ public:
         char* value = sb->get();
         delete sb;
         return value;
+    }
+    
+    static Array* deserialize(char* s) {
+        size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+        size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+        String* vals = JSONHelper::getValueFromKey("objs_", s);
+        char* values = vals->c_str();
+        Array* a = new Array(arraySize);
+        for(int i = 0; i < listLength; i++) {
+            Object* o = Deserializable::deserialize(JSONHelper::getArrayValueAt(values, i)->c_str());
+            a->pushBack(o);
+        }
+        return a;
     }
 };
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Ints */
