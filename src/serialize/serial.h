@@ -97,6 +97,17 @@ public:
         buff->c("], ");
     }
 
+    void write(const char* name, bool* val, int len) {
+        char str[1000];
+        sprintf(str, "'%s' : [ ", name);
+        buff->c(str);
+        for(int i = 0; i < len; i++) {
+            sprintf(str, "'%d',", val[i]);
+            buff->c(str);
+        }
+        buff->c("], ");
+    }
+
     void write(const char* name, char* val) {
         char str[strlen(val)];
         sprintf(str, "'%s' : '%s', ", name, val);
