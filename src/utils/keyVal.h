@@ -1,6 +1,9 @@
 //lang: CwC
 #pragma once
 #include "../object.h"
+#include "../serialize/serial.h"
+#include "../serialize/deserialize.h"
+
 //authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /**
  * A simple object that represents a key-value pair.
@@ -39,5 +42,25 @@ public:
 
     size_t hash() {
         return this->key_->hash() + this->val_->hash();
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("KeyVal");
+        char * seralizedKey = key_->serialize();
+        sb->write("key_", seralizedKey);
+        char * seralizedVal = val_->serialize();
+        sb->write("val_", seralizedVal);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+    }
+
+    static KeyVal* deserialize(char* s) {
+        Object* key = Deserializable::deserialize(JSONHelper::getValueFromKey("key_", s)->c_str());
+        Object* val = Deserializable::deserialize(JSONHelper::getValueFromKey("val_", s)->c_str());
+        KeyVal* kv = new KeyVal(key, val);
+        return kv;
     }
 };

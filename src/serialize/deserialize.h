@@ -61,6 +61,8 @@ public:
             return Map::deserialize(valueName);
         } else if(0 == strncmp(className, "Queue", strlen(className))) {
             return Queue::deserialize(valueName);
+        } else if(0 == strncmp(className, "KeyVal", strlen(className))) {
+            return KeyVal::deserialize(valueName);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }
