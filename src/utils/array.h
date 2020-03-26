@@ -40,7 +40,7 @@ public:
             Object* o = ds->deserialize(JSONHelper::getArrayValueAt(vals, i)->c_str());
             pushBack(o);
         }
-        delete [] ds;
+        delete ds;
     }; //special constructor to deal with serialized data
 
   virtual ~Array() {

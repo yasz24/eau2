@@ -181,11 +181,11 @@ void testDirectorySerialization() {
 
 int main(int argc, char **argv) {
     testIntArraySerialization();
-    //testIntColumnSerialization();
+    testIntColumnSerialization();
     testStringArraySerialization();
     testStringColumnSerialization();
     testFloatArraySerialization();
-    //testFloatColumnSerialization();
+    testFloatColumnSerialization();
     testMessageSerialization();
     testDirectorySerialization();
     return 0;

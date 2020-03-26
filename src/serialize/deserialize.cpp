@@ -54,6 +54,10 @@
             return new Queue(s);
         } else if(0 == strncmp(className, "KeyVal", strlen(className))) {
             return KeyVal::deserialize(valueName);
+        } else if(0 == strncmp(className, "Key", strlen(className))) {
+            return new Key(s);
+        } else if(0 == strncmp(className, "Value", strlen(className))) {
+            return new Value(valueName);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

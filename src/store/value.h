@@ -41,7 +41,6 @@ public:
         sb->write("length", length);
         sb->endSerialize();
         char* value = sb->get();
-        delete [] sb;
         return value;
     }
 };

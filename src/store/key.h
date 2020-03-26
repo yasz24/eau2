@@ -45,7 +45,6 @@ public:
         sb->write("node_", node_);
         sb->endSerialize();
         char* value = sb->get();
-        delete [] sb;
         return value;
     }
 };
