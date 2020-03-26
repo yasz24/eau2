@@ -5,6 +5,7 @@
 #include "listNode.h"
 #include <iostream>
 #include "../serialize/deserialize.h"
+#include "keyVal.h"
 //authors: eldrid.s@husky.neu.edu shetty.y@husky.neu.edu
 //todo: destructors
 /* A queue of Objects, supporting O(1) insertion at the start of the queue and O(1) retrieval / removal from the end
@@ -25,14 +26,14 @@ public:
     this->head_ = nullptr;
     this->tail_ = nullptr;
     this->size_ = 0;
-
     Deserializable* ds = new Deserializable();
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
     size_t queueLen = std::stoi(JSONHelper::getValueFromKey("size_", payload)->c_str());
-    char* vals = JSONHelper::getValueFromKey("objs_", payload)->c_str();
-
+    char* vals = JSONHelper::getValueFromKey("queueObjs_", payload)->c_str();
     for(int i = 0; i < queueLen; i++) {
-        Object* o = ds->deserialize(JSONHelper::getArrayValueAt(vals, i)->c_str());
+        char* serial = JSONHelper::getArrayValueAt(vals, i)->c_str();
+        std::cout<<serial<<"\n";
+        Object* o = ds->deserialize(serial);
         add(o);
     }
   }

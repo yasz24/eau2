@@ -39,6 +39,15 @@ class Map : public Object {
       this->buckets_ = buckets;
     }
 
+    Map(char* serialized) {
+      char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+      this->numBuckets_ = std::stoi(JSONHelper::getValueFromKey("numBuckets_", payload)->c_str());
+      this->bucketsUsed_ = std::stoi(JSONHelper::getValueFromKey("bucketsUsed_", payload)->c_str());
+      this->items_ = std::stoi(JSONHelper::getValueFromKey("items_", payload)->c_str());
+      char* buckets_cstr = JSONHelper::getValueFromKey("buckets_", payload)->c_str();
+      this->buckets_ = new Array(buckets_cstr);
+    }
+
     /* The destructor*/
     virtual ~Map() { 
       delete this->buckets_;
@@ -244,9 +253,10 @@ class Map : public Object {
         sb->write("bucketsUsed_", bucketsUsed_);
         sb->write("items_", items_);
         char * seralizedBuckets = buckets_->serialize();
-        sb->write("buckets_", seralizedBuckets);
+        sb->write("buckets_", seralizedBuckets, false);
         sb->endSerialize();
         char* value = sb->get();
+        
         delete sb;
         return value;
     }

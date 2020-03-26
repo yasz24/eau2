@@ -48,7 +48,7 @@ public:
         char objStart = '{';
         char objEnd = '}';
         int startCharDepth = 0;
-        char buff[1024];
+        char buff[4096];
         int loc = 0;
         //find first colon as jumping off point:
         int colonIndex = 0;
@@ -79,12 +79,16 @@ public:
                 }
             } else if(temp == objStart && temp != objEnd && valueStarted) {
                 startCharDepth++;
+                buff[loc] = temp;
+                loc++;
             } else if(temp == objEnd && valueStarted) {
                 startCharDepth--;
                 //if we've reached the final level of end character, break out of loop
                 if(startCharDepth <= 0) {
                     break;
                 }
+                buff[loc] = temp;
+                    loc++;
             } else if(valueStarted) {
                 buff[loc] = temp;
                 loc++;
@@ -106,7 +110,7 @@ public:
         for (int i = 0; i < len; i++){
             //iterate through s, checking for each key until we have a match
             bool nameStarted = false;
-            char buff[100];
+            char buff[4096];
             int loc = 0;
             for(int j = startIndex; j < len; j++) {
                 char temp = s[j];
@@ -191,9 +195,9 @@ public:
         char objStart = '{';
         char objEnd = '}';
         int startCharDepth = 0;
-        char buff[1024];
+        char buff[len];
         int loc = 0;
-        int currIndex = -1;
+        int currIndex = 0;
         //pull the top level object-value from the serialzed string
         for (int i = 0; i < len; i++){
             char temp = s[i];
@@ -216,10 +220,15 @@ public:
                 }
             } else if(temp == objStart) {
                 startCharDepth++;
-            } 
+            }
+
             if(temp == objEnd && valueStarted) {
                 if(temp != objStart) {
                     startCharDepth--;
+                }
+                if(index == currIndex) {
+                    buff[loc] = temp;
+                    loc++;
                 }
                 //if we've reached the final level of end character, break out of loop
                 if(startCharDepth <= 0  || (temp == objStart && startCharDepth % 2 == 0)) {

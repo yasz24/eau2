@@ -124,6 +124,23 @@ class IntDistributedArray: public Object {
       }
       return temp;
   }
+
+  char*  serialize() {
+      Serializable* sb = new Serializable();
+      sb->initSerialize("IntDistributedArray");
+      sb->write("uid_", uid_);
+      sb->write("chunkSize_", chunkSize_);
+      sb->write("chunkCount_", chunkCount_);
+      sb->write("itemCount_", itemCount_);
+      sb->write("curNode_", curNode_);
+      sb->write("totalNodes_", totalNodes_);
+      sb->write("keys_", keys_->serialize());
+      sb->write("kv_", kv_->serialize());
+      sb->endSerialize();
+      char* value = sb->get();
+      delete sb;
+      return value;
+  }//serializes this distributed Array
 };
 
 class FloatDistributedArray: public Object {

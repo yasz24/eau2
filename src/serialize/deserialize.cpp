@@ -20,7 +20,6 @@
     Object* Deserializable::deserialize(char* s) {
         String* classString = JSONHelper::getPayloadKey(s);
         char* className = classString->c_str();
-
         String* valueString = JSONHelper::getPayloadValue(s);
         char* valueName = valueString->c_str();
         //figure out correct deserialization method to call...
@@ -49,15 +48,17 @@
         } else if(0 == strncmp(className, "Array", strlen(className))) {
             return new Array(s);
         } else if(0 == strncmp(className, "Map", strlen(className))) {
-            return Map::deserialize(valueName);
+            return new Map(s);
         } else if(0 == strncmp(className, "Queue", strlen(className))) {
             return new Queue(s);
-        } else if(0 == strncmp(className, "KeyVal", strlen(className))) {
-            return KeyVal::deserialize(valueName);
         } else if(0 == strncmp(className, "Key", strlen(className))) {
             return new Key(s);
+        } else if(0 == strncmp(className, "KeyVal", strlen(className))) {
+            return KeyVal::deserialize(valueName);
         } else if(0 == strncmp(className, "Value", strlen(className))) {
-            return new Value(valueName);
+            return new Value(s);
+        } else if(0 == strncmp(className, "KVStore", strlen(className))) {
+            return new KVStore(s);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

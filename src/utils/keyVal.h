@@ -48,9 +48,9 @@ public:
         Serializable* sb = new Serializable();
         sb->initSerialize("KeyVal");
         char * seralizedKey = key_->serialize();
-        sb->write("key_", seralizedKey);
+        sb->write("key_", seralizedKey, false);
         char * seralizedVal = val_->serialize();
-        sb->write("val_", seralizedVal);
+        sb->write("val_", seralizedVal, false);
         sb->endSerialize();
         char* value = sb->get();
         delete sb;
@@ -59,7 +59,8 @@ public:
 
     static KeyVal* deserialize(char* s) {
         Deserializable* ds = new Deserializable();
-        Object* key = ds->deserialize(JSONHelper::getValueFromKey("key_", s)->c_str());
+        char* key_serialized = JSONHelper::getValueFromKey("key_", s)->c_str();
+        Object* key = ds->deserialize(key_serialized);
         Object* val = ds->deserialize(JSONHelper::getValueFromKey("val_", s)->c_str());
         KeyVal* kv = new KeyVal(key, val);
         return kv;

@@ -6,6 +6,7 @@
 #include "../serialize/serial.h"
 #include "../serialize/deserialize.h"
 #include <string>
+#include "queue.h"
 //Authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /** Array class: creates a resizeable array of Objects */
 
@@ -32,14 +33,20 @@ public:
     Array(char* serialized) {
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-        this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
-        this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+        int len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        this->listLength_ = len;
+
         char* vals = JSONHelper::getValueFromKey("objs_", payload)->c_str();
-        this->objs_ = new Object*[listLength_];
-        for(int i = 0; i < listLength_; i++) {
-            Object* o = ds->deserialize(JSONHelper::getArrayValueAt(vals, i)->c_str());
-            pushBack(o);
+        Array* temp = new Array(len);
+        for(int i = 0; i < len; i++) {
+            char* serial = JSONHelper::getArrayValueAt(vals, i)->c_str();
+            //std::cout<<serial<<"\n";
+            Object* o = ds->deserialize(serial);
+            temp->pushBack(o);
         }
+
+        this->objs_ = temp->objs_;
         delete ds;
     }; //special constructor to deal with serialized data
 
@@ -64,6 +71,7 @@ public:
   virtual Object* get(size_t index) {
       if(listLength_ == 0 || index > listLength_-1) {
             return nullptr;
+            std::cout<<"trigged!!!!\n";
         }
         return objs_[index];
   }; //returns the object at index

@@ -109,10 +109,22 @@ public:
     }
 
     void write(const char* name, char* val) {
-        char str[strlen(val)];
+        int SIZEOFINSERTS = 10;
+        char str[strlen(val) + strlen(name) + SIZEOFINSERTS];
         sprintf(str, "'%s' : '%s', ", name, val);
         buff->c(str);
     }
+
+    void write(const char* name, char* val, bool wrap) {
+        int SIZEOFINSERTS = 10;
+        char str[strlen(val) + strlen(name) + SIZEOFINSERTS];
+        if(wrap) {
+            sprintf(str, "'%s' : '%s', ", name, val);
+        } else {
+            sprintf(str, "'%s' : %s, ", name, val);
+        }
+        buff->c(str);
+    }//includes boolean flag to signify if this is a "wrapped" object (or a non-primative serialized)
 
     void write(const char* name, size_t* val, int len) {
         char str[1000];
@@ -159,11 +171,12 @@ public:
     }
 
     void write(const char* name, Object** val, int len) {
-        char str[1000];
+        char str[100000];
         sprintf(str, "'%s' : [ ", name);
         buff->c(str);
         for(int i = 0; i < len; i++) {
-            sprintf(str, "'%s',", val[i]->serialize());
+            char* serial = val[i]->serialize();
+            sprintf(str, "%s,", serial);
             buff->c(str);
         }
         buff->c("], ");
