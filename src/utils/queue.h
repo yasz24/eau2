@@ -13,7 +13,7 @@ class Queue : public Object {
 public:
   ObjectNode *head_;
   ObjectNode *tail_;
-  unsigned int size_;
+  size_t size_;
 
   Queue() {
     this->head_ = nullptr;
@@ -211,7 +211,37 @@ public:
   }
 
   /* Returns the number of elements in this ObjectQueue */
-  unsigned int size() {
+  size_t size() {
     return this->size_;
+  }
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("Queue");
+    sb->write("size_", size_);
+    Object** objs_ = new Object*[this->size_];
+    //go through the given list.
+    for (size_t i = 0; i < this->size_; i++) {
+        objs_[i] =  this->get(i);
+    }
+    sb->write("queueObjs_", objs_, this->size_);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
+
+
+  static Queue* deserialize(char* s) {
+    size_t queueLen = std::stoi(JSONHelper::getValueFromKey("size_", s)->c_str());
+    String* vals = JSONHelper::getValueFromKey("objs_", s);
+    char* values = vals->c_str();
+    Queue* q = new Queue();
+    for(int i = 0; i < queueLen; i++) {
+        Object* o = Deserializable::deserialize(JSONHelper::getArrayValueAt(values, i)->c_str());
+        q->add(o);
+    }
+
+   return q;
   }
 };
