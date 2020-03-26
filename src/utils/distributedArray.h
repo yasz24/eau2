@@ -5,8 +5,8 @@
 #include "../store/kvstore.h"
 #include "array.h"
 #include "../store/value.h"
-#include "jsonHelper.h"
-#include "serial.h"
+#include "../serialize/jsonHelper.h"
+#include "../serialize/serial.h"
 #include "string.h"
 
 #include <math.h>

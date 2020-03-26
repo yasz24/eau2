@@ -57,6 +57,8 @@ public:
             return Schema::deserialize(valueName);
         } else if(0 == strncmp(className, "Array", strlen(className))) {
             return Array::deserialize(valueName);
+        } else if(0 == strncmp(className, "Map", strlen(className))) {
+            return Map::deserialize(valueName);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

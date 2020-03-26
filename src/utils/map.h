@@ -1,6 +1,8 @@
 #pragma once
 #include "string.h"
 #include "../object.h"
+#include "../serialize/jsonHelper.h"
+#include "../serialize/serial.h"
 #include "array.h"
 #include "queue.h"
 #include "keyVal.h"
@@ -28,6 +30,13 @@ class Map : public Object {
       for (size_t i = 0; i < this->numBuckets_; i++) {
         this->buckets_->pushBack(new Queue());
       }
+    }
+
+    Map(size_t numBuckets,  size_t bucketsUsed, size_t items, Array *buckets) {
+      this->numBuckets_ = numBuckets;
+      this->bucketsUsed_ = bucketsUsed;
+      this->items_ = items;
+      this->buckets_ = buckets;
     }
 
     /* The destructor*/
@@ -226,5 +235,31 @@ class Map : public Object {
       for (size_t i = 0; i < items; i++) {
         this->add(key_val[i]->getKey(), key_val[i]->getVal());
       }     
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Map");
+        sb->write("numBuckets_", numBuckets_);
+        sb->write("bucketsUsed_", bucketsUsed_);
+        sb->write("items_", items_);
+        char * seralizedBuckets = buckets_->serialize();
+        sb->write("buckets_", seralizedBuckets);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+    }
+
+    static Map* deserialize(char* s) {
+      size_t numBuckets = std::stoi(JSONHelper::getValueFromKey("numBuckets_", s)->c_str());
+      size_t bucketsUsed = std::stoi(JSONHelper::getValueFromKey("bucketsUsed_", s)->c_str());
+      size_t items = std::stoi(JSONHelper::getValueFromKey("items_", s)->c_str());
+      String* buckets_string = JSONHelper::getValueFromKey("buckets_", s);
+      char* buckets_cstr = buckets_string->c_str();
+      Array* buckets = dynamic_cast<Array*>(Deserializable::deserialize(buckets_cstr));
+
+      Map* m = new Map(numBuckets, bucketsUsed, items, buckets);
+      return m;
     }
 };
