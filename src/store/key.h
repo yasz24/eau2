@@ -1,6 +1,8 @@
 #pragma once
 #include "../object.h"
 #include "../utils/string.h" 
+#include "../serialize/serial.h"
+#include "../serialize/jsonHelper.h"
 
 //todo: write hash, equals.
 class Key : public Object{
@@ -11,6 +13,12 @@ public:
     Key(char* name, size_t node) {
         this->name_ = new String(name);
         this->node_ = node;
+    }
+
+    Key(char* serialized) {
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        this->name_ = new String(JSONHelper::getValueFromKey("name_", payload)->c_str());
+        this->node_ = std::stoi(JSONHelper::getValueFromKey("node_", payload)->c_str());
     }
 
     size_t node() {
@@ -28,5 +36,16 @@ public:
         Key* x = dynamic_cast<Key *>(other);
         if (x == nullptr) return false;
         return this->name_->equals(x->name_) && (this->node_ == x->node_);
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Key");
+        sb->write("name_", name_);
+        sb->write("node_", node_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete [] sb;
+        return value;
     }
 };

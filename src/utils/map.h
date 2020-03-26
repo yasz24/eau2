@@ -257,7 +257,7 @@ class Map : public Object {
       size_t items = std::stoi(JSONHelper::getValueFromKey("items_", s)->c_str());
       String* buckets_string = JSONHelper::getValueFromKey("buckets_", s);
       char* buckets_cstr = buckets_string->c_str();
-      Array* buckets = dynamic_cast<Array*>(Deserializable::deserialize(buckets_cstr));
+      Array* buckets = new Array(buckets_cstr);
 
       Map* m = new Map(numBuckets, bucketsUsed, items, buckets);
       return m;

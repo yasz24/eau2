@@ -9,7 +9,6 @@
 //Authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /** Array class: creates a resizeable array of Objects */
 
-class Serializable;
 /**Includes unique serialization and deserialization methods for IntArray, FloatArray, and StringArray 
  * that allow these classes to be interpreted as JSON strings*/
 class Array: public Object{
@@ -29,6 +28,20 @@ public:
         arraySize_ = length;
         listLength_ = 0;
     }; //allows you to create an array with a specific start size
+
+    Array(char* serialized) {
+        Deserializable* ds = new Deserializable();
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+        this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        char* vals = JSONHelper::getValueFromKey("objs_", payload)->c_str();
+        this->objs_ = new Object*[listLength_];
+        for(int i = 0; i < listLength_; i++) {
+            Object* o = ds->deserialize(JSONHelper::getArrayValueAt(vals, i)->c_str());
+            pushBack(o);
+        }
+        delete [] ds;
+    }; //special constructor to deal with serialized data
 
   virtual ~Array() {
       delete [] objs_;
@@ -149,19 +162,6 @@ public:
         char* value = sb->get();
         delete sb;
         return value;
-    }
-    
-    static Array* deserialize(char* s) {
-        size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-        size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-        String* vals = JSONHelper::getValueFromKey("objs_", s);
-        char* values = vals->c_str();
-        Array* a = new Array(arraySize);
-        for(int i = 0; i < listLength; i++) {
-            Object* o = Deserializable::deserialize(JSONHelper::getArrayValueAt(values, i)->c_str());
-            a->pushBack(o);
-        }
-        return a;
     }
 };
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Ints */

@@ -4,9 +4,9 @@
 #include "string.h"
 #include "listNode.h"
 #include <iostream>
+#include "../serialize/deserialize.h"
 //authors: eldrid.s@husky.neu.edu shetty.y@husky.neu.edu
 //todo: destructors
-
 /* A queue of Objects, supporting O(1) insertion at the start of the queue and O(1) retrieval / removal from the end
  * of the queue. */
 class Queue : public Object {
@@ -19,6 +19,22 @@ public:
     this->head_ = nullptr;
     this->tail_ = nullptr;
     this->size_ = 0;
+  }
+
+  Queue(char* serialized) {
+    this->head_ = nullptr;
+    this->tail_ = nullptr;
+    this->size_ = 0;
+
+    Deserializable* ds = new Deserializable();
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    size_t queueLen = std::stoi(JSONHelper::getValueFromKey("size_", payload)->c_str());
+    char* vals = JSONHelper::getValueFromKey("objs_", payload)->c_str();
+
+    for(int i = 0; i < queueLen; i++) {
+        Object* o = ds->deserialize(JSONHelper::getArrayValueAt(vals, i)->c_str());
+        add(o);
+    }
   }
 
   ~Queue() {
@@ -229,19 +245,5 @@ public:
     char* value = sb->get();
     delete sb;
     return value;
-  }
-
-
-  static Queue* deserialize(char* s) {
-    size_t queueLen = std::stoi(JSONHelper::getValueFromKey("size_", s)->c_str());
-    String* vals = JSONHelper::getValueFromKey("objs_", s);
-    char* values = vals->c_str();
-    Queue* q = new Queue();
-    for(int i = 0; i < queueLen; i++) {
-        Object* o = Deserializable::deserialize(JSONHelper::getArrayValueAt(values, i)->c_str());
-        q->add(o);
-    }
-
-   return q;
   }
 };

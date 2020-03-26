@@ -58,8 +58,9 @@ public:
     }
 
     static KeyVal* deserialize(char* s) {
-        Object* key = Deserializable::deserialize(JSONHelper::getValueFromKey("key_", s)->c_str());
-        Object* val = Deserializable::deserialize(JSONHelper::getValueFromKey("val_", s)->c_str());
+        Deserializable* ds = new Deserializable();
+        Object* key = ds->deserialize(JSONHelper::getValueFromKey("key_", s)->c_str());
+        Object* val = ds->deserialize(JSONHelper::getValueFromKey("val_", s)->c_str());
         KeyVal* kv = new KeyVal(key, val);
         return kv;
     }

@@ -2,7 +2,7 @@
 #pragma once
 #include <string.h>
 #include "../object.h"
-#include "../utils/array.h"
+#include "../utils/string.h"
 
 /**
  * Set of useful helper methods for parsing Serialized data. Used primarily in deserialization to

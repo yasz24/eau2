@@ -313,9 +313,9 @@ class StringDistributedArray: public Object {
             Key* curKey = dynamic_cast<Key*>(keys_->get(chunkCount_)); //get current Key to change its value....
             Value* kv_val = kv_->get(curKey);
             char* payload = JSONHelper::getPayloadValue(kv_val->data)->c_str();
-            StringArray* intArr = IntArray::deserialize(payload); //get IntArray to update
-            intArr->pushBack(val);
-            kv_->put(curKey, new Value(intArr->serialize(), 0)); //put new IntArray with same key into Kv
+            StringArray* strArr = StringArray::deserialize(payload); //get IntArray to update
+            strArr->pushBack(val);
+            kv_->put(curKey, new Value(strArr->serialize(), 0)); //put new IntArray with same key into Kv
         }
         itemCount_ +=1;
     }; //add o to end of array

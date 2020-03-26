@@ -575,7 +575,7 @@ public:
 
     static DataFrame* deserialize(char* s) {
         Schema* sch = dynamic_cast<Schema*>(DataFrame::deserialize(JSONHelper::getValueFromKey("schema_", s)->c_str()));
-        Array* cols = dynamic_cast<Array*>(Deserializable::deserialize(JSONHelper::getValueFromKey("cols_", s)->c_str()));
+        Array* cols = new Array(JSONHelper::getValueFromKey("cols_", s)->c_str());
         DataFrame* df = new DataFrame(sch, cols);
         return df;
     }
