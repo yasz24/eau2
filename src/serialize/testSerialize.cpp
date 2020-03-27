@@ -63,8 +63,8 @@ void testKVStoreSerialization() {
 void testDistributedArrays() {
     Sys* system = new Sys();
     KVStore* kvs1 = new KVStore(5, 0);
-    IntDistributedArray* ida = new IntDistributedArray(kvs1, 101, 18);
-    for(int i = 0; i < 100; i++) {
+    IntDistributedArray* ida = new IntDistributedArray(kvs1, 15, 18);
+    for(int i = 0; i < 10; i++) {
         ida->pushBack(i);
     }
     char* serialized = ida->serialize();

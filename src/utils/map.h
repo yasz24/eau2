@@ -67,11 +67,9 @@ class Map : public Object {
     * @param value the object to add to the Map
     */
     void add(Object* key, Object* value) {
-      //std::cout<<"key being added: "<<key->serialize()<<"::\n";
       size_t key_hash = key->hash();
       KeyVal *key_val = new KeyVal(key, value);
       int index = key_hash % this->numBuckets_;
-      std::cout<<"aight, add key_hash="<<key_hash<<", and numBuckets is"<<this->numBuckets_<<"\n";
       Queue *queue_at_index = dynamic_cast<Queue*>(this->buckets_->get(index));
       if (queue_at_index->size() == 0) {
         this->bucketsUsed_ += 1;
@@ -81,7 +79,6 @@ class Map : public Object {
       } 
       if (this->get(key) == nullptr) {
         queue_at_index->add(key_val);
-        std::cout<<"at "<<index<<"\n";
       } else {
         Object* removed = this->pop_item(key);
         //String *before  = dynamic_cast<String*>(key_val->getVal());
@@ -125,17 +122,13 @@ class Map : public Object {
     * @return the value associated with the key
     */
     Object* get(Object* key) {
-      std::cout<<"key being gotten: "<<key->serialize()<<"::\n";
       size_t key_hash = key->hash();
-      int index = key_hash % this->numBuckets_;
       KeyVal *wrappedkey = new KeyVal(key, nullptr);
-      std::cout<<"aight, key_hash="<<key_hash<<", and numBuckets is"<<this->numBuckets_<<"\n";
-      std::cout<<"getting data from "<<index<<"\n";
+      int index = key_hash % this->numBuckets_;
       Queue *queue_at_index = dynamic_cast<Queue *>(this->buckets_->get(index));
       if (queue_at_index->get(wrappedkey) != nullptr) {
         //key is in map.
         KeyVal *key_val = dynamic_cast<KeyVal *>(queue_at_index->get(wrappedkey));
-        std::cout<<"KEY FOUND BRUV\n";
         return key_val->getVal();
       } else {
         //key is not in map

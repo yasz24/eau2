@@ -102,7 +102,8 @@ public:
 
     /**
      * Given the name of a specific key - returns the value in serialized substring or emptyString
-     */ 
+     */
+    //TODO: this needs to take object depth into account 
     static String* getValueFromKey(char* name, char* s) {
         int len = strlen( s );
         //pull the class name from the serialzed string
@@ -110,7 +111,7 @@ public:
         for (int i = 0; i < len; i++){
             //iterate through s, checking for each key until we have a match
             bool nameStarted = false;
-            char buff[4096];
+            char buff[len];
             int loc = 0;
             for(int j = startIndex; j < len; j++) {
                 char temp = s[j];
@@ -120,6 +121,8 @@ public:
                     //full name has been discovered
                     startIndex = i;
                     break;
+                } else if(temp == '[' || temp == '{') { //special case for nested things
+                    startIndex = endIndex(s, temp, i);
                 } else if(nameStarted) {
                     buff[loc] = temp;
                     loc++;
@@ -139,6 +142,32 @@ public:
             }
         }
         return new String("");
+    }
+    /**
+     *  Helper method to get the end index of a pair of [] or {}
+     */
+    static int endIndex(char* s, char sym, int pos) {
+        int len = strlen( s );
+        char end = '}';
+        int depth = 1;
+        if(sym == '[') {
+            end = ']';
+        }
+        //pull the class name from the serialzed string
+        for (int i = pos+1; i < len; i++){
+            char temp = s[i];
+            if(temp == sym) {
+                depth++;
+            } else if(temp == end) {
+                //full name has been discovered
+                depth--;
+                if(depth == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+        std::cout<<"ERROR: end not found\n";
     }
 
     /**

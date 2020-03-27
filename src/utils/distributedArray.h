@@ -16,6 +16,7 @@
 class IntDistributedArray: public Object {
     public:
     KVStore* kv_; //underlying key value store that distributes data
+    IntArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
     size_t chunkSize_; //number of elements to host in each chunk
@@ -33,14 +34,13 @@ class IntDistributedArray: public Object {
         itemCount_ = 0;
         chunkCount_ = 0;
         keys_ = new Array();
+        chunkArray_ = new IntArray();
     }
 
     IntDistributedArray(char* serialized) {
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-
-        this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
-        
+        //std::cout<<payload<<"\n";
         this->chunkSize_ = std::stoi(JSONHelper::getValueFromKey("chunkSize_", payload)->c_str());
         this->totalNodes_ = std::stoi(JSONHelper::getValueFromKey("totalNodes_", payload)->c_str());
         this->curNode_ = std::stoi(JSONHelper::getValueFromKey("curNode_", payload)->c_str());
@@ -48,12 +48,18 @@ class IntDistributedArray: public Object {
         this->itemCount_ = std::stoi(JSONHelper::getValueFromKey("itemCount_", payload)->c_str());
         this->chunkCount_ = std::stoi(JSONHelper::getValueFromKey("chunkCount_", payload)->c_str());
         this->keys_ = new Array(JSONHelper::getValueFromKey("keys_", payload)->c_str());
+        std::cout<<"lol" <<JSONHelper::getValueFromKey("kv_", payload)->c_str()<<"\n";
+        this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
     }
     /*
     *   Gets the int at a given index
     */ 
    int get(size_t index) {
+       //new logic to check if current chunk
         assert(index < itemCount_);
+        if(index/chunkSize_ == chunkCount_) {
+            return chunkArray_->get(index % chunkSize_);
+        }
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data; 
         char* payload = JSONHelper::getPayloadValue(serlializedNode)->c_str(); //returns the payload (IntArray) of serialized data
@@ -64,7 +70,11 @@ class IntDistributedArray: public Object {
     * Given an index, updates the value at that index
     */
   int set(size_t index, int val) {
+      //new logic to check if current chunk
         assert(index < itemCount_);
+        if(index/chunkSize_ == chunkCount_) {
+            return chunkArray_->set(index % chunkSize_, val);
+        }
         Key* curKey = dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_))); //gets key of given characteristics
         Value* v = kv_->get(curKey); //use curKey to get value from kvStore
         char* serlializedNode = v->data;
@@ -80,7 +90,7 @@ class IntDistributedArray: public Object {
     /*
     *   Generates a new Key Value pair with a value
     */
-    void keygen(int val) {
+    void storeChunk() {
         //creates a unique keyname based on provided ID - could be modified to randomly pick number?
         StrBuff* sb = new StrBuff();
         sb->c(uid_);
@@ -89,35 +99,23 @@ class IntDistributedArray: public Object {
         String* s = sb->get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
-        IntArray* valuesArray = new IntArray(); //creates new Int array to store values in this chunk
-        valuesArray->pushBack(val);
-        kv_->put(k, new Value(valuesArray->serialize(), 0)); //adds new IntArray to kvStore
+        kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
     }
     /*
     *   Adds a new int to the back of the Distributed Int Array
     */ 
     void pushBack(int val) {
         //initialize first key
-        std::cout<<"attempting to pushback "<<val<<"\n";
-        if(itemCount_ == 0) {
-            keygen(val);
-        }
-        else if(itemCount_ % chunkSize_ == 0) { //if current chunk is full..
+        if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
+            storeChunk(); //stores the previous chunk values in the kv_store
+            chunkArray_ = new IntArray(); //creates new Int array to store values for new chunk
             curNode_+=1;
             chunkCount_+=1;
             if(curNode_ == totalNodes_) { //starts cycle of chunks on nodes again
                 curNode_ = 0;
             }
-            keygen(val);
         } else {
-            Key* curKey = dynamic_cast<Key*>(keys_->get(chunkCount_)); //get current Key to change its value....
-            //
-            Value* kv_val = kv_->get(curKey); //returning nullptr
-            //
-            char* payload = JSONHelper::getPayloadValue(kv_val->data)->c_str();
-            IntArray* intArr = IntArray::deserialize(payload); //get IntArray to update
-            intArr->pushBack(val);
-            kv_->put(curKey, new Value(intArr->serialize(), 0)); //put new IntArray with same key into Kv
+            chunkArray_->pushBack(val);
         }
         itemCount_ +=1;
     }; //add o to end of array
@@ -152,7 +150,7 @@ class IntDistributedArray: public Object {
       }
       return temp;
   }
-
+    //TODO:: UPDATE WITH CHUNK VALUES!!!!
   char*  serialize() {
       Serializable* sb = new Serializable();
       sb->initSerialize("IntDistributedArray");
