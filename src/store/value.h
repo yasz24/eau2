@@ -17,8 +17,12 @@ public:
     Value(char* serialized) {
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-        std::cout<<payload<<"\n";
-        this->data = ds->deserialize(JSONHelper::getValueFromKey("data", payload)->c_str())->serialize();
+        char* serialData = JSONHelper::getValueFromKey("data", payload)->c_str();
+        if(JSONHelper::isObject(serialData)) {
+            this->data = ds->deserialize(JSONHelper::getValueFromKey("data", payload)->c_str())->serialize();
+        } else {
+            this->data = serialData;
+        }
         this->length = std::stoi(JSONHelper::getValueFromKey("length", payload)->c_str());
     }
 
@@ -40,7 +44,11 @@ public:
     char* serialize() {
         Serializable* sb = new Serializable();
         sb->initSerialize("Value");
-        sb->write("data", data, false);
+        if(JSONHelper::isObject(data)) {
+            sb->write("data", data, false);
+        } else {
+            sb->write("data", data);
+        }
         sb->write("length", length);
         sb->endSerialize();
         char* value = sb->get();

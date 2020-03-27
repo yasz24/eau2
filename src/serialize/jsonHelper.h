@@ -171,6 +171,22 @@ public:
     }
 
     /**
+     * Should be expanded: checks if given string is a serialized object by checking for a {
+     * Obviously this fails if a string has a { in it....
+     */ 
+    static bool isObject(char* s) {
+        int len = strlen( s );
+        char isObj = '{';
+        for(int i = 0; i < len; i++) {
+            char temp = s[i];
+            if(temp == isObj) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Given a serialized array value, returns number of unique items in it
      */
     static int arrayLen(char* s) {

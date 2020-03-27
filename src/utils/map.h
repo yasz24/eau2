@@ -132,7 +132,7 @@ class Map : public Object {
         return key_val->getVal();
       } else {
         //key is not in map
-        std::cout<<"ERROR: Key not found in map\n";
+        //std::cout<<"ERROR: Key not found in map\n";
         return nullptr;
       }
     }

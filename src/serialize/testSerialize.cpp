@@ -26,7 +26,6 @@ void testValueSerialization() {
     Value* v1 = new Value("muffin", 6);
     Value* v3 = new Value("carrot", 6);
     char* serialized = v1->serialize();
-    std::cout<<serialized<<"\n";
     Value* v2 = new Value(serialized);
     system->t_true(v1->equals(v2));
     system->t_false(v3->equals(v2));
@@ -78,8 +77,8 @@ void testDistributedArrays() {
 
 int main() {
     testValueSerialization();
-    //testKeySerialization();
-    //testKVStoreSerialization(); //issue with map currently
+    testKeySerialization();
+    testKVStoreSerialization(); //issue with map currently
     testDistributedArrays();
     return 0;
 }
