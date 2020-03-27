@@ -48,7 +48,6 @@ class IntDistributedArray: public Object {
         this->itemCount_ = std::stoi(JSONHelper::getValueFromKey("itemCount_", payload)->c_str());
         this->chunkCount_ = std::stoi(JSONHelper::getValueFromKey("chunkCount_", payload)->c_str());
         this->keys_ = new Array(JSONHelper::getValueFromKey("keys_", payload)->c_str());
-        std::cout<<"lol" <<JSONHelper::getValueFromKey("kv_", payload)->c_str()<<"\n";
         this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
     }
     /*

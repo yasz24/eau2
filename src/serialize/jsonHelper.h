@@ -119,7 +119,7 @@ public:
                     nameStarted = true;
                 } else if(temp == '\'' && nameStarted) {
                     //full name has been discovered
-                    startIndex = i;
+                    startIndex = j+1;
                     break;
                 } else if(temp == '[' || temp == '{') { //special case for nested things
                     startIndex = endIndex(s, temp, i);

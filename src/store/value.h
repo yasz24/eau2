@@ -17,6 +17,7 @@ public:
     Value(char* serialized) {
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        std::cout<<payload<<"\n";
         this->data = ds->deserialize(JSONHelper::getValueFromKey("data", payload)->c_str())->serialize();
         this->length = std::stoi(JSONHelper::getValueFromKey("length", payload)->c_str());
     }
