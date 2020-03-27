@@ -42,10 +42,8 @@ void testKVStoreSerialization() {
     kvs1->put(k1, v1);
     kvs1->put(k3, v3);
     char* serialized = kvs1->serialize();
-    std::cout<<serialized<<"\n";
     KVStore* kvs2 = new KVStore(serialized);
     char* serialized2 = kvs2->serialize();
-    std::cout<<serialized2<<"\n";
     String* s = new String(serialized);
     String* s2 = new String(serialized2);
     system->t_true(s2->equals(s));

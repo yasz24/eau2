@@ -53,9 +53,6 @@ void testStringColumnSerialization() {
     char* string_is_serialized = sc->serialize();
     StringColumn* is_two = dynamic_cast<StringColumn*>(ds->deserialize(string_is_serialized));
     tester->t_true(strcmp(string_is_serialized, is_two->serialize()) == 0);
-    std::cout << string_is_serialized << "\n";
-    char* expected = "{ 'StringColumn' : { 'val_' : '{ 'Array' : { 'listLength_' : '13', 'arraySize_' : '20', 'objs_' : [ '{ 'StringArray' : { 'listLength_' : '4', 'arraySize_' : '1024', 'vals_' : [ 'taco','dorito','nacho','enchilada',],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }','{ 'StringArray' : { 'listLength_' : '0', 'arraySize_' : '1024', 'vals_' : [ ],  } }',],  } }', 'listLength_' : '4', 'arraySize_' : '1024', 'metaArrayStartSize__' : '10',  } }";
-    tester->t_true(strcmp(string_is_serialized, expected) == 0);
     delete sc;
     tester->OK("Passed String Column Serialization Tests");
     delete tester;
@@ -128,11 +125,10 @@ void testIntColumnSerialization() {
         ia->push_back(i);
     }
     char* int_is_serialized = ia->serialize();
-    tester->OK("successfully serialized...");
     IntColumn* ia_two = dynamic_cast<IntColumn*>(ds->deserialize(int_is_serialized));
     tester->t_true(strcmp(int_is_serialized, ia_two->serialize()) == 0);
     delete ia;
-    tester->OK("Passed Int Array Serialization Tests");
+    tester->OK("Passed Int Column Serialization Tests");
     delete tester;
     delete [] ds;
 }
@@ -181,11 +177,15 @@ void testDirectorySerialization() {
 
 int main(int argc, char **argv) {
     testIntArraySerialization();
+    
     testIntColumnSerialization();
     testStringArraySerialization();
+    
     testStringColumnSerialization();
     testFloatArraySerialization();
+    
     testFloatColumnSerialization();
+    
     testMessageSerialization();
     testDirectorySerialization();
     return 0;

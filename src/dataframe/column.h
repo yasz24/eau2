@@ -83,6 +83,13 @@ class IntColumn : public Column {
     this->listLength_ = length;
   }
 
+  IntColumn(char* serialized) {
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+    this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+    this->val_ = new Array(JSONHelper::getValueFromKey("val_", payload)->c_str());
+  }
+
   ~IntColumn() {
    // delete val_;
   }
@@ -167,25 +174,15 @@ class IntColumn : public Column {
   char* serialize() {
     Serializable* sb = new Serializable();
     sb->initSerialize("IntColumn");
-    char * seralizedArr = val_->serialize();
-    sb->write("val_", seralizedArr);
     sb->write("listLength_", listLength_);
     sb->write("arraySize_", arraySize_);
     sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
     sb->endSerialize();
     char* value = sb->get();
     delete sb;
     return value;
-  }
-
-  static IntColumn* deserialize(char* s) {
-    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-    String* arr_string = JSONHelper::getValueFromKey("val_", s);
-    char* arr_cstr = arr_string->c_str();
-    Array* arr = new Array(arr_cstr);
-    IntColumn* ic = new IntColumn(arr, listLength);
-    return ic;
   }
 };
 /*************************************************************************
@@ -308,11 +305,11 @@ class DoubleColumn : public Column {
   char* serialize() {
     Serializable* sb = new Serializable();
     sb->initSerialize("DoubleColumn");
-    char * seralizedArr = val_->serialize();
-    sb->write("val_", seralizedArr);
     sb->write("listLength_", listLength_);
     sb->write("arraySize_", arraySize_);
     sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
     sb->endSerialize();
     char* value = sb->get();
     delete sb;
@@ -448,11 +445,11 @@ class FloatColumn : public Column {
   char* serialize() {
     Serializable* sb = new Serializable();
     sb->initSerialize("FloatColumn");
-    char * seralizedArr = val_->serialize();
-    sb->write("val_", seralizedArr);
     sb->write("listLength_", listLength_);
     sb->write("arraySize_", arraySize_);
     sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
     sb->endSerialize();
     char* value = sb->get();
     delete sb;
@@ -591,11 +588,11 @@ class BoolColumn : public Column {
   char* serialize() {
     Serializable* sb = new Serializable();
     sb->initSerialize("BoolColumn");
-    char * seralizedArr = val_->serialize();
-    sb->write("val_", seralizedArr);
     sb->write("listLength_", listLength_);
     sb->write("arraySize_", arraySize_);
     sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
     sb->endSerialize();
     char* value = sb->get();
     delete sb;
@@ -646,6 +643,13 @@ class StringColumn : public Column {
   StringColumn(Array* vals, int length){
     this->val_ = vals;
     this->listLength_ = length;
+  }
+
+  StringColumn(char* serialized) {
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+    this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+    this->val_ = new Array(JSONHelper::getValueFromKey("val_", payload)->c_str());
   }
 
   ~StringColumn() {
@@ -728,11 +732,11 @@ class StringColumn : public Column {
   char* serialize() {
     Serializable* sb = new Serializable();
     sb->initSerialize("StringColumn");
-    char * seralizedArr = val_->serialize();
-    sb->write("val_", seralizedArr);
     sb->write("listLength_", listLength_);
     sb->write("arraySize_", arraySize_);
     sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
     sb->endSerialize();
     char* value = sb->get();
     delete sb;

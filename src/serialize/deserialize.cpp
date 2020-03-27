@@ -32,13 +32,13 @@
         } else if(0 == strncmp(className,"DoubleArray", strlen(className))) {
             return DoubleArray::deserialize(valueName);
         } else if(0 == strncmp(className,"StringColumn", strlen(className))) {
-            return StringColumn::deserialize(valueName);
+            return new StringColumn(s);
         } else if(0 == strncmp(className,"FloatColumn", strlen(className))) {
             return FloatColumn::deserialize(valueName);
         } else if(0 == strncmp(className,"DoubleColumn", strlen(className))) {
             return DoubleColumn::deserialize(valueName);
         } else if(0 == strncmp(className,"IntColumn", strlen(className))) {
-            return IntColumn::deserialize(valueName);
+            return new IntColumn(s);
         } else if(0 == strncmp(className,"BoolColumn", strlen(className))) {
             return BoolColumn::deserialize(valueName);
         } else if(0 == strncmp(className, "DataFrame", strlen(className))) {

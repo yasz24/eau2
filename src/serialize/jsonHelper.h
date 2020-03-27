@@ -48,7 +48,7 @@ public:
         char objStart = '{';
         char objEnd = '}';
         int startCharDepth = 0;
-        char buff[4096];
+        char buff[len];
         int loc = 0;
         //find first colon as jumping off point:
         int colonIndex = 0;
@@ -216,6 +216,8 @@ public:
                     } else if(temp == '\'') {
                         objEnd = '\'';
                         startCharDepth = 0;
+                        //due to issue with indexing with apostrophes
+                        currIndex = -1;
                     }   
                 }
             } else if(temp == objStart) {
@@ -226,7 +228,7 @@ public:
                 if(temp != objStart) {
                     startCharDepth--;
                 }
-                if(index == currIndex) {
+                if(index == currIndex && objEnd != objStart) {
                     buff[loc] = temp;
                     loc++;
                 }

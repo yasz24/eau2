@@ -34,6 +34,21 @@ class IntDistributedArray: public Object {
         chunkCount_ = 0;
         keys_ = new Array();
     }
+
+    IntDistributedArray(char* serialized) {
+        Deserializable* ds = new Deserializable();
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+
+        this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
+        
+        this->chunkSize_ = std::stoi(JSONHelper::getValueFromKey("chunkSize_", payload)->c_str());
+        this->totalNodes_ = std::stoi(JSONHelper::getValueFromKey("totalNodes_", payload)->c_str());
+        this->curNode_ = std::stoi(JSONHelper::getValueFromKey("curNode_", payload)->c_str());
+        this->uid_ = std::stoi(JSONHelper::getValueFromKey("uid_", payload)->c_str());
+        this->itemCount_ = std::stoi(JSONHelper::getValueFromKey("itemCount_", payload)->c_str());
+        this->chunkCount_ = std::stoi(JSONHelper::getValueFromKey("chunkCount_", payload)->c_str());
+        this->keys_ = new Array(JSONHelper::getValueFromKey("keys_", payload)->c_str());
+    }
     /*
     *   Gets the int at a given index
     */ 

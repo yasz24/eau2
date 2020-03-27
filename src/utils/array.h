@@ -32,6 +32,7 @@ public:
 
     Array(char* serialized) {
         Deserializable* ds = new Deserializable();
+        //std::cout<<serialized<<"\n\n";
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
         int len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
