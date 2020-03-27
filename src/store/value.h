@@ -1,6 +1,7 @@
 #pragma once
 #include "../object.h"
 #include "../serialize/serial.h"
+#include "../serialize/deserialize.h"
 #include "../serialize/jsonHelper.h"
 //todo: write hash, equals
 class Value : public Object{
@@ -14,8 +15,9 @@ public:
     }
 
     Value(char* serialized) {
+        Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-        this->data = JSONHelper::getValueFromKey("data", payload)->c_str();
+        this->data = ds->deserialize(JSONHelper::getValueFromKey("data", payload)->c_str())->serialize();
         this->length = std::stoi(JSONHelper::getValueFromKey("length", payload)->c_str());
     }
 
@@ -37,7 +39,7 @@ public:
     char* serialize() {
         Serializable* sb = new Serializable();
         sb->initSerialize("Value");
-        sb->write("data", data);
+        sb->write("data", data, false);
         sb->write("length", length);
         sb->endSerialize();
         char* value = sb->get();

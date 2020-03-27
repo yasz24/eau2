@@ -32,7 +32,6 @@ public:
     char* vals = JSONHelper::getValueFromKey("queueObjs_", payload)->c_str();
     for(int i = 0; i < queueLen; i++) {
         char* serial = JSONHelper::getArrayValueAt(vals, i)->c_str();
-        std::cout<<serial<<"\n";
         Object* o = ds->deserialize(serial);
         add(o);
     }

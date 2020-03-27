@@ -1,3 +1,4 @@
+#pragma once
 #include "../object.h"
 #include "key.h"
 #include "value.h"
@@ -29,6 +30,7 @@ public:
             this->local_store_->add(key, value);
         } else {
             //networking. dispatch and put in appropriate node.
+            std::cout<<"ERROR: ENCOUNTERED NETWORKING CODE IN KVSTORE-PUT\n";
         }
     }
 
@@ -38,6 +40,8 @@ public:
             return dynamic_cast<Value *>(this->local_store_->get(key));
         } else {
             //networking. dispatch request and get from appropriate node.
+            std::cout<<"ERROR: ENCOUNTERED NETWORKING CODE IN KVSTORE-GET\n";
+            return nullptr;
         }
     }
 
@@ -47,6 +51,8 @@ public:
             //while loop?. might stack overflow. could sleep and try at regular intervals.
         } else {
             //networking. dispatch request and get from appropriate node.
+            std::cout<<"ERROR: ENCOUNTERED NETWORKING CODE IN KVSTORE-WAITANDGET\n";
+            return nullptr;
         }
     }
 

@@ -6,6 +6,7 @@
 #include "string.h"
 #include "../dataframe/dataframe.h"
 #include "../dataframe/schema.h"
+#include "../utils/distributedArray.h"
 
 /**
  * A generic Deserialize method that calls the correct deserialization method of the given serialized class
@@ -59,6 +60,8 @@
             return new Value(s);
         } else if(0 == strncmp(className, "KVStore", strlen(className))) {
             return new KVStore(s);
+        } else if(0 == strncmp(className, "IntDistributedArray", strlen(className))) {
+            return new IntDistributedArray(s);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

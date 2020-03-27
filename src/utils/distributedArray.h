@@ -78,29 +78,42 @@ class IntDistributedArray: public Object {
   }; //sets the object at index to be o, returns former object
     
     /*
+    *   Generates a new Key Value pair with a value
+    */
+    void keygen(int val) {
+        //creates a unique keyname based on provided ID - could be modified to randomly pick number?
+        StrBuff* sb = new StrBuff();
+        sb->c(uid_);
+        sb->c("_dist_int_array_chunk_");
+        sb->c(chunkCount_);
+        String* s = sb->get();
+        Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
+        keys_->pushBack(k);
+        IntArray* valuesArray = new IntArray(); //creates new Int array to store values in this chunk
+        valuesArray->pushBack(val);
+        kv_->put(k, new Value(valuesArray->serialize(), 0)); //adds new IntArray to kvStore
+    }
+    /*
     *   Adds a new int to the back of the Distributed Int Array
     */ 
     void pushBack(int val) {
-        if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
+        //initialize first key
+        std::cout<<"attempting to pushback "<<val<<"\n";
+        if(itemCount_ == 0) {
+            keygen(val);
+        }
+        else if(itemCount_ % chunkSize_ == 0) { //if current chunk is full..
             curNode_+=1;
             chunkCount_+=1;
             if(curNode_ == totalNodes_) { //starts cycle of chunks on nodes again
                 curNode_ = 0;
             }
-            //creates a unique keyname based on provided ID - could be modified to randomly pick number?
-            StrBuff* sb = new StrBuff();
-            sb->c(uid_); 
-            sb->c("_dist_int_array_chunk_");
-            sb->c(chunkCount_);
-            String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
-            keys_->pushBack(k);
-            IntArray* valuesArray = new IntArray(); //creates new Int array to store values in this chunk
-            valuesArray->pushBack(val);
-            kv_->put(k, new Value(valuesArray->serialize(), 0)); //adds new IntArray to kvStore
+            keygen(val);
         } else {
             Key* curKey = dynamic_cast<Key*>(keys_->get(chunkCount_)); //get current Key to change its value....
-            Value* kv_val = kv_->get(curKey);
+            //
+            Value* kv_val = kv_->get(curKey); //returning nullptr
+            //
             char* payload = JSONHelper::getPayloadValue(kv_val->data)->c_str();
             IntArray* intArr = IntArray::deserialize(payload); //get IntArray to update
             intArr->pushBack(val);
@@ -149,8 +162,8 @@ class IntDistributedArray: public Object {
       sb->write("itemCount_", itemCount_);
       sb->write("curNode_", curNode_);
       sb->write("totalNodes_", totalNodes_);
-      sb->write("keys_", keys_->serialize());
-      sb->write("kv_", kv_->serialize());
+      sb->write("keys_", keys_->serialize(), false);
+      sb->write("kv_", kv_->serialize(), false);
       sb->endSerialize();
       char* value = sb->get();
       delete sb;
@@ -223,7 +236,7 @@ class FloatDistributedArray: public Object {
             sb->c("_dist_int_array_chunk_");
             sb->c(chunkCount_);
             String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
             keys_->pushBack(k);
             FloatArray* valuesArray = new FloatArray(); //creates new Int array to store values in this chunk
             valuesArray->pushBack(val);
@@ -336,7 +349,7 @@ class StringDistributedArray: public Object {
             sb->c("_dist_int_array_chunk_");
             sb->c(chunkCount_);
             String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
             keys_->pushBack(k);
             StringArray* valuesArray = new StringArray(); //creates new Int array to store values in this chunk
             valuesArray->pushBack(val);
@@ -441,7 +454,7 @@ class BoolDistributedArray: public Object {
             sb->c("_dist_int_array_chunk_");
             sb->c(chunkCount_);
             String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
             keys_->pushBack(k);
             BoolArray* valuesArray = new BoolArray(); //creates new Int array to store values in this chunk
             valuesArray->pushBack(val);
@@ -546,7 +559,7 @@ class DoubleDistributedArray: public Object {
             sb->c("_dist_int_array_chunk_");
             sb->c(chunkCount_);
             String* s = sb->get();
-            Key* k = new Key(s->c_str, curNode_); //create new key with current node and keyName
+            Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
             keys_->pushBack(k);
             DoubleArray* valuesArray = new DoubleArray(); //creates new Int array to store values in this chunk
             valuesArray->pushBack(val);
