@@ -27,12 +27,10 @@ class DistributedIntColumn : public Column {
   };
 
 
-  // DistributedIntColumn(char* serialized) {
-  //   char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-  //   this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
-  //   this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
-  //   this->val_ = new Array(JSONHelper::getValueFromKey("val_", payload)->c_str());
-  // }
+  DistributedIntColumn(char* serialized) {
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    this->val_ = new IntDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+  }
 
   ~DistributedIntColumn() {
    // delete val_;
@@ -94,19 +92,15 @@ class DistributedIntColumn : public Column {
     return this->val_->equals(other_val_);
   }
 
-  // char* serialize() {
-  //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistributedIntColumn");
-  //   sb->write("listLength_", listLength_);
-  //   sb->write("arraySize_", arraySize_);
-  //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
-  //   char * seralizedArr = val_->serialize();
-  //   sb->write("val_", seralizedArr, false);
-  //   sb->endSerialize();
-  //   char* value = sb->get();
-  //   delete sb;
-  //   return value;
-  // }
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };
 /*************************************************************************
  * DistributedDoubleColumn::

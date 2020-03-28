@@ -559,15 +559,18 @@ public:
         return df;
     }
 
-    static DistributedDataFrame::DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
+    static DistributedDataFrame::DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, int* vals) {
       Schema* s = new Schema("D");
-      DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv);
+      DistributedIntColumn* ic = new DistributedIntColumn(kv);
       for (size_t i = 0; i < length; i++) {
         s->add_row(nullptr);
-        dc->push_back(vals[i]);
+        ic->push_back(vals[i]);
       }
+      ic->storeChunks();
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
-      df->add_column(dc, nullptr);
-      //need kd store.
+      df->add_column(ic, nullptr);
+      Value* val = new Value(df->serialize());
+      kv->put(key, val);
+      return df;
     }
 };
