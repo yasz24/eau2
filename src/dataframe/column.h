@@ -30,6 +30,11 @@ class Column : public Object {
   virtual BoolColumn*  as_bool() = 0;
   virtual FloatColumn* as_float() = 0;
   virtual StringColumn* as_string() = 0;
+  virtual DistributedIntColumn * as_dist_int() = 0;
+  virtual DistributedDoubleColumn * as_dist_double() = 0;
+  virtual DistributedBoolColumn*  as_dist_bool() = 0;
+  virtual DistributedFloatColumn* as_dist_float() = 0;
+  virtual DistributedStringColumn* as_dist_string() = 0;
  
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
@@ -121,6 +126,11 @@ class IntColumn : public Column {
   FloatColumn* as_float() { return nullptr; };
   StringColumn* as_string() { return nullptr; };
   DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
  
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
@@ -252,6 +262,11 @@ class DoubleColumn : public Column {
   BoolColumn*  as_bool() { return nullptr; };
   FloatColumn* as_float() { return nullptr; };
   StringColumn* as_string() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
  
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
@@ -392,6 +407,11 @@ class FloatColumn : public Column {
   FloatColumn* as_float() { return this; };
   StringColumn* as_string() { return nullptr; };
   DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
  
   /** Type appropriate push_back methods. Calling the wrong method results 
     * in no data change. **/
@@ -532,6 +552,11 @@ class BoolColumn : public Column {
   FloatColumn* as_float() { return nullptr; };
   StringColumn* as_string() { return nullptr; };
   DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
  
   /** Type appropriate push_back methods. Calling the wrong method results in
     * no data change. **/
@@ -680,6 +705,11 @@ class StringColumn : public Column {
   FloatColumn* as_float() { return nullptr; };
   StringColumn* as_string() { return this; };
   DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
  
   /** Type appropriate push_back methods. Calling the wrong method is
     * undefined behavior. **/

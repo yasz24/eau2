@@ -11,6 +11,9 @@
 
 #include <math.h>
 #include <string>
+
+//***TODO. Push the last chunk. -> storeChunk() would work.
+//***TODO. Need the other DistributedArrays except for Int.
 //Authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Ints */
 class IntDistributedArray: public Object {

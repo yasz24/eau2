@@ -13,17 +13,17 @@
 //Authors: Shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
 
 /*************************************************************************
- * DistrbutedIntColumn::
+ * DistributedIntColumn::
  * Holds int values.
  */
-class DistrbutedIntColumn : public Column {
+class DistributedIntColumn : public Column {
  public:
   KVStore* kv_;
   size_t chunkSize_;
   size_t uid_;
   IntDistributedArray* val_;
 
-  DistrbutedIntColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedIntColumn(KVStore* kv, size_t chunkSize, size_t uid) {
       this->kv_ = kv;
       this->chunkSize_ = chunkSize;
       this->uid_ = uid;
@@ -31,16 +31,29 @@ class DistrbutedIntColumn : public Column {
   };
 
 
-  // DistrbutedIntColumn(char* serialized) {
+  // DistributedIntColumn(char* serialized) {
   //   char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
   //   this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
   //   this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
   //   this->val_ = new Array(JSONHelper::getValueFromKey("val_", payload)->c_str());
   // }
 
-  ~DistrbutedIntColumn() {
+  ~DistributedIntColumn() {
    // delete val_;
   }
+
+  IntColumn* as_int() { return nullptr; }
+  BoolColumn*  as_bool() { return nullptr; };
+  FloatColumn* as_float() { return nullptr; };
+  StringColumn* as_string() { return nullptr; };
+  DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { 
+    return this;
+  };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
 
   /** get int value at idx. An out of bound idx triggers an assert error.  */
   int get(size_t idx) {
@@ -74,7 +87,7 @@ class DistrbutedIntColumn : public Column {
 
   bool equals(Object * o) {
     if(o == nullptr) return false;
-    DistrbutedIntColumn* other_ic = dynamic_cast<DistrbutedIntColumn*>(o);
+    DistributedIntColumn* other_ic = dynamic_cast<DistributedIntColumn*>(o);
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     IntDistributedArray* other_val_ = dynamic_cast<IntDistributedArray*>(other_ic->val_);
@@ -83,7 +96,7 @@ class DistrbutedIntColumn : public Column {
 
   // char* serialize() {
   //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistrbutedIntColumn");
+  //   sb->initSerialize("DistributedIntColumn");
   //   sb->write("listLength_", listLength_);
   //   sb->write("arraySize_", arraySize_);
   //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
@@ -96,27 +109,39 @@ class DistrbutedIntColumn : public Column {
   // }
 };
 /*************************************************************************
- * DistrbutedDoubleColumn::
+ * DistributedDoubleColumn::
  * Holds double values.
  */
-class DistrbutedDoubleColumn : public Column {
+class DistributedDoubleColumn : public Column {
  public:
   KVStore* kv_;
   size_t chunkSize_;
   size_t uid_;
   DoubleDistributedArray* val_;
 
-  DistrbutedDoubleColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedDoubleColumn(KVStore* kv, size_t chunkSize, size_t uid) {
     this->kv_ = kv;
     this->chunkSize_ = chunkSize;
     this->uid_ = uid;
     this->val_ = new DoubleDistributedArray(kv, chunkSize, uid);
   };
 
-  ~DistrbutedDoubleColumn() {
+  ~DistributedDoubleColumn() {
    // delete val_;
   }
 
+  IntColumn* as_int() { return nullptr; }
+  BoolColumn*  as_bool() { return nullptr; };
+  FloatColumn* as_float() { return nullptr; };
+  StringColumn* as_string() { return nullptr; };
+  DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { 
+    return this; 
+  };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
   /** get double value at idx. An out of bound idx triggers an assert error.  */
   double get(size_t idx) {
     return this->val_->get(idx);
@@ -148,7 +173,7 @@ class DistrbutedDoubleColumn : public Column {
 
   bool equals(Object * o) {
     if(o == nullptr) return false;
-    DistrbutedDoubleColumn* other_ic = dynamic_cast<DistrbutedDoubleColumn*>(o);
+    DistributedDoubleColumn* other_ic = dynamic_cast<DistributedDoubleColumn*>(o);
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     DoubleDistributedArray* other_val_ = dynamic_cast<DoubleDistributedArray*>(other_ic->val_);
@@ -157,7 +182,7 @@ class DistrbutedDoubleColumn : public Column {
 
   // char* serialize() {
   //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistrbutedDoubleColumn");
+  //   sb->initSerialize("DistributedDoubleColumn");
   //   sb->write("listLength_", listLength_);
   //   sb->write("arraySize_", arraySize_);
   //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
@@ -169,37 +194,50 @@ class DistrbutedDoubleColumn : public Column {
   //   return value;
   // }
 
-  // static DistrbutedDoubleColumn* deserialize(char* s) {
+  // static DistributedDoubleColumn* deserialize(char* s) {
   //   size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
   //   size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
   //   String* arr_string = JSONHelper::getValueFromKey("val_", s);
   //   char* arr_cstr = arr_string->c_str();
   //   Array* arr = new Array(arr_cstr);
-  //   DistrbutedDoubleColumn* dc = new DistrbutedDoubleColumn(arr, listLength);
+  //   DistributedDoubleColumn* dc = new DistributedDoubleColumn(arr, listLength);
   //   return dc;
   // }
 };
 /*************************************************************************
- * DistrbutedFloatColumn::
+ * DistributedFloatColumn::
  * Holds float values.
  */
-class DistrbutedFloatColumn : public Column {
+class DistributedFloatColumn : public Column {
  public:
   KVStore* kv_;
   size_t chunkSize_;
   size_t uid_;
   FloatDistributedArray* val_;
 
-  DistrbutedFloatColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedFloatColumn(KVStore* kv, size_t chunkSize, size_t uid) {
     this->kv_ = kv;
     this->chunkSize_ = chunkSize;
     this->uid_ = uid;
     this->val_ = new FloatDistributedArray(kv, chunkSize, uid);
   };
 
-  ~DistrbutedFloatColumn() {
+  ~DistributedFloatColumn() {
    // delete val_;
   }
+
+  IntColumn* as_int() { return nullptr; }
+  BoolColumn*  as_bool() { return nullptr; };
+  FloatColumn* as_float() { return nullptr; };
+  StringColumn* as_string() { return nullptr; };
+  DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { 
+    return this; 
+  };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
 
   /** get value at idx. An out of bound idx triggers an assert error.  */
   float get(size_t idx) {
@@ -231,7 +269,7 @@ class DistrbutedFloatColumn : public Column {
 
   bool equals(Object * o) {
     if(o == nullptr) return false;
-    DistrbutedFloatColumn* other_ic = dynamic_cast<DistrbutedFloatColumn*>(o);
+    DistributedFloatColumn* other_ic = dynamic_cast<DistributedFloatColumn*>(o);
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     FloatDistributedArray* other_val_ = dynamic_cast<FloatDistributedArray*>(other_ic->val_);
@@ -243,7 +281,7 @@ class DistrbutedFloatColumn : public Column {
 
   // char* serialize() {
   //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistrbutedFloatColumn");
+  //   sb->initSerialize("DistributedFloatColumn");
   //   sb->write("listLength_", listLength_);
   //   sb->write("arraySize_", arraySize_);
   //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
@@ -255,37 +293,50 @@ class DistrbutedFloatColumn : public Column {
   //   return value;
   // }
 
-  // static DistrbutedFloatColumn* deserialize(char* s) {
+  // static DistributedFloatColumn* deserialize(char* s) {
   //   size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
   //   size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
   //   String* arr_string = JSONHelper::getValueFromKey("val_", s);
   //   char* arr_cstr = arr_string->c_str();
   //   Array* arr = new Array(arr_cstr);
-  //   DistrbutedFloatColumn* fc = new DistrbutedFloatColumn(arr, listLength);
+  //   DistributedFloatColumn* fc = new DistributedFloatColumn(arr, listLength);
   //   return fc;
   // }
 };
 /*************************************************************************
- * DistrbutedBoolColumn::
+ * DistributedBoolColumn::
  * Holds bool values.
  */
-class DistrbutedBoolColumn : public Column {
+class DistributedBoolColumn : public Column {
  public:
   KVStore* kv_;
   size_t chunkSize_;
   size_t uid_;
   BoolDistributedArray* val_;
 
-  DistrbutedBoolColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedBoolColumn(KVStore* kv, size_t chunkSize, size_t uid) {
     this->kv_ = kv;
     this->chunkSize_ = chunkSize;
     this->uid_ = uid;
     this->val_ = new BoolDistributedArray(kv, chunkSize, uid);
   };
 
-  ~DistrbutedBoolColumn() {
+  ~DistributedBoolColumn() {
    // delete val_;  
   }
+
+  IntColumn* as_int() { return nullptr; }
+  BoolColumn*  as_bool() { return nullptr; };
+  FloatColumn* as_float() { return nullptr; };
+  StringColumn* as_string() { return nullptr; };
+  DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { 
+    return this; 
+  };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
 
   /** get value at idx. An out of bound idx triggers an assert error.  */
   bool get(size_t idx) {
@@ -296,7 +347,7 @@ class DistrbutedBoolColumn : public Column {
   void set(size_t idx, bool val) {
     this->val_->set(idx, val);
   };
-  /** returns the length of DistrbutedBoolColumn */
+  /** returns the length of DistributedBoolColumn */
   size_t size() { return this->val_->length(); };
  
   /** Type appropriate push_back methods. Calling the wrong method results in
@@ -315,7 +366,7 @@ class DistrbutedBoolColumn : public Column {
 
   bool equals(Object * o) {
     if(o == nullptr) return false;
-    DistrbutedBoolColumn* other_ic = dynamic_cast<DistrbutedBoolColumn*>(o);
+    DistributedBoolColumn* other_ic = dynamic_cast<DistributedBoolColumn*>(o);
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     BoolDistributedArray* other_val_ = dynamic_cast<BoolDistributedArray*>(other_ic->val_);
@@ -327,7 +378,7 @@ class DistrbutedBoolColumn : public Column {
 
   // char* serialize() {
   //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistrbutedBoolColumn");
+  //   sb->initSerialize("DistributedBoolColumn");
   //   sb->write("listLength_", listLength_);
   //   sb->write("arraySize_", arraySize_);
   //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
@@ -339,28 +390,28 @@ class DistrbutedBoolColumn : public Column {
   //   return value;
   // }
 
-  // static DistrbutedBoolColumn* deserialize(char* s) {
+  // static DistributedBoolColumn* deserialize(char* s) {
   //   size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
   //   size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
   //   String* arr_string = JSONHelper::getValueFromKey("val_", s);
   //   char* arr_cstr = arr_string->c_str();
   //   Array* arr = new Array(arr_cstr);
-  //   DistrbutedBoolColumn* bc = new DistrbutedBoolColumn(arr, listLength);
+  //   DistributedBoolColumn* bc = new DistributedBoolColumn(arr, listLength);
   //   return bc;
   // }
 };
 /*************************************************************************
- * DistrbutedStringColumn::
+ * DistributedStringColumn::
  * Holds bool values.
  */
-class DistrbutedStringColumn : public Column {
+class DistributedStringColumn : public Column {
  public:
   KVStore* kv_;
   size_t chunkSize_;
   size_t uid_;
   StringDistributedArray* val_;
 
-  DistrbutedStringColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedStringColumn(KVStore* kv, size_t chunkSize, size_t uid) {
     this->kv_ = kv;
     this->chunkSize_ = chunkSize;
     this->uid_ = uid;
@@ -368,16 +419,29 @@ class DistrbutedStringColumn : public Column {
 
   };
 
-  // DistrbutedStringColumn(char* serialized) {
+  // DistributedStringColumn(char* serialized) {
   //   char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
   //   this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
   //   this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
   //   this->val_ = new Array(JSONHelper::getValueFromKey("val_", payload)->c_str());
   // }
 
-  ~DistrbutedStringColumn() {
+  ~DistributedStringColumn() {
    // delete val_;
   }
+
+  IntColumn* as_int() { return nullptr; }
+  BoolColumn*  as_bool() { return nullptr; };
+  FloatColumn* as_float() { return nullptr; };
+  StringColumn* as_string() { return nullptr; };
+  DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { 
+    return this; 
+  };
 
 /** Get pointer at idx. An out of bound idx triggers an assert error. */
   String* get(size_t idx) {
@@ -405,7 +469,7 @@ class DistrbutedStringColumn : public Column {
 
   bool equals(Object * o) {
     if(o == nullptr) return false;
-    DistrbutedStringColumn* other_ic = dynamic_cast<DistrbutedStringColumn*>(o);
+    DistributedStringColumn* other_ic = dynamic_cast<DistributedStringColumn*>(o);
     if(other_ic == nullptr) return false;
     if(other_ic->size() != size()) return false;
     StringDistributedArray* other_val_ = dynamic_cast<StringDistributedArray*>(other_ic->val_);
@@ -417,7 +481,7 @@ class DistrbutedStringColumn : public Column {
 
   // char* serialize() {
   //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistrbutedStringColumn");
+  //   sb->initSerialize("DistributedStringColumn");
   //   sb->write("listLength_", listLength_);
   //   sb->write("arraySize_", arraySize_);
   //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
@@ -428,13 +492,13 @@ class DistrbutedStringColumn : public Column {
   //   delete sb;
   //   return value;
   // }
-  // static DistrbutedStringColumn* deserialize(char* s) {
+  // static DistributedStringColumn* deserialize(char* s) {
   //   size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
   //   size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
   //   String* arr_string = JSONHelper::getValueFromKey("val_", s);
   //   char* arr_cstr = arr_string->c_str();
   //   Array* arr = new Array(arr_cstr);
-  //   DistrbutedStringColumn* sc = new DistrbutedStringColumn(arr, listLength);
+  //   DistributedStringColumn* sc = new DistributedStringColumn(arr, listLength);
   //   return sc;
   // }
 };
