@@ -6,6 +6,7 @@
 #include "schema.h"
 #include "column.h"
 #include "row.h"
+#include "distributedRow.h"
 #include "rower.h"
 #include "../utils/primatives.h"
 #include "dataframe.h"
@@ -27,6 +28,9 @@ public:
     //A DistributedDataFrame is an array of columns.
     Schema* schema_; //owned.
     Array* cols_; //owned.
+    KVStore* kv_; 
+    size_t chunkSize_;
+    size_t uid_;
   
     
     /** Create a data frame from a schema and columns. All columns are created
@@ -34,6 +38,9 @@ public:
     DistributedDataFrame(Schema& schema, KVStore* kv, size_t chunkSize, size_t uid) {
       this->schema_ = new Schema(schema);
       this->cols_ = new Array();
+      kv_ = kv;
+      chunkSize_ = chunkSize;
+      uid_ = uid;
       for (size_t i = 0; i < this->schema_->width(); i++) {
         char col_type = this->schema_->col_type(i);
         Column* col;
@@ -68,6 +75,13 @@ public:
     DistributedDataFrame(Schema* sch, Array* cols) {
       this->schema_ = sch;
       this->cols_ = cols;
+    }
+
+    void storeColChunks() {
+      for (size_t i = 0; i < this->cols_->length(); i++) {
+        Column* col = dynamic_cast<Column*>(this->cols_->get(i));
+        col->storeChunks();
+      }
     }
   
     /** Returns the DistributedDataFrame's schema as a copy Schema. Modifying the schema after a DistributedDataFrame
@@ -549,8 +563,15 @@ public:
         return df;
     }
 
-    static DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
+    static DistributedDataFrame::DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
       Schema* s = new Schema("D");
-
+      DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv, 15, 10);
+      for (size_t i = 0; i < length; i++) {
+        s->add_row(nullptr);
+        dc->push_back(vals[i]);
+      }
+      DistributedDataFrame* df = new DistributedDataFrame(*s, kv, 15, 10);
+      df->add_column(dc, nullptr);
+      //need kd store.
     }
 };

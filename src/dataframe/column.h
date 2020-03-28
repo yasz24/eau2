@@ -43,6 +43,11 @@ class Column : public Object {
   virtual void push_back(bool val) = 0;
   virtual void push_back(float val) = 0;
   virtual void push_back(String* val) = 0;
+  
+  /**
+   * To be used by distributed columns. Push any chunks to the store.
+  */
+  virtual void storeChunks() = 0;
  
  /** Returns the number of elements in the column. */
   virtual size_t size() = 0;
@@ -131,6 +136,7 @@ class IntColumn : public Column {
   DistributedBoolColumn*  as_dist_bool() { return nullptr; };
   DistributedFloatColumn* as_dist_float() { return nullptr; };
   DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
@@ -267,6 +273,7 @@ class DoubleColumn : public Column {
   DistributedBoolColumn*  as_dist_bool() { return nullptr; };
   DistributedFloatColumn* as_dist_float() { return nullptr; };
   DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
@@ -412,6 +419,7 @@ class FloatColumn : public Column {
   DistributedBoolColumn*  as_dist_bool() { return nullptr; };
   DistributedFloatColumn* as_dist_float() { return nullptr; };
   DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method results 
     * in no data change. **/
@@ -557,6 +565,7 @@ class BoolColumn : public Column {
   DistributedBoolColumn*  as_dist_bool() { return nullptr; };
   DistributedFloatColumn* as_dist_float() { return nullptr; };
   DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method results in
     * no data change. **/
@@ -710,6 +719,7 @@ class StringColumn : public Column {
   DistributedBoolColumn*  as_dist_bool() { return nullptr; };
   DistributedFloatColumn* as_dist_float() { return nullptr; };
   DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method is
     * undefined behavior. **/

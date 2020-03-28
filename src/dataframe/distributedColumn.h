@@ -55,6 +55,10 @@ class DistributedIntColumn : public Column {
   DistributedFloatColumn* as_dist_float() { return nullptr; };
   DistributedStringColumn* as_dist_string() { return nullptr; };
 
+  void storeChunks() { 
+    this->val_->storeChunk();
+  };
+
   /** get int value at idx. An out of bound idx triggers an assert error.  */
   int get(size_t idx) {
     return this->val_->get(idx);
@@ -142,6 +146,9 @@ class DistributedDoubleColumn : public Column {
   DistributedBoolColumn*  as_dist_bool() { return nullptr; };
   DistributedFloatColumn* as_dist_float() { return nullptr; };
   DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { 
+    this->val_->storeChunk();
+  };
   /** get double value at idx. An out of bound idx triggers an assert error.  */
   double get(size_t idx) {
     return this->val_->get(idx);
@@ -238,6 +245,9 @@ class DistributedFloatColumn : public Column {
     return this; 
   };
   DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { 
+    this->val_->storeChunk();
+  };
 
   /** get value at idx. An out of bound idx triggers an assert error.  */
   float get(size_t idx) {
@@ -337,6 +347,9 @@ class DistributedBoolColumn : public Column {
   };
   DistributedFloatColumn* as_dist_float() { return nullptr; };
   DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { 
+    this->val_->storeChunk();
+  };
 
   /** get value at idx. An out of bound idx triggers an assert error.  */
   bool get(size_t idx) {
@@ -441,6 +454,9 @@ class DistributedStringColumn : public Column {
   DistributedFloatColumn* as_dist_float() { return nullptr; };
   DistributedStringColumn* as_dist_string() { 
     return this; 
+  };
+  void storeChunks() { 
+    this->val_->storeChunk();
   };
 
 /** Get pointer at idx. An out of bound idx triggers an assert error. */
