@@ -19,15 +19,11 @@
 class DistributedIntColumn : public Column {
  public:
   KVStore* kv_;
-  size_t chunkSize_;
-  size_t uid_;
   IntDistributedArray* val_;
 
-  DistributedIntColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedIntColumn(KVStore* kv) {
       this->kv_ = kv;
-      this->chunkSize_ = chunkSize;
-      this->uid_ = uid;
-      this->val_ = new IntDistributedArray(kv, chunkSize, uid);
+      this->val_ = new IntDistributedArray(kv);
   };
 
 
@@ -119,15 +115,11 @@ class DistributedIntColumn : public Column {
 class DistributedDoubleColumn : public Column {
  public:
   KVStore* kv_;
-  size_t chunkSize_;
-  size_t uid_;
   DoubleDistributedArray* val_;
 
-  DistributedDoubleColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedDoubleColumn(KVStore* kv) {
     this->kv_ = kv;
-    this->chunkSize_ = chunkSize;
-    this->uid_ = uid;
-    this->val_ = new DoubleDistributedArray(kv, chunkSize, uid);
+    this->val_ = new DoubleDistributedArray(kv);
   };
 
   ~DistributedDoubleColumn() {
@@ -218,15 +210,11 @@ class DistributedDoubleColumn : public Column {
 class DistributedFloatColumn : public Column {
  public:
   KVStore* kv_;
-  size_t chunkSize_;
-  size_t uid_;
   FloatDistributedArray* val_;
 
-  DistributedFloatColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedFloatColumn(KVStore* kv) {
     this->kv_ = kv;
-    this->chunkSize_ = chunkSize;
-    this->uid_ = uid;
-    this->val_ = new FloatDistributedArray(kv, chunkSize, uid);
+    this->val_ = new FloatDistributedArray(kv);
   };
 
   ~DistributedFloatColumn() {
@@ -320,15 +308,11 @@ class DistributedFloatColumn : public Column {
 class DistributedBoolColumn : public Column {
  public:
   KVStore* kv_;
-  size_t chunkSize_;
-  size_t uid_;
   BoolDistributedArray* val_;
 
-  DistributedBoolColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedBoolColumn(KVStore* kv) {
     this->kv_ = kv;
-    this->chunkSize_ = chunkSize;
-    this->uid_ = uid;
-    this->val_ = new BoolDistributedArray(kv, chunkSize, uid);
+    this->val_ = new BoolDistributedArray(kv);
   };
 
   ~DistributedBoolColumn() {
@@ -420,15 +404,11 @@ class DistributedBoolColumn : public Column {
 class DistributedStringColumn : public Column {
  public:
   KVStore* kv_;
-  size_t chunkSize_;
-  size_t uid_;
   StringDistributedArray* val_;
 
-  DistributedStringColumn(KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedStringColumn(KVStore* kv) {
     this->kv_ = kv;
-    this->chunkSize_ = chunkSize;
-    this->uid_ = uid;
-    this->val_ = new StringDistributedArray(kv, chunkSize, uid);
+    this->val_ = new StringDistributedArray(kv);
 
   };
 
