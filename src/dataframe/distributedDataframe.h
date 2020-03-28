@@ -29,36 +29,32 @@ public:
     Schema* schema_; //owned.
     Array* cols_; //owned.
     KVStore* kv_; 
-    size_t chunkSize_;
-    size_t uid_;
   
     
     /** Create a data frame from a schema and columns. All columns are created
       * empty. */
-    DistributedDataFrame(Schema& schema, KVStore* kv, size_t chunkSize, size_t uid) {
+    DistributedDataFrame(Schema& schema, KVStore* kv) {
       this->schema_ = new Schema(schema);
       this->cols_ = new Array();
       kv_ = kv;
-      chunkSize_ = chunkSize;
-      uid_ = uid;
       for (size_t i = 0; i < this->schema_->width(); i++) {
         char col_type = this->schema_->col_type(i);
         Column* col;
         switch (col_type) {
         case 'I':
-          col = new DistributedIntColumn(kv, chunkSize, uid);
+          col = new DistributedIntColumn(kv);
           break;
         case 'S':
-          col = new DistributedStringColumn(kv, chunkSize, uid);
+          col = new DistributedStringColumn(kv);
           break;
         case 'B':
-          col = new DistributedBoolColumn(kv, chunkSize, uid);
+          col = new DistributedBoolColumn(kv);
           break;
         case 'F':
-          col = new DistributedFloatColumn(kv, chunkSize, uid);
+          col = new DistributedFloatColumn(kv);
           break;
         case 'D':
-          col = new DistributedDoubleColumn(kv, chunkSize, uid);
+          col = new DistributedDoubleColumn(kv);
           break;
         default:
           col = nullptr;
@@ -565,12 +561,12 @@ public:
 
     static DistributedDataFrame::DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
       Schema* s = new Schema("D");
-      DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv, 15, 10);
+      DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv);
       for (size_t i = 0; i < length; i++) {
         s->add_row(nullptr);
         dc->push_back(vals[i]);
       }
-      DistributedDataFrame* df = new DistributedDataFrame(*s, kv, 15, 10);
+      DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
       df->add_column(dc, nullptr);
       //need kd store.
     }

@@ -23,25 +23,25 @@ class DistributedRow : public Object {
   size_t dfOffset = -1;
   //DistributedRow is an array of cols of size 1.
   /** Build a DistributedRow following a schema. */
-  DistributedRow(Schema& scm, KVStore* kv, size_t chunkSize, size_t uid) {
+  DistributedRow(Schema& scm, KVStore* kv) {
     val_ = new Column*[scm.width()];
     schema = scm;
     for(int i = 0; i < scm.width(); i++) {
       char type = scm.col_type(i);
       if(type == 'I') {
-        val_[i] = new DistributedIntColumn(kv, chunkSize, uid);
+        val_[i] = new DistributedIntColumn(kv);
         val_[i]->push_back(2);
       } else if(type == 'F') {
-        val_[i] = new DistributedFloatColumn(kv, chunkSize, uid);
+        val_[i] = new DistributedFloatColumn(kv);
         val_[i]->push_back(0.0);
       } else if(type == 'S') {
-        val_[i] = new DistributedStringColumn(kv, chunkSize, uid);
+        val_[i] = new DistributedStringColumn(kv);
         val_[i]->push_back("a");
       } else if(type == 'B') {
-        val_[i] = new DistributedBoolColumn(kv, chunkSize, uid);
+        val_[i] = new DistributedBoolColumn(kv);
         val_[i]->push_back(false);
       } else if(type == 'D') {
-        val_[i] = new DistributedDoubleColumn(kv, chunkSize, uid);
+        val_[i] = new DistributedDoubleColumn(kv);
         val_[i]->push_back(0.0);
       } else {
         std::cout<<"ERROR: TYPE CLAIMS TO BE: "<<type<<"...WHICH IS NOT A VALID TYPE\n";
