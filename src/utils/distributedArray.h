@@ -1,5 +1,8 @@
 //lang: CwC
 #pragma once
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <time.h> 
 #include "../object.h"
 #include "../utils/string.h"
 #include "../store/kvstore.h"
@@ -22,17 +25,17 @@ class IntDistributedArray: public Object {
     IntArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_; //number of elements to host in each chunk
+    size_t chunkSize_ = 5; //number of elements to host in each chunk. //change to 1024 later
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
     size_t totalNodes_; //total number of nodes in system
 
-    IntDistributedArray(KVStore* kv, size_t chunkSize, size_t uid) {
+    IntDistributedArray(KVStore* kv) {
         kv_ = kv;
-        chunkSize_ = chunkSize;
         totalNodes_ = kv->num_nodes_;
-        uid_ = uid;
+        srand(time(nullptr));
+        uid_ = rand();
         curNode_ = 0;
         itemCount_ = 0;
         chunkCount_ = 0;
@@ -177,17 +180,17 @@ class FloatDistributedArray: public Object {
     FloatArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_; //number of elements to host in each chunk
+    size_t chunkSize_ = 5; //number of elements to host in each chunk
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
     size_t totalNodes_; //total number of nodes in system
 
-    FloatDistributedArray(KVStore* kv, size_t chunkSize, size_t uid) {
+    FloatDistributedArray(KVStore* kv) {
         kv_ = kv;
-        chunkSize_ = chunkSize;
         totalNodes_ = kv->num_nodes_;
-        uid_ = uid;
+        srand(time(nullptr));
+        uid_ = rand();
         curNode_ = 0;
         itemCount_ = 0;
         chunkCount_ = 0;
@@ -314,17 +317,17 @@ class StringDistributedArray: public Object {
     StringArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_; //number of elements to host in each chunk
+    size_t chunkSize_ = 5; //number of elements to host in each chunk
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
     size_t totalNodes_; //total number of nodes in system
 
-    StringDistributedArray(KVStore* kv, size_t chunkSize, size_t uid) {
+    StringDistributedArray(KVStore* kv) {
         kv_ = kv;
-        chunkSize_ = chunkSize;
         totalNodes_ = kv->num_nodes_;
-        uid_ = uid;
+        srand(time(nullptr));
+        uid_ = rand();
         curNode_ = 0;
         itemCount_ = 0;
         chunkCount_ = 0;
@@ -450,17 +453,17 @@ class BoolDistributedArray: public Object {
     BoolArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_; //number of elements to host in each chunk
+    size_t chunkSize_ = 5; //number of elements to host in each chunk
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
     size_t totalNodes_; //total number of nodes in system
 
-    BoolDistributedArray(KVStore* kv, size_t chunkSize, size_t uid) {
+    BoolDistributedArray(KVStore* kv) {
         kv_ = kv;
-        chunkSize_ = chunkSize;
         totalNodes_ = kv->num_nodes_;
-        uid_ = uid;
+        srand(time(nullptr));
+        uid_ = rand();
         curNode_ = 0;
         itemCount_ = 0;
         chunkCount_ = 0;
@@ -587,17 +590,17 @@ class DoubleDistributedArray: public Object {
     DoubleArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_; //number of elements to host in each chunk
+    size_t chunkSize_ = 5; //number of elements to host in each chunk
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
     size_t totalNodes_; //total number of nodes in system
 
-    DoubleDistributedArray(KVStore* kv, size_t chunkSize, size_t uid) {
+    DoubleDistributedArray(KVStore* kv) {
         kv_ = kv;
-        chunkSize_ = chunkSize;
         totalNodes_ = kv->num_nodes_;
-        uid_ = uid;
+        srand(time(nullptr));
+        uid_ = rand();
         curNode_ = 0;
         itemCount_ = 0;
         chunkCount_ = 0;
