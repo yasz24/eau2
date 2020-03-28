@@ -25,13 +25,13 @@
         char* valueName = valueString->c_str();
         //figure out correct deserialization method to call...
         if(0 == strncmp(className,"IntArray", strlen(className))) {
-            return IntArray::deserialize(valueName);
+            return new IntArray(s);
         } else if(0 == strncmp(className,"FloatArray", strlen(className))) {
-            return FloatArray::deserialize(valueName);
+            return new FloatArray(s);
         } else if(0 == strncmp(className,"StringArray", strlen(className))) {
-            return StringArray::deserialize(valueName);
+            return new StringArray(s);
         } else if(0 == strncmp(className,"DoubleArray", strlen(className))) {
-            return DoubleArray::deserialize(valueName);
+            return new DoubleArray(s);
         } else if(0 == strncmp(className,"StringColumn", strlen(className))) {
             return new StringColumn(s);
         } else if(0 == strncmp(className,"FloatColumn", strlen(className))) {
@@ -62,6 +62,14 @@
             return new KVStore(s);
         } else if(0 == strncmp(className, "IntDistributedArray", strlen(className))) {
             return new IntDistributedArray(s);
+        } else if(0 == strncmp(className, "FloatDistributedArray", strlen(className))) {
+            return new FloatDistributedArray(s);
+        } else if(0 == strncmp(className, "DoubleDistributedArray", strlen(className))) {
+            return new DoubleDistributedArray(s);
+        } else if(0 == strncmp(className, "BoolDistributedArray", strlen(className))) {
+            return new BoolDistributedArray(s);
+        } else if(0 == strncmp(className, "StringDistributedArray", strlen(className))) {
+            return new StringDistributedArray(s);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

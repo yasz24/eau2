@@ -21,6 +21,21 @@ KVStore* tempStore() {
     return kvs1;
 }
 
+StringArray* genStringArray() {
+    StringArray* sa = new StringArray();
+    sa->pushBack(new String("taco"));
+    sa->pushBack(new String("hamburger"));
+    sa->pushBack(new String("ice cream"));
+    sa->pushBack(new String("pizza"));
+    sa->pushBack(new String("french fry"));
+    sa->pushBack(new String("lasagna"));
+    sa->pushBack(new String("curry"));
+    sa->pushBack(new String("lo mein"));
+    sa->pushBack(new String("pad thai"));
+    sa->pushBack(new String("chicken"));
+    return sa;
+}
+
 void testValueSerialization() {
     Sys* system = new Sys();
     Value* v1 = new Value("muffin", 6);
@@ -60,10 +75,10 @@ void testKVStoreSerialization() {
     delete [] system;
 }
 
-void testDistributedArrays() {
+void testIntDistributedArrays() {
     Sys* system = new Sys();
     KVStore* kvs1 = new KVStore(5, 0);
-    IntDistributedArray* ida = new IntDistributedArray(kvs1, 15, 18);
+    IntDistributedArray* ida = new IntDistributedArray(kvs1);
     for(int i = 0; i < 10; i++) {
         ida->pushBack(i);
     }
@@ -72,13 +87,57 @@ void testDistributedArrays() {
     String* s = new String(serialized);
     String* s2 = new String(ida2->serialize());
     system->t_true(s2->equals(s));
-    system->OK("Passed intDistributedArray....");
+    system->OK("Passed intDistributedArray");
+    delete [] system;
+}
+
+void testStringDistributedArrays() {
+    Sys* system = new Sys();
+    KVStore* kvs1 = new KVStore(5, 0);
+    StringDistributedArray* sda = new StringDistributedArray(kvs1);
+    StringArray* sa = genStringArray();
+    for(int i = 0; i < 10; i++) {
+        sda->pushBack(sa->get(i));
+    }
+    char* serialized = sda->serialize();
+    StringDistributedArray* sda2 = new StringDistributedArray(serialized);
+    String* s = new String(serialized);
+    String* s2 = new String(sda2->serialize());
+    system->t_true(s2->equals(s));
+    for(int i = 0; i < 10; i++) {
+        system->t_true(sda->get(i)->equals(sa->get(i)));
+    }
+    system->OK("Passed StringDistributedArray");
+    delete sa;
+    delete [] system;
+}
+
+void testFloatDistributedArrays() {
+    Sys* system = new Sys();
+    KVStore* kvs1 = new KVStore(5, 0);
+    FloatDistributedArray* fda = new FloatDistributedArray(kvs1);
+    for(int i = 0; i < 40; i++) {
+        fda->pushBack(i);
+    }
+    char* serialized = fda->serialize();   
+    FloatDistributedArray* fda2 = new FloatDistributedArray(serialized);
+    String* s = new String(serialized);
+    char* serial = fda2->serialize();
+    String* s2 = new String(fda2->serialize());
+    system->t_true(s2->equals(s));
+    for(int i = 0; i < 10; i++) {
+        system->t_true(fda->get(i) == i);
+    }
+    system->OK("Passed FloatDistributedArray");
+    delete [] system;
 }
 
 int main() {
     testValueSerialization();
     testKeySerialization();
     testKVStoreSerialization(); //issue with map currently
-    testDistributedArrays();
+    testIntDistributedArrays();
+    testStringDistributedArrays();
+    testFloatDistributedArrays();
     return 0;
 }

@@ -190,6 +190,22 @@ class IntArray: public Object {
         vals_=new int[arraySize_];
     }
 
+    /**
+     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
+     */ 
+    IntArray(char* serialized) {
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
+        this->listLength_ = len;
+        IntArray* temp = new IntArray(len);
+        for(int i = 0; i < len; i++) {
+            temp->pushBack(std::stoi(JSONHelper::getArrayValueAt(vals, i)->c_str()));
+        }
+        this->vals_ = temp->vals_;
+    }
+
    int get(size_t index) {
       assert(index < listLength_);
         return vals_[index];
@@ -261,20 +277,6 @@ class IntArray: public Object {
         delete sb;
         return value;
      }
-    /**
-     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
-     */ 
-     static IntArray* deserialize(char* s) {
-         size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-         size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-         String* vals = JSONHelper::getValueFromKey("vals_", s);
-         char* values = vals->c_str();
-         IntArray* ia = new IntArray(arraySize);
-         for(int i = 0; i < listLength; i++) {
-             ia->pushBack(std::stoi(JSONHelper::getArrayValueAt(values, i)->c_str()));
-         }
-         return ia;
-     }
 };
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and doubles */
 class DoubleArray: public Object {
@@ -292,6 +294,21 @@ class DoubleArray: public Object {
         arraySize_ = as;
         vals_=new double[arraySize_];
     }
+
+    /**
+     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
+     */ 
+    DoubleArray(char* serialized) {
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
+        DoubleArray* temp = new DoubleArray(len);
+         for(int i = 0; i < len; i++) {
+             temp->pushBack(std::stod(JSONHelper::getArrayValueAt(vals, i)->c_str()));
+         }
+         this->vals_=temp->vals_;
+     }
 
     double get(size_t index) {
         assert(index < listLength_);
@@ -364,20 +381,6 @@ class DoubleArray: public Object {
         delete sb;
         return value;
      }
-    /**
-     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
-     */ 
-     static DoubleArray* deserialize(char* s) {
-         size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-         size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-         String* vals = JSONHelper::getValueFromKey("vals_", s);
-         char* values = vals->c_str();
-         DoubleArray* da = new DoubleArray(arraySize);
-         for(int i = 0; i < listLength; i++) {
-             da->pushBack(std::stoi(JSONHelper::getArrayValueAt(values, i)->c_str()));
-         }
-         return da;
-     }
 };
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Floats */
 class FloatArray: public Object {
@@ -394,6 +397,22 @@ class FloatArray: public Object {
     FloatArray(int as) {
         arraySize_ = as;
         vals_ = new float[arraySize_];
+    }
+
+    /**
+     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
+     */ 
+    FloatArray(char* serialized) {
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        this->listLength_ = len;
+        char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
+        FloatArray* ia = new FloatArray(len);
+        for(int i = 0; i < len; i++) {
+            ia->pushBack(std::stof(JSONHelper::getArrayValueAt(vals, i)->c_str()));
+        }
+        this->vals_ = ia->vals_;
     }
 
    float get(size_t index) {
@@ -467,20 +486,6 @@ class FloatArray: public Object {
         delete sb;
         return value;
      }
-    /**
-     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
-     */ 
-     static FloatArray* deserialize(char* s) {
-         size_t arraySize = std::stof(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-         size_t listLength = std::stof(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-         String* vals = JSONHelper::getValueFromKey("vals_", s);
-         char* values = vals->c_str();
-         FloatArray* ia = new FloatArray(arraySize);
-         for(int i = 0; i < listLength; i++) {
-             ia->pushBack(std::stof(JSONHelper::getArrayValueAt(values, i)->c_str()));
-         }
-         return ia;
-     }
 };
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Bools */
 class BoolArray: public Object {
@@ -498,6 +503,21 @@ class BoolArray: public Object {
         arraySize_ = as;
         vals_ = new bool[arraySize_];
     }
+
+    /**
+     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
+     */ 
+    BoolArray(char* serialized) {
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
+        BoolArray* ia = new BoolArray(len);
+         for(int i = 0; i < len; i++) {
+             ia->pushBack(std::stoi(JSONHelper::getArrayValueAt(vals, i)->c_str()));
+         }
+        this->vals_ = ia->vals_;
+     }
 
    bool get(size_t index) {
       assert(index < listLength_);
@@ -564,21 +584,6 @@ class BoolArray: public Object {
         delete sb;
         return value;
      }
-
-     /**
-     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
-     */ 
-     static BoolArray* deserialize(char* s) {
-         size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-         size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-         String* vals = JSONHelper::getValueFromKey("vals_", s);
-         char* values = vals->c_str();
-         BoolArray* ia = new BoolArray(arraySize);
-         for(int i = 0; i < listLength; i++) {
-             ia->pushBack(std::stoi(JSONHelper::getArrayValueAt(values, i)->c_str()));
-         }
-         return ia;
-     }
 };
 /** Builds a specific type of array with similar behavior to Array class but of fixed length and Strings* */
 class StringArray: public Object {
@@ -595,6 +600,22 @@ class StringArray: public Object {
     StringArray(int as) {
         arraySize_ = as;
         vals_ = new String*[arraySize_];
+    }
+
+    /**
+     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
+     */ 
+    StringArray(char* serialized) {
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
+        this->listLength_ = len;
+        StringArray* temp = new StringArray(len);
+        for(int i = 0; i < len; i++) {
+            temp->pushBack(JSONHelper::getArrayValueAt(vals, i));
+        }
+        this->vals_ = temp->vals_;
     }
 
    String* get(size_t index) {
@@ -653,19 +674,5 @@ class StringArray: public Object {
         char* value = sb->get();
         delete sb;
         return value;
-     }
-    /**
-     * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
-     */ 
-     static StringArray* deserialize(char* s) {
-         size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-         size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-         String* vals = JSONHelper::getValueFromKey("vals_", s);
-         char* values = vals->c_str();
-         StringArray* ia = new StringArray(arraySize);
-         for(int i = 0; i < listLength; i++) {
-             ia->pushBack(JSONHelper::getArrayValueAt(values, i));
-         }
-         return ia;
      }
 };

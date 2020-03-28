@@ -34,8 +34,6 @@ void testStringArraySerialization() {
     char* string_is_serialized = is->serialize();
     StringArray* is_two = dynamic_cast<StringArray*>(ds->deserialize(string_is_serialized));
     tester->t_true(strcmp(string_is_serialized, is_two->serialize()) == 0);
-    char* expected = "{ 'StringArray' : { 'listLength_' : '4', 'arraySize_' : '32', 'vals_' : [ 'taco','dorito','nacho','enchilada',],  } }";
-    tester->t_true(strcmp(string_is_serialized, expected) == 0);
     delete is;
     tester->OK("Passed String Array Serialization Tests");
     delete tester;
