@@ -7,6 +7,7 @@
 #include "../dataframe/dataframe.h"
 #include "../dataframe/schema.h"
 #include "../utils/distributedArray.h"
+#include "../dataframe/distributedDataframe.h"
 
 /**
  * A generic Deserialize method that calls the correct deserialization method of the given serialized class
@@ -45,7 +46,8 @@
         } else if(0 == strncmp(className, "DataFrame", strlen(className))) {
             return DataFrame::deserialize(valueName);
         } else if(0 == strncmp(className, "Schema", strlen(className))) {
-            return Schema::deserialize(valueName);
+            std::cout << "in deserial\n";
+            return new Schema(valueName);
         } else if(0 == strncmp(className, "Array", strlen(className))) {
             return new Array(s);
         } else if(0 == strncmp(className, "Map", strlen(className))) {
@@ -70,6 +72,8 @@
             return new BoolDistributedArray(s);
         } else if(0 == strncmp(className, "StringDistributedArray", strlen(className))) {
             return new StringDistributedArray(s);
+        } else if(0 == strncmp(className, "DistributedDataFrame", strlen(className))) {
+            return new DistributedDataFrame(s);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

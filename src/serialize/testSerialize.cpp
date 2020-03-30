@@ -8,6 +8,8 @@
 #include "../store/kvstore.h"
 #include "../utils/distributedArray.h"
 #include "../dataframe/distributedColumn.h"
+#include "../dataframe/distributedDataframe.h"
+#include "../dataframe/distributedRow.h"
 
 //helper methods for testbuilding
 KVStore* tempStore() {
@@ -16,7 +18,7 @@ KVStore* tempStore() {
     Key* k1 = new Key("payload_1", 0);
     Key* k3 = new Key("payload_3", 0);
 
-    KVStore* kvs1 = new KVStore(2, 0);
+    KVStore* kvs1 = new KVStore(1, 0);
     kvs1->put(k1, v1);
     kvs1->put(k3, v3);
     return kvs1;
@@ -97,7 +99,7 @@ void testIntDistributedArrays() {
 
 void testStringDistributedArrays() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(5, 0);
+    KVStore* kvs1 = new KVStore(1, 0);
     StringDistributedArray* sda = new StringDistributedArray(kvs1);
     StringArray* sa = genStringArray();
     for(int i = 0; i < 10; i++) {
@@ -118,7 +120,7 @@ void testStringDistributedArrays() {
 
 void testFloatDistributedArrays() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(5, 0);
+    KVStore* kvs1 = new KVStore(1, 0);
     FloatDistributedArray* fda = new FloatDistributedArray(kvs1);
     for(int i = 0; i < 40; i++) {
         fda->pushBack(i);
@@ -246,18 +248,63 @@ void testDistributedStringColumn() {
     delete [] system;
 }
 
+void testSchema() {
+    Sys* system = new Sys();
+    Schema* sch = new Schema("IFD");
+    char* serialized = sch->serialize();
+    //std::cout << serialized << "\n";
+    Schema* sch2 = new Schema(serialized);
+    //std::cout << sch2->serialize() << "\n";
+    String* s = new String(serialized);
+    String* s2 = new String(sch2->serialize());
+    system->t_true(s2->equals(s));
+
+    system->OK("Passed Schema");
+    delete [] system;
+}
+
+void testDistributedDataframe() {
+    Sys* system = new Sys();
+    Schema* sch = new Schema();
+    KVStore* kvs1 = new KVStore(1, 0);
+    DistributedIntColumn* ic = new DistributedIntColumn(kvs1);
+    for (int i = 0; i < 50; i++) {
+        sch->add_row(nullptr);
+        ic->push_back(i);
+    }
+
+    DistributedDoubleColumn* dc = new DistributedDoubleColumn(kvs1);
+    for (double i = 0; i < 50; i++) {
+        dc->push_back(i);
+    }
+    DistributedDataFrame* dd = new DistributedDataFrame(*sch, kvs1);
+    dd->add_column(ic, nullptr);
+    dd->add_column(dc, nullptr);
+
+    char* serialized = dd->serialize();
+    //std::cout << serialized << "\n";   
+    DistributedDataFrame* dd2 = new  DistributedDataFrame(serialized);
+    String* s = new String(serialized);
+    String* s2 = new String(dd2->serialize());
+    system->t_true(s2->equals(s));
+
+    system->OK("Passed DistributedDataFrame");
+    delete [] system;
+}
 
 int main() {
-    testValueSerialization();
-    testKeySerialization();
-    testKVStoreSerialization(); //issue with map currently
-    testIntDistributedArrays();
-    testStringDistributedArrays();
-    testFloatDistributedArrays();
-    testDistributedIntColumn();
-    testDistributedDoubleColumn();
-    testDistributedFloatColumn();
-    testDistributedBoolColumn();
-    testDistributedStringColumn();
+    // testValueSerialization();
+    // testKeySerialization();
+    // testKVStoreSerialization(); //issue with map currently
+    // testIntDistributedArrays();
+    // testStringDistributedArrays();
+    // testFloatDistributedArrays();
+    // testDistributedIntColumn();
+    // testDistributedDoubleColumn();
+    // testDistributedFloatColumn();
+    // testDistributedBoolColumn();
+    // testDistributedStringColumn();
+    //testSchema();
+    testDistributedDataframe();
     return 0;
 }

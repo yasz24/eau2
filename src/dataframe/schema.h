@@ -62,6 +62,15 @@ public:
         this->col_idx_name = new Map();
         this->row_idx_name = new Map();
     }
+
+    Schema(char* serialized) {
+        //std::cout << "here" <<"\n";
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        this->capacity_ = std::stoi(JSONHelper::getValueFromKey("capacity_", payload)->c_str());
+        this->empty_index_ = std::stoi(JSONHelper::getValueFromKey("empty_index_", payload)->c_str());
+        this->num_rows_ = std::stoi(JSONHelper::getValueFromKey("num_rows_", payload)->c_str());
+        this->val_ = JSONHelper::getValueFromKey("val_", payload)->c_str();
+    }
     
     /** Create a schema from a string of types. A string that contains
         * characters other than those identifying the four type results in
@@ -290,20 +299,12 @@ public:
         Serializable* sb = new Serializable();
         sb->initSerialize("Schema");
         sb->write("capacity_", capacity_);
-        sb->write("val_", this->val_);
         sb->write("empty_index_", empty_index_);
         sb->write("num_rows_", num_rows_);
+        sb->write("val_", this->val_);
         sb->endSerialize();
         char* value = sb->get();
         delete sb;
         return value;
-    }
-
-    static Schema* deserialize(char* s) {
-        char* val = JSONHelper::getValueFromKey("val_", s)->c_str();
-        size_t num_rows = std::stoi(JSONHelper::getValueFromKey("num_rows_", s)->c_str());
-        Schema* sch = new Schema(val);
-        sch->num_rows_ = num_rows;
-        return sch;
     }
 };

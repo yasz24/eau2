@@ -11,6 +11,7 @@
 #include "../utils/primatives.h"
 #include "dataframe.h"
 #include "distributedColumn.h"
+#include "../serialize/deserialize.h"
 #include <iostream>
 #include <thread>
 
@@ -69,6 +70,16 @@ public:
     }
 
     DistributedDataFrame(Schema* sch, Array* cols) {
+      this->schema_ = sch;
+      this->cols_ = cols;
+    }
+
+    DistributedDataFrame(char* serialized) {
+      Deserializable* d = new Deserializable();
+      char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+      std::cout << JSONHelper::getValueFromKey("schema_", payload)->c_str() << "\n";
+      Schema* sch = new Schema(JSONHelper::getValueFromKey("schema_", payload)->c_str());
+      Array* cols = new Array(JSONHelper::getValueFromKey("cols_", payload)->c_str());
       this->schema_ = sch;
       this->cols_ = cols;
     }
@@ -552,21 +563,20 @@ public:
         return value;
      }
 
-    static DistributedDataFrame* deserialize(char* s) {
-        Schema* sch = dynamic_cast<Schema*>(DistributedDataFrame::deserialize(JSONHelper::getValueFromKey("schema_", s)->c_str()));
-        Array* cols = new Array(JSONHelper::getValueFromKey("cols_", s)->c_str());
-        DistributedDataFrame* df = new DistributedDataFrame(sch, cols);
-        return df;
-    }
+    // static DistributedDataFrame* deserialize(char* s) {
+    //     Schema* sch = dynamic_cast<Schema*>(DistributedDataFrame::deserialize(JSONHelper::getValueFromKey("schema_", s)->c_str()));
+    //     Array* cols = new Array(JSONHelper::getValueFromKey("cols_", s)->c_str());
+    //     DistributedDataFrame* df = new DistributedDataFrame(sch, cols);
+    //     return df;
+    // }
 
-    static DistributedDataFrame::DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, int* vals) {
+    static DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, int* vals) {
       Schema* s = new Schema("D");
       DistributedIntColumn* ic = new DistributedIntColumn(kv);
       for (size_t i = 0; i < length; i++) {
         s->add_row(nullptr);
         ic->push_back(vals[i]);
       }
-      ic->storeChunks();
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
       df->add_column(ic, nullptr);
       Value* val = new Value(df->serialize());
