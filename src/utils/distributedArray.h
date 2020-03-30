@@ -25,7 +25,7 @@ class IntDistributedArray: public Object {
     IntArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_ = 10; //number of elements to host in each chunk. //change to 1024 later
+    size_t chunkSize_ = 1024; //number of elements to host in each chunk. //change to 1024 later
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
@@ -183,7 +183,7 @@ class FloatDistributedArray: public Object {
     FloatArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_ = 10; //number of elements to host in each chunk
+    size_t chunkSize_ = 1024; //number of elements to host in each chunk
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
@@ -338,7 +338,7 @@ class StringDistributedArray: public Object {
     StringArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_ = 10; //number of elements to host in each chunk
+    size_t chunkSize_ = 1024; //number of elements to host in each chunk
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
@@ -493,7 +493,7 @@ class BoolDistributedArray: public Object {
     BoolArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_ = 10; //number of elements to host in each chunk
+    size_t chunkSize_ = 1024; //number of elements to host in each chunk
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
@@ -649,7 +649,7 @@ class DoubleDistributedArray: public Object {
     DoubleArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_ = 10; //number of elements to host in each chunk
+    size_t chunkSize_ = 1024; //number of elements to host in each chunk
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on

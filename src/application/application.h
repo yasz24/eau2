@@ -20,12 +20,13 @@ class Trivial : public Application {
   Trivial(size_t idx) : Application(idx) { }
   void run_() {
     size_t SZ = 1000*1000;
-    int* vals = new int[SZ];
+    double* vals = new double[SZ];
     double sum = 0;
     for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
     Key key("triv",0);
     DistributedDataFrame* df = DistributedDataFrame::fromArray(&key, kv_, SZ, vals);
-    assert(df->get_int(0,1) == 1);
+    std::cout << "here\n";
+    assert(df->get_double(0,1) == 1);
     Deserializable* ds = new Deserializable();
     DistributedDataFrame* df2 = dynamic_cast<DistributedDataFrame*>(ds->deserialize(kv_->get(&key)->data));
     for (size_t i = 0; i < SZ; ++i) sum -= df2->get_double(0,i);

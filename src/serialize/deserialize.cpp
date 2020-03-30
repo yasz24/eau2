@@ -85,6 +85,8 @@
             return new DistributedBoolColumn(s);
         } else if(0 == strncmp(className, "DistributedStringColumn", strlen(className))) {
             return new DistributedStringColumn(s);
+        } else if(0 == strncmp(className, "DistributedDataFrame", strlen(className))) {
+            return new DistributedDataFrame(s);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

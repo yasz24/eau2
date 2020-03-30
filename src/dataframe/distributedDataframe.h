@@ -557,15 +557,16 @@ public:
         return value;
      }
 
-    static DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, int* vals) {
+    static DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
       Schema* s = new Schema("D");
-      DistributedIntColumn* ic = new DistributedIntColumn(kv);
+      DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv);
       for (size_t i = 0; i < length; i++) {
+        //std::cout << i <<" in from array\n";
         s->add_row(nullptr);
-        ic->push_back(vals[i]);
+        dc->push_back(vals[i]);
       }
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
-      df->add_column(ic, nullptr);
+      df->add_column(dc, nullptr);
       Value* val = new Value(df->serialize());
       kv->put(key, val);
       return df;
