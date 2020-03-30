@@ -306,19 +306,19 @@ void testApplication() {
 
 
 int main() {
-    // testValueSerialization();
-    // testKeySerialization();
-    // testKVStoreSerialization(); //issue with map currently
-    // testIntDistributedArrays();
-    // testStringDistributedArrays();
-    // testFloatDistributedArrays();
-    // testDistributedIntColumn();
-    // testDistributedDoubleColumn();
-    // testDistributedFloatColumn();
-    // testDistributedBoolColumn();
-    // testDistributedStringColumn();
-    // testSchema();
-    // testDistributedDataframe();
+    testValueSerialization();
+    testKeySerialization();
+    testKVStoreSerialization(); //issue with map currently
+    testIntDistributedArrays();
+    testStringDistributedArrays();
+    testFloatDistributedArrays();
+    testDistributedIntColumn();
+    testDistributedDoubleColumn();
+    testDistributedFloatColumn();
+    testDistributedBoolColumn();
+    testDistributedStringColumn();
+    testSchema();
+    testDistributedDataframe();
     testApplication();
     return 0;
 }
