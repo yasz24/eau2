@@ -62,7 +62,7 @@ public:
   void add_all(Queue* o) {
     //set the given queue's tail's next to this queue's head.
     if (o->size() > 0) {
-      unsigned int len = o->size();
+      size_t len = o->size();
       //go through the given list.
       ObjectNode *curNode = o->head_;
       for (size_t i = 0; i < len; i++) {
@@ -110,7 +110,7 @@ public:
   size_t hash() {
     size_t res = 0;
     if (this->size() > 0) {
-      unsigned int len = this->size();
+      size_t len = this->size();
       //go through the given list.
       ObjectNode *curNode = this->head_;
       for (size_t i = 0; i < len; i++) {
@@ -158,7 +158,7 @@ public:
   /* Removes the first instance of a given Object from the queue and returns the removed Object */
   Object* remove(Object* o) {
     if (this->size() > 0) {
-      unsigned int len = this->size();
+      size_t len = this->size();
       ObjectNode *to_remove = nullptr;
       //go through the given list.
       ObjectNode *curNode = this->head_;
@@ -197,11 +197,13 @@ public:
   /* Returns a given object if that Object can be found in the queue */
   Object *get(Object* o) {
     if (this->size() > 0) {
-      unsigned int len = this->size();
+      size_t len = this->size();
+      //std::cout << "in queue get, size: " << len << "\n";
       //go through the given list.
       ObjectNode *curNode = this->head_;
       for (size_t i = 0; i < len; i++) {
         if (curNode->data_->equals(o)) {
+          //std::cout << "found key: "<< curNode->data_->serialize() <<"\n";
           return curNode->data_;
         }
         curNode = curNode ->getNext();
@@ -213,7 +215,7 @@ public:
   /* Returns a given object at the provided index */
   Object *get(int to_get) {
     if (this->size() > 0) {
-      unsigned int len = this->size();
+      size_t len = this->size();
       //go through the given list.
       ObjectNode *curNode = this->head_;
       for (size_t i = 0; i < len; i++) {

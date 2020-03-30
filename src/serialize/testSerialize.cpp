@@ -7,6 +7,7 @@
 #include "../store/key.h"
 #include "../store/kvstore.h"
 #include "../utils/distributedArray.h"
+#include "../dataframe/distributedColumn.h"
 
 //helper methods for testbuilding
 KVStore* tempStore() {
@@ -77,13 +78,15 @@ void testKVStoreSerialization() {
 
 void testIntDistributedArrays() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(5, 0);
+    KVStore* kvs1 = new KVStore(1, 0);
     IntDistributedArray* ida = new IntDistributedArray(kvs1);
     for(int i = 0; i < 10; i++) {
         ida->pushBack(i);
     }
     char* serialized = ida->serialize();
     IntDistributedArray* ida2 = new IntDistributedArray(serialized);
+    std::cout << "ida2" <<"\n";
+    system->t_true(ida->equals(ida2));
     String* s = new String(serialized);
     String* s2 = new String(ida2->serialize());
     system->t_true(s2->equals(s));
@@ -132,12 +135,34 @@ void testFloatDistributedArrays() {
     delete [] system;
 }
 
+void testDistributedIntColumn() {
+    Sys* system = new Sys();
+    KVStore* kvs1 = new KVStore(5, 0);
+    DistributedIntColumn* dfc = new DistributedIntColumn(kvs1);
+    for(int i = 0; i < 40; i++) {
+        dfc->push_back(i);
+    }
+    char* serialized = dfc->serialize();
+    // std::cout << serialized << "\n";   
+    DistributedIntColumn* fda2 = new DistributedIntColumn(serialized);
+    String* s = new String(serialized);
+    char* serial = fda2->serialize();
+    String* s2 = new String(fda2->serialize());
+    system->t_true(s2->equals(s));
+    for(int i = 0; i < 10; i++) {
+        system->t_true(dfc->get(i) == i);
+    }
+    system->OK("Passed DistributedIntColumn");
+    delete [] system;
+}
+
 int main() {
-    testValueSerialization();
-    testKeySerialization();
-    testKVStoreSerialization(); //issue with map currently
+    //testValueSerialization();
+    //testKeySerialization();
+    //testKVStoreSerialization(); //issue with map currently
     testIntDistributedArrays();
-    testStringDistributedArrays();
-    testFloatDistributedArrays();
+    //testStringDistributedArrays();
+    //testFloatDistributedArrays();
+    //testDistributedIntColumn();
     return 0;
 }

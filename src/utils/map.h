@@ -8,6 +8,7 @@
 #include "keyVal.h"
 
 //todo: Map should delete all keys, values.
+//todo: figure out the modulo.
 //authors: eldrid.s@husky.neu.edu and shetty.y@husky.neu.edu
 /**
 * An object that represents a map to store keys and values.
@@ -67,9 +68,11 @@ class Map : public Object {
     * @param value the object to add to the Map
     */
     void add(Object* key, Object* value) {
+      //std::cout << "Map put: " << "key: " << key->serialize() << " val: " << value->serialize() << "\n";
       size_t key_hash = key->hash();
       KeyVal *key_val = new KeyVal(key, value);
       int index = key_hash % this->numBuckets_;
+      //std::cout << "map put queue index: " << index << "\n";
       Queue *queue_at_index = dynamic_cast<Queue*>(this->buckets_->get(index));
       if (queue_at_index->size() == 0) {
         this->bucketsUsed_ += 1;
@@ -122,17 +125,27 @@ class Map : public Object {
     * @return the value associated with the key
     */
     Object* get(Object* key) {
+      //std::cout << "Map get: " << "key: " << key->serialize() << "\n";
       size_t key_hash = key->hash();
       KeyVal *wrappedkey = new KeyVal(key, nullptr);
-      int index = key_hash % this->numBuckets_;
-      Queue *queue_at_index = dynamic_cast<Queue *>(this->buckets_->get(index));
-      if (queue_at_index->get(wrappedkey) != nullptr) {
+      size_t index = key_hash % this->numBuckets_;
+      //std::cout << "map get queue index: " << index << " num buckets: "<< numBuckets_<<"\n";
+      Queue *queue_at_index = dynamic_cast<Queue*>(this->buckets_->get(index));
+      //std::cout << "get queue: " << queue_at_index->serialize() << "\n";
+      Object* keyVal = queue_at_index->get(wrappedkey);
+      if (keyVal != nullptr) {
         //key is in map.
-        KeyVal *key_val = dynamic_cast<KeyVal *>(queue_at_index->get(wrappedkey));
-        return key_val->getVal();
+        //std::cout << "found key in map\n";
+        KeyVal *key_val = dynamic_cast<KeyVal*>(keyVal);
+        Object* val = key_val->getVal();
+        // if (val == nullptr) {
+        //   std::cout << "val is null " << "\n";
+        // }
+        // std::cout << "val is not null " << "\n";
+        return val;
       } else {
         //key is not in map
-        //std::cout<<"ERROR: Key not found in map\n";
+        std::cout<<"ERROR: Key not found in map\n";
         return nullptr;
       }
     }

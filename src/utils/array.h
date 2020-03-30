@@ -195,6 +195,7 @@ class IntArray: public Object {
      */ 
     IntArray(char* serialized) {
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        //std::cout << "in Intarray "<< payload << "\n";
         this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
         size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
         char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();

@@ -36,6 +36,7 @@ public:
 		if (kv == nullptr) {
 			return false;
 		}
+        //std::cout << "in KevVal equals: " << "key: " << key_->serialize() << " val: " << val_->serialize() << "\n";
         //it is okay to only check if the keys because in a map one key only maps to a single value. 
 		return this->getKey()->equals(kv->getKey());
 	}

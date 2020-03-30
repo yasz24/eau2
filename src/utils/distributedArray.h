@@ -25,7 +25,7 @@ class IntDistributedArray: public Object {
     IntArray* chunkArray_; //current chunk values before storing in KV
     Array* keys_; //array of keys that list what's in this array
     size_t uid_; //unique identifier for this array - used for chunks
-    size_t chunkSize_ = 50; //number of elements to host in each chunk. //change to 1024 later
+    size_t chunkSize_ = 5; //number of elements to host in each chunk. //change to 1024 later
     size_t chunkCount_; //total number of chunks in array
     size_t itemCount_; //total number of items in array
     size_t curNode_; //current node the chunk we're adding to is located on
@@ -67,9 +67,8 @@ class IntDistributedArray: public Object {
             return chunkArray_->get(index % chunkSize_);
         }
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
-        char* serlializedNode = v->data; 
-        char* payload = JSONHelper::getPayloadValue(serlializedNode)->c_str(); //returns the payload (IntArray) of serialized data
-        IntArray* intVals = new IntArray(payload); //turns payload into IntArray object
+        char* serlializedNode = v->data;
+        IntArray* intVals = new IntArray(serlializedNode); //turns payload into IntArray object
         return intVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
     };
     /*
@@ -120,6 +119,7 @@ class IntDistributedArray: public Object {
         //initialize first key
         if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
             storeChunk(); //stores the previous chunk values in the kv_store
+            chunkArray_->pushBack(val);
         } else {
             chunkArray_->pushBack(val);
         }
@@ -223,8 +223,7 @@ class FloatDistributedArray: public Object {
         }
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data; 
-        char* payload = JSONHelper::getPayloadValue(serlializedNode)->c_str(); //returns the payload (IntArray) of serialized data
-        FloatArray* floatVals = new FloatArray(payload); //turns payload into IntArray object
+        FloatArray* floatVals = new FloatArray(serlializedNode); //turns payload into IntArray object
         return floatVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
     };
     /*
@@ -274,6 +273,7 @@ class FloatDistributedArray: public Object {
         //initialize first key
         if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
             storeChunk(); //stores the previous chunk values in the kv_store
+            chunkArray_->pushBack(val);
         } else {
             chunkArray_->pushBack(val);
         }
@@ -378,8 +378,7 @@ class StringDistributedArray: public Object {
         }
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data; 
-        char* payload = JSONHelper::getPayloadValue(serlializedNode)->c_str(); //returns the payload (StringArray) of serialized data
-        StringArray* strVals = new StringArray(payload); //turns payload into IntArray object
+        StringArray* strVals = new StringArray(serlializedNode); //turns payload into IntArray object
         return strVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
     };
     /*
@@ -429,6 +428,7 @@ class StringDistributedArray: public Object {
         //initialize first key
         if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
             storeChunk(); //stores the previous chunk values in the kv_store
+            chunkArray_->pushBack(val);
         } else {
             chunkArray_->pushBack(val);
         }
@@ -533,8 +533,7 @@ class BoolDistributedArray: public Object {
         }
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data; 
-        char* payload = JSONHelper::getPayloadValue(serlializedNode)->c_str(); //returns the payload (BoolArray) of serialized data
-        BoolArray* strVals = new BoolArray(payload); //turns payload into IntArray object
+        BoolArray* strVals = new BoolArray(serlializedNode); //turns payload into IntArray object
         return strVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
     };
     /*
@@ -584,6 +583,7 @@ class BoolDistributedArray: public Object {
         //initialize first key
         if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
             storeChunk(); //stores the previous chunk values in the kv_store
+            chunkArray_->pushBack(val); 
         } else {
             chunkArray_->pushBack(val);
         }
@@ -689,8 +689,7 @@ class DoubleDistributedArray: public Object {
         }
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data; 
-        char* payload = JSONHelper::getPayloadValue(serlializedNode)->c_str(); //returns the payload (BoolArray) of serialized data
-        DoubleArray* strVals = new DoubleArray(payload); //turns payload into IntArray object
+        DoubleArray* strVals = new DoubleArray(serlializedNode); //turns payload into IntArray object
         return strVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
     };
     /*
@@ -740,6 +739,7 @@ class DoubleDistributedArray: public Object {
         //initialize first key
         if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
             storeChunk(); //stores the previous chunk values in the kv_store
+            chunkArray_->pushBack(val);
         } else {
             chunkArray_->pushBack(val);
         }

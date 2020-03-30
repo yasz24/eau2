@@ -25,6 +25,7 @@ public:
     }
 
     void put(Key* key, Value* value) {
+        //std::cout << "put: " << "key: " << key->serialize() << " val: " << value->serialize() << "\n";
         size_t node = key->node();
         if (node == this->this_node_) {
             this->local_store_->add(key, value);
@@ -36,8 +37,10 @@ public:
 
     Value* get(Key* key) {
         size_t node = key->node();
+        //std::cout << "get: " << "key: " << key->serialize() << "\n";
         if (node == this->this_node_) {
-            return dynamic_cast<Value *>(this->local_store_->get(key));
+            Value* val = dynamic_cast<Value*>(this->local_store_->get(key));
+            return val;
         } else {
             //networking. dispatch request and get from appropriate node.
             std::cout<<"ERROR: ENCOUNTERED NETWORKING CODE IN KVSTORE-GET\n";
