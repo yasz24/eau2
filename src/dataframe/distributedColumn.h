@@ -94,6 +94,7 @@ class DistributedIntColumn : public Column {
 
   char* serialize() {
     Serializable* sb = new Serializable();
+    sb->initSerialize("DistributedIntColumn");
     char * seralizedArr = val_->serialize();
     sb->write("val_", seralizedArr, false);
     sb->endSerialize();
@@ -115,6 +116,11 @@ class DistributedDoubleColumn : public Column {
     this->kv_ = kv;
     this->val_ = new DoubleDistributedArray(kv);
   };
+
+  DistributedDoubleColumn(char* serialized) {
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    this->val_ = new DoubleDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+  }
 
   ~DistributedDoubleColumn() {
    // delete val_;
@@ -173,29 +179,16 @@ class DistributedDoubleColumn : public Column {
     return this->val_->equals(other_val_);
   }
 
-  // char* serialize() {
-  //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistributedDoubleColumn");
-  //   sb->write("listLength_", listLength_);
-  //   sb->write("arraySize_", arraySize_);
-  //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
-  //   char * seralizedArr = val_->serialize();
-  //   sb->write("val_", seralizedArr, false);
-  //   sb->endSerialize();
-  //   char* value = sb->get();
-  //   delete sb;
-  //   return value;
-  // }
-
-  // static DistributedDoubleColumn* deserialize(char* s) {
-  //   size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-  //   size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-  //   String* arr_string = JSONHelper::getValueFromKey("val_", s);
-  //   char* arr_cstr = arr_string->c_str();
-  //   Array* arr = new Array(arr_cstr);
-  //   DistributedDoubleColumn* dc = new DistributedDoubleColumn(arr, listLength);
-  //   return dc;
-  // }
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("DistributedDoubleColumn");
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };
 /*************************************************************************
  * DistributedFloatColumn::
@@ -210,6 +203,11 @@ class DistributedFloatColumn : public Column {
     this->kv_ = kv;
     this->val_ = new FloatDistributedArray(kv);
   };
+
+  DistributedFloatColumn(char* serialized) {
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    this->val_ = new FloatDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+  }
 
   ~DistributedFloatColumn() {
    // delete val_;
@@ -270,30 +268,17 @@ class DistributedFloatColumn : public Column {
 
   /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
   char get_type() { return 'F'; };
-
-  // char* serialize() {
-  //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistributedFloatColumn");
-  //   sb->write("listLength_", listLength_);
-  //   sb->write("arraySize_", arraySize_);
-  //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
-  //   char * seralizedArr = val_->serialize();
-  //   sb->write("val_", seralizedArr, false);
-  //   sb->endSerialize();
-  //   char* value = sb->get();
-  //   delete sb;
-  //   return value;
-  // }
-
-  // static DistributedFloatColumn* deserialize(char* s) {
-  //   size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-  //   size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-  //   String* arr_string = JSONHelper::getValueFromKey("val_", s);
-  //   char* arr_cstr = arr_string->c_str();
-  //   Array* arr = new Array(arr_cstr);
-  //   DistributedFloatColumn* fc = new DistributedFloatColumn(arr, listLength);
-  //   return fc;
-  // }
+  
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("DistributedFloatColumn");
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };
 /*************************************************************************
  * DistributedBoolColumn::
@@ -308,6 +293,11 @@ class DistributedBoolColumn : public Column {
     this->kv_ = kv;
     this->val_ = new BoolDistributedArray(kv);
   };
+
+  DistributedBoolColumn(char* serialized) {
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    this->val_ = new BoolDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+  }
 
   ~DistributedBoolColumn() {
    // delete val_;  
@@ -367,29 +357,16 @@ class DistributedBoolColumn : public Column {
   /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
   char get_type() { return 'B'; };
 
-  // char* serialize() {
-  //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistributedBoolColumn");
-  //   sb->write("listLength_", listLength_);
-  //   sb->write("arraySize_", arraySize_);
-  //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
-  //   char * seralizedArr = val_->serialize();
-  //   sb->write("val_", seralizedArr, false);
-  //   sb->endSerialize();
-  //   char* value = sb->get();
-  //   delete sb;
-  //   return value;
-  // }
-
-  // static DistributedBoolColumn* deserialize(char* s) {
-  //   size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-  //   size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-  //   String* arr_string = JSONHelper::getValueFromKey("val_", s);
-  //   char* arr_cstr = arr_string->c_str();
-  //   Array* arr = new Array(arr_cstr);
-  //   DistributedBoolColumn* bc = new DistributedBoolColumn(arr, listLength);
-  //   return bc;
-  // }
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("DistributedBoolColumn");
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };
 /*************************************************************************
  * DistributedStringColumn::
@@ -406,12 +383,11 @@ class DistributedStringColumn : public Column {
 
   };
 
-  // DistributedStringColumn(char* serialized) {
-  //   char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-  //   this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
-  //   this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
-  //   this->val_ = new Array(JSONHelper::getValueFromKey("val_", payload)->c_str());
-  // }
+  DistributedStringColumn(char* serialized) {
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    this->val_ = new StringDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+  }
+
 
   ~DistributedStringColumn() {
    // delete val_;
@@ -469,26 +445,14 @@ class DistributedStringColumn : public Column {
   /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
   char get_type() { return 'S'; };
 
-  // char* serialize() {
-  //   Serializable* sb = new Serializable();
-  //   sb->initSerialize("DistributedStringColumn");
-  //   sb->write("listLength_", listLength_);
-  //   sb->write("arraySize_", arraySize_);
-  //   sb->write("metaArrayStartSize__", metaArrayStartSize_);
-  //   char * seralizedArr = val_->serialize();
-  //   sb->write("val_", seralizedArr, false);
-  //   sb->endSerialize();
-  //   char* value = sb->get();
-  //   delete sb;
-  //   return value;
-  // }
-  // static DistributedStringColumn* deserialize(char* s) {
-  //   size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
-  //   size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
-  //   String* arr_string = JSONHelper::getValueFromKey("val_", s);
-  //   char* arr_cstr = arr_string->c_str();
-  //   Array* arr = new Array(arr_cstr);
-  //   DistributedStringColumn* sc = new DistributedStringColumn(arr, listLength);
-  //   return sc;
-  // }
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("DistributedStringColumn");
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };

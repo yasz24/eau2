@@ -44,6 +44,7 @@ class IntDistributedArray: public Object {
     }
 
     IntDistributedArray(char* serialized) {
+        //std::cout << serialized <<"\n";
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         //std::cout<<payload<<"\n";
@@ -105,6 +106,7 @@ class IntDistributedArray: public Object {
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
         kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
+        //std::cout << "in store chunk\n";
         chunkArray_ = new IntArray(); //creates new Int array to store values for new chunk
         curNode_+=1;
         chunkCount_+=1;

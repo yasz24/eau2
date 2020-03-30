@@ -25,7 +25,8 @@ public:
         return this->node_;
     }
 
-    size_t hash() {
+    size_t hash_me() {
+        //std::cout << this->name_->c_str() << "\n";
         size_t _hash = 0;
         _hash += this->name_->hash();
         //std::cout << "Key hash: " << _hash << "\n";

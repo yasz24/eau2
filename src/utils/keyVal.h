@@ -41,8 +41,8 @@ public:
 		return this->getKey()->equals(kv->getKey());
 	}
 
-    size_t hash() {
-        return this->key_->hash() + this->val_->hash();
+    size_t hash_me() {
+        return this->key_->hash();
     }
 
     char* serialize() {

@@ -28,8 +28,9 @@ public:
 
     size_t hash() {
         size_t hash = 0;
-        for (size_t i = 0; i < strlen(data); ++i)
-            hash = data[i] + (hash << 6) + (hash << 16) - hash;
+        for (size_t i = 0; i < strlen(data); ++i) {
+            hash += data[i];
+        }
         return hash;
     }
 

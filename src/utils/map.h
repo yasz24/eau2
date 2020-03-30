@@ -9,6 +9,7 @@
 
 //todo: Map should delete all keys, values.
 //todo: figure out the modulo.
+//todo: the map bug has something to do with key hash not being the same between get and put calls.
 //authors: eldrid.s@husky.neu.edu and shetty.y@husky.neu.edu
 /**
 * An object that represents a map to store keys and values.
@@ -70,8 +71,9 @@ class Map : public Object {
     void add(Object* key, Object* value) {
       //std::cout << "Map put: " << "key: " << key->serialize() << " val: " << value->serialize() << "\n";
       size_t key_hash = key->hash();
+      //std::cout << "put hash" << key_hash << "\n";
       KeyVal *key_val = new KeyVal(key, value);
-      int index = key_hash % this->numBuckets_;
+      size_t index = key_hash % this->numBuckets_;
       //std::cout << "map put queue index: " << index << "\n";
       Queue *queue_at_index = dynamic_cast<Queue*>(this->buckets_->get(index));
       if (queue_at_index->size() == 0) {
@@ -80,7 +82,7 @@ class Map : public Object {
           this->rehash_();
         }
       } 
-      if (this->get(key) == nullptr) {
+      if (queue_at_index->get(key_val) == nullptr) {
         queue_at_index->add(key_val);
       } else {
         Object* removed = this->pop_item(key);
@@ -127,6 +129,7 @@ class Map : public Object {
     Object* get(Object* key) {
       //std::cout << "Map get: " << "key: " << key->serialize() << "\n";
       size_t key_hash = key->hash();
+      //std::cout << "get hash" << key_hash << "\n";
       KeyVal *wrappedkey = new KeyVal(key, nullptr);
       size_t index = key_hash % this->numBuckets_;
       //std::cout << "map get queue index: " << index << " num buckets: "<< numBuckets_<<"\n";
@@ -144,8 +147,9 @@ class Map : public Object {
         // std::cout << "val is not null " << "\n";
         return val;
       } else {
+        std::cout << "ERROR: Key not found in map" << "key: " << key->serialize() << "\n";
         //key is not in map
-        std::cout<<"ERROR: Key not found in map\n";
+        //std::cout<<"ERROR: Key not found in map\n";
         return nullptr;
       }
     }

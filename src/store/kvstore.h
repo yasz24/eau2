@@ -29,6 +29,7 @@ public:
         size_t node = key->node();
         if (node == this->this_node_) {
             this->local_store_->add(key, value);
+            //std::cout << "in put\n";
         } else {
             //networking. dispatch and put in appropriate node.
             std::cout<<"ERROR: ENCOUNTERED NETWORKING CODE IN KVSTORE-PUT\n";
@@ -36,6 +37,7 @@ public:
     }
 
     Value* get(Key* key) {
+        // std::cout << "calling get\n";
         size_t node = key->node();
         //std::cout << "get: " << "key: " << key->serialize() << "\n";
         if (node == this->this_node_) {
