@@ -2,6 +2,8 @@
 #pragma once
 #include "../utils/string.h"
 #include "../utils/array.h"
+#include "../serialize/deserialize.h"
+#include "../serialize/jsonHelper.h"
 #include<stdarg.h>
 #include<stdio.h>
 
@@ -18,6 +20,11 @@ class FloatColumn;
 class BoolColumn;
 class StringColumn;
 class DoubleColumn;
+class DistributedIntColumn;
+class DistributedDoubleColumn;
+class DistributedBoolColumn;
+class DistributedFloatColumn;
+class DistributedStringColumn;
 class Column : public Object {
  public:
  
@@ -28,6 +35,11 @@ class Column : public Object {
   virtual BoolColumn*  as_bool() = 0;
   virtual FloatColumn* as_float() = 0;
   virtual StringColumn* as_string() = 0;
+  virtual DistributedIntColumn * as_dist_int() = 0;
+  virtual DistributedDoubleColumn * as_dist_double() = 0;
+  virtual DistributedBoolColumn*  as_dist_bool() = 0;
+  virtual DistributedFloatColumn* as_dist_float() = 0;
+  virtual DistributedStringColumn* as_dist_string() = 0;
  
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
@@ -36,6 +48,11 @@ class Column : public Object {
   virtual void push_back(bool val) = 0;
   virtual void push_back(float val) = 0;
   virtual void push_back(String* val) = 0;
+  
+  /**
+   * To be used by distributed columns. Push any chunks to the store.
+  */
+  virtual void storeChunks() = 0;
  
  /** Returns the number of elements in the column. */
   virtual size_t size() = 0;
@@ -76,6 +93,18 @@ class IntColumn : public Column {
     va_end (ap);
   }
 
+  IntColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
+  }
+
+  IntColumn(char* serialized) {
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+    this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+    this->val_ = new Array(JSONHelper::getValueFromKey("val_", payload)->c_str());
+  }
+
   ~IntColumn() {
    // delete val_;
   }
@@ -107,6 +136,12 @@ class IntColumn : public Column {
   FloatColumn* as_float() { return nullptr; };
   StringColumn* as_string() { return nullptr; };
   DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
@@ -156,6 +191,20 @@ class IntColumn : public Column {
     }
     return true;
   }
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("IntColumn");
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
 };
 /*************************************************************************
  * DoubleColumn::
@@ -186,6 +235,11 @@ class DoubleColumn : public Column {
       push_back(va_arg (ap, double)); 
     }
     va_end (ap);
+  }
+
+  DoubleColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
   }
 
   ~DoubleColumn() {
@@ -219,6 +273,12 @@ class DoubleColumn : public Column {
   BoolColumn*  as_bool() { return nullptr; };
   FloatColumn* as_float() { return nullptr; };
   StringColumn* as_string() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
@@ -268,6 +328,30 @@ class DoubleColumn : public Column {
     }
     return true;
   }
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("DoubleColumn");
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
+
+  static DoubleColumn* deserialize(char* s) {
+    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+    String* arr_string = JSONHelper::getValueFromKey("val_", s);
+    char* arr_cstr = arr_string->c_str();
+    Array* arr = new Array(arr_cstr);
+    DoubleColumn* dc = new DoubleColumn(arr, listLength);
+    return dc;
+  }
 };
 /*************************************************************************
  * FloatColumn::
@@ -300,6 +384,11 @@ class FloatColumn : public Column {
     va_end (ap);
   }
 
+  FloatColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
+  }
+
   ~FloatColumn() {
    // delete val_;
   }
@@ -330,6 +419,12 @@ class FloatColumn : public Column {
   FloatColumn* as_float() { return this; };
   StringColumn* as_string() { return nullptr; };
   DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method results 
     * in no data change. **/
@@ -379,6 +474,30 @@ class FloatColumn : public Column {
 
   /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
   char get_type() { return 'F'; };
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("FloatColumn");
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
+
+  static FloatColumn* deserialize(char* s) {
+    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+    String* arr_string = JSONHelper::getValueFromKey("val_", s);
+    char* arr_cstr = arr_string->c_str();
+    Array* arr = new Array(arr_cstr);
+    FloatColumn* fc = new FloatColumn(arr, listLength);
+    return fc;
+  }
 };
 /*************************************************************************
  * BoolColumn::
@@ -411,6 +530,11 @@ class BoolColumn : public Column {
     va_end (ap);
   }
 
+  BoolColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
+  }
+
   ~BoolColumn() {
    // delete val_;  
   }
@@ -441,6 +565,12 @@ class BoolColumn : public Column {
   FloatColumn* as_float() { return nullptr; };
   StringColumn* as_string() { return nullptr; };
   DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method results in
     * no data change. **/
@@ -493,6 +623,30 @@ class BoolColumn : public Column {
 
   /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
   char get_type() { return 'B'; };
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("BoolColumn");
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
+
+  static BoolColumn* deserialize(char* s) {
+    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+    String* arr_string = JSONHelper::getValueFromKey("val_", s);
+    char* arr_cstr = arr_string->c_str();
+    Array* arr = new Array(arr_cstr);
+    BoolColumn* bc = new BoolColumn(arr, listLength);
+    return bc;
+  }
 };
 /*************************************************************************
  * StringColumn::
@@ -525,6 +679,18 @@ class StringColumn : public Column {
     va_end (ap);
   }
 
+  StringColumn(Array* vals, int length){
+    this->val_ = vals;
+    this->listLength_ = length;
+  }
+
+  StringColumn(char* serialized) {
+    char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+    this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+    this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+    this->val_ = new Array(JSONHelper::getValueFromKey("val_", payload)->c_str());
+  }
+
   ~StringColumn() {
    // delete val_;
   }
@@ -553,6 +719,12 @@ class StringColumn : public Column {
   FloatColumn* as_float() { return nullptr; };
   StringColumn* as_string() { return this; };
   DoubleColumn* as_double() { return nullptr; };
+  DistributedIntColumn * as_dist_int() { return nullptr; };
+  DistributedDoubleColumn * as_dist_double() { return nullptr; };
+  DistributedBoolColumn*  as_dist_bool() { return nullptr; };
+  DistributedFloatColumn* as_dist_float() { return nullptr; };
+  DistributedStringColumn* as_dist_string() { return nullptr; };
+  void storeChunks() { };
  
   /** Type appropriate push_back methods. Calling the wrong method is
     * undefined behavior. **/
@@ -601,4 +773,27 @@ class StringColumn : public Column {
  
   /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.*/
   char get_type() { return 'S'; };
+
+  char* serialize() {
+    Serializable* sb = new Serializable();
+    sb->initSerialize("StringColumn");
+    sb->write("listLength_", listLength_);
+    sb->write("arraySize_", arraySize_);
+    sb->write("metaArrayStartSize__", metaArrayStartSize_);
+    char * seralizedArr = val_->serialize();
+    sb->write("val_", seralizedArr, false);
+    sb->endSerialize();
+    char* value = sb->get();
+    delete sb;
+    return value;
+  }
+  static StringColumn* deserialize(char* s) {
+    size_t arraySize = std::stoi(JSONHelper::getValueFromKey("arraySize_", s)->c_str());
+    size_t listLength = std::stoi(JSONHelper::getValueFromKey("listLength_", s)->c_str());
+    String* arr_string = JSONHelper::getValueFromKey("val_", s);
+    char* arr_cstr = arr_string->c_str();
+    Array* arr = new Array(arr_cstr);
+    StringColumn* sc = new StringColumn(arr, listLength);
+    return sc;
+  }
 };

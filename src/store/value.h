@@ -1,4 +1,8 @@
+#pragma once
 #include "../object.h"
+#include "../serialize/serial.h"
+#include "../serialize/deserialize.h"
+#include "../serialize/jsonHelper.h"
 //todo: write hash, equals
 class Value : public Object{
 public:
@@ -10,10 +14,23 @@ public:
         this->length = length;
     }
 
+    Value(char* serialized) {
+        Deserializable* ds = new Deserializable();
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        char* serialData = JSONHelper::getValueFromKey("data", payload)->c_str();
+        if(JSONHelper::isObject(serialData)) {
+            this->data = ds->deserialize(JSONHelper::getValueFromKey("data", payload)->c_str())->serialize();
+        } else {
+            this->data = serialData;
+        }
+        this->length = std::stoi(JSONHelper::getValueFromKey("length", payload)->c_str());
+    }
+
     size_t hash() {
         size_t hash = 0;
-        for (size_t i = 0; i < this->length; ++i)
-            hash = data[i] + (hash << 6) + (hash << 16) - hash;
+        for (size_t i = 0; i < strlen(data); ++i) {
+            hash += data[i];
+        }
         return hash;
     }
 
@@ -23,5 +40,19 @@ public:
         if (x == nullptr) return false;
         if (this->length != x->length) return false;
         return strncmp(data, x->data, length) == 0;
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Value");
+        if(JSONHelper::isObject(data)) {
+            sb->write("data", data, false);
+        } else {
+            sb->write("data", data);
+        }
+        sb->write("length", length);
+        sb->endSerialize();
+        char* value = sb->get();
+        return value;
     }
 };

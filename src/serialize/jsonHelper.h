@@ -1,8 +1,8 @@
 //LANGUAGE: CwC
 #pragma once
 #include <string.h>
-#include "object.h"
-#include "array.h"
+#include "../object.h"
+#include "../utils/string.h"
 
 /**
  * Set of useful helper methods for parsing Serialized data. Used primarily in deserialization to
@@ -48,7 +48,7 @@ public:
         char objStart = '{';
         char objEnd = '}';
         int startCharDepth = 0;
-        char buff[1024];
+        char buff[len];
         int loc = 0;
         //find first colon as jumping off point:
         int colonIndex = 0;
@@ -79,12 +79,16 @@ public:
                 }
             } else if(temp == objStart && temp != objEnd && valueStarted) {
                 startCharDepth++;
+                buff[loc] = temp;
+                loc++;
             } else if(temp == objEnd && valueStarted) {
                 startCharDepth--;
                 //if we've reached the final level of end character, break out of loop
                 if(startCharDepth <= 0) {
                     break;
                 }
+                buff[loc] = temp;
+                loc++;
             } else if(valueStarted) {
                 buff[loc] = temp;
                 loc++;
@@ -98,7 +102,8 @@ public:
 
     /**
      * Given the name of a specific key - returns the value in serialized substring or emptyString
-     */ 
+     */
+    //TODO: this needs to take object depth into account 
     static String* getValueFromKey(char* name, char* s) {
         int len = strlen( s );
         //pull the class name from the serialzed string
@@ -106,7 +111,7 @@ public:
         for (int i = 0; i < len; i++){
             //iterate through s, checking for each key until we have a match
             bool nameStarted = false;
-            char buff[100];
+            char buff[len];
             int loc = 0;
             for(int j = startIndex; j < len; j++) {
                 char temp = s[j];
@@ -114,8 +119,10 @@ public:
                     nameStarted = true;
                 } else if(temp == '\'' && nameStarted) {
                     //full name has been discovered
-                    startIndex = i;
+                    startIndex = j+1;
                     break;
+                } else if(temp == '[' || temp == '{') { //special case for nested things
+                    startIndex = endIndex(s, temp, i);
                 } else if(nameStarted) {
                     buff[loc] = temp;
                     loc++;
@@ -135,6 +142,48 @@ public:
             }
         }
         return new String("");
+    }
+    /**
+     *  Helper method to get the end index of a pair of [] or {}
+     */
+    static int endIndex(char* s, char sym, int pos) {
+        int len = strlen( s );
+        char end = '}';
+        int depth = 1;
+        if(sym == '[') {
+            end = ']';
+        }
+        //pull the class name from the serialzed string
+        for (int i = pos+1; i < len; i++){
+            char temp = s[i];
+            if(temp == sym) {
+                depth++;
+            } else if(temp == end) {
+                //full name has been discovered
+                depth--;
+                if(depth == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+        std::cout<<"ERROR: end not found\n";
+    }
+
+    /**
+     * Should be expanded: checks if given string is a serialized object by checking for a {
+     * Obviously this fails if a string has a { in it....
+     */ 
+    static bool isObject(char* s) {
+        int len = strlen( s );
+        char isObj = '{';
+        for(int i = 0; i < len; i++) {
+            char temp = s[i];
+            if(temp == isObj) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -191,9 +240,9 @@ public:
         char objStart = '{';
         char objEnd = '}';
         int startCharDepth = 0;
-        char buff[1024];
+        char buff[len];
         int loc = 0;
-        int currIndex = -1;
+        int currIndex = 0;
         //pull the top level object-value from the serialzed string
         for (int i = 0; i < len; i++){
             char temp = s[i];
@@ -212,14 +261,21 @@ public:
                     } else if(temp == '\'') {
                         objEnd = '\'';
                         startCharDepth = 0;
+                        //due to issue with indexing with apostrophes
+                        currIndex = -1;
                     }   
                 }
             } else if(temp == objStart) {
                 startCharDepth++;
-            } 
+            }
+
             if(temp == objEnd && valueStarted) {
                 if(temp != objStart) {
                     startCharDepth--;
+                }
+                if(index == currIndex && objEnd != objStart) {
+                    buff[loc] = temp;
+                    loc++;
                 }
                 //if we've reached the final level of end character, break out of loop
                 if(startCharDepth <= 0  || (temp == objStart && startCharDepth % 2 == 0)) {

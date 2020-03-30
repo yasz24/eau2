@@ -46,7 +46,7 @@ public:
      * Given the class name for a given object, begins to construct the serialized representation
      */ 
     void initSerialize(const char* cName) {
-        char str[100];
+        char str[1000];
         sprintf(str, "{ '%s' : { ", cName);
         buff->c(str);
     }
@@ -55,31 +55,31 @@ public:
      *  Write methods given a key name and value will add them in JSON format to the buffer
      */ 
     void write(const char* name, int val) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : '%i', ", name, val);
         buff->c(str);
     }
 
     void write(const char* name, float val) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : '%f', ", name, val);
         buff->c(str);
     }
 
     void write(const char* name, double val) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : '%f', ", name, val);
         buff->c(str);
     }
 
     void write(const char* name, String* val) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : '%s', ", name, val->c_str());
         buff->c(str);
     }
 
     void write(const char* name, size_t val) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : '%zu', ", name, val);
         buff->c(str);
     }
@@ -87,7 +87,7 @@ public:
      * Special set of write commands for creating array data
      */ 
     void write(const char* name, int* val, int len) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : [ ", name);
         buff->c(str);
         for(int i = 0; i < len; i++) {
@@ -97,8 +97,37 @@ public:
         buff->c("], ");
     }
 
+    void write(const char* name, bool* val, int len) {
+        char str[1000];
+        sprintf(str, "'%s' : [ ", name);
+        buff->c(str);
+        for(int i = 0; i < len; i++) {
+            sprintf(str, "'%d',", val[i]);
+            buff->c(str);
+        }
+        buff->c("], ");
+    }
+
+    void write(const char* name, char* val) {
+        int SIZEOFINSERTS = 10;
+        char str[strlen(val) + strlen(name) + SIZEOFINSERTS];
+        sprintf(str, "'%s' : '%s', ", name, val);
+        buff->c(str);
+    }
+
+    void write(const char* name, char* val, bool wrap) {
+        int SIZEOFINSERTS = 10;
+        char str[strlen(val) + strlen(name) + SIZEOFINSERTS];
+        if(wrap) {
+            sprintf(str, "'%s' : '%s', ", name, val);
+        } else {
+            sprintf(str, "'%s' : %s, ", name, val);
+        }
+        buff->c(str);
+    }//includes boolean flag to signify if this is a "wrapped" object (or a non-primative serialized)
+
     void write(const char* name, size_t* val, int len) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : [ ", name);
         buff->c(str);
         for(int i = 0; i < len; i++) {
@@ -109,7 +138,7 @@ public:
     }
 
     void write(const char* name, float* val, int len) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : [ ", name);
         buff->c(str);
         for(int i = 0; i < len; i++) {
@@ -120,7 +149,7 @@ public:
     }
 
     void write(const char* name, double* val, int len) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : [ ", name);
         buff->c(str);
         for(int i = 0; i < len; i++) {
@@ -131,7 +160,7 @@ public:
     }
 
     void write(const char* name, String** val, int len) {
-        char str[100];
+        char str[1000];
         sprintf(str, "'%s' : [ ", name);
         buff->c(str);
         for(int i = 0; i < len; i++) {
@@ -140,6 +169,31 @@ public:
         }
         buff->c("], ");
     }
+
+    void write(const char* name, Object** val, int len) {
+        char str[100000];
+        sprintf(str, "'%s' : [ ", name);
+        buff->c(str);
+        for(int i = 0; i < len; i++) {
+            char* serial = val[i]->serialize();
+            sprintf(str, "%s,", serial);
+            buff->c(str);
+        }
+        buff->c("], ");
+    }
+    
+    // void write(const char* name, Array* arr) {
+    //     char * seralizedArr = arr->serialize();
+    //     char str[10000];
+    //     sprintf(str, "'%s' : '%s',", name, seralizedArr);
+    // }
+
+    // void write(const char* name, Schema* sch) {
+    //     char * schemaSerialized = sch->serialize();
+    //     char str[10000];
+    //     sprintf(str, "'%s' : '%s',", name, schemaSerialized);
+    // }
+
     /**
      * Called to close brackets of JSON after all necessary data written
      */ 

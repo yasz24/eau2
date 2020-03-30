@@ -6,83 +6,56 @@
 #include "schema.h"
 #include "column.h"
 #include "row.h"
+#include "distributedRow.h"
 #include "rower.h"
 #include "../utils/primatives.h"
+#include "dataframe.h"
+#include "distributedColumn.h"
+#include "../serialize/deserialize.h"
 #include <iostream>
 #include <thread>
 
 //authors: eldrid.s@husky.neu.edu shetty.y@husky.neu.edu
-
+//todo: serialization always produces double arrays.
 /****************************************************************************
- * DataFrame::
+ * DistributedDataFrame::
  *
- * A DataFrame is table composed of columns of equal length. Each column
- * holds values of the same type (I, S, B, F). A dataframe has a schema that
+ * A DistributedDataFrame is table composed of columns of equal length. Each column
+ * holds values of the same type (I, S, B, F). A DistributedDataFrame has a schema that
  * describes it.
  */
-class DataFrame : public Object {
+class DistributedDataFrame : public Object {
 public:
-    //A dataframe is an array of columns.
+    //A DistributedDataFrame is an array of columns.
     Schema* schema_; //owned.
     Array* cols_; //owned.
+    KVStore* kv_; 
   
-    /** Create a data frame with the same columns as the given df but with no rows or rownmaes */
-    DataFrame(DataFrame& df) {
-      this->schema_ = new Schema(df.get_schema());
-      this->cols_ = new Array();
-      for (size_t i = 0; i < this->schema_->width(); i++) {
-        char col_type = this->schema_->col_type(i);
-        Column* col;
-        switch (col_type) {
-        case 'I':
-          col = new IntColumn();
-          break;
-        case 'S':
-          col = new StringColumn();
-          break;
-        case 'B':
-          col = new BoolColumn();
-          break;
-        case 'F':
-          col = new FloatColumn();
-          break;
-        case 'D':
-          col = new DoubleColumn();
-          break;
-        default:
-          col = nullptr;
-          break;
-        }
-
-        if (col != nullptr) {
-          this->cols_->pushBack(col);
-        }
-      } 
-    }
-  
+    
     /** Create a data frame from a schema and columns. All columns are created
       * empty. */
-    DataFrame(Schema& schema) {
+    DistributedDataFrame(Schema& schema, KVStore* kv) {
       this->schema_ = new Schema(schema);
       this->cols_ = new Array();
+      kv_ = kv;
       for (size_t i = 0; i < this->schema_->width(); i++) {
         char col_type = this->schema_->col_type(i);
         Column* col;
         switch (col_type) {
         case 'I':
-          col = new IntColumn();
+          col = new DistributedIntColumn(kv);
           break;
         case 'S':
-          col = new StringColumn();
+          col = new DistributedStringColumn(kv);
           break;
         case 'B':
-          col = new BoolColumn();
+          col = new DistributedBoolColumn(kv);
           break;
         case 'F':
-          col = new FloatColumn();
+          col = new DistributedFloatColumn(kv);
           break;
         case 'D':
-          col = new DoubleColumn();
+          col = new DistributedDoubleColumn(kv);
           break;
         default:
           col = nullptr;
@@ -96,19 +69,30 @@ public:
 
     }
 
-    DataFrame(Schema* sch, Array* cols) {
+    DistributedDataFrame(char* serialized) {
+      Deserializable* d = new Deserializable();
+      char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+      Schema* sch = new Schema(JSONHelper::getValueFromKey("schema_", payload)->c_str());
+      Array* cols = new Array(JSONHelper::getValueFromKey("cols_", payload)->c_str());
       this->schema_ = sch;
       this->cols_ = cols;
     }
+
+    void storeColChunks() {
+      for (size_t i = 0; i < this->cols_->length(); i++) {
+        Column* col = dynamic_cast<Column*>(this->cols_->get(i));
+        col->storeChunks();
+      }
+    }
   
-    /** Returns the dataframe's schema as a copy Schema. Modifying the schema after a dataframe
+    /** Returns the DistributedDataFrame's schema as a copy Schema. Modifying the schema after a DistributedDataFrame
       * wouldn't change internal schema. */
     Schema& get_schema() {
       return *(new Schema(*this->schema_));
     }
   
-    /** Adds a column this dataframe, updates the schema, the new column
-      * is external, and appears as the last column of the dataframe, the
+    /** Adds a column this DistributedDataFrame, updates the schema, the new column
+      * is external, and appears as the last column of the DistributedDataFrame, the
       * name is optional and external. A nullptr colum does not create a new column. */
     void add_column(Column* col, String* name) {
       if (col == nullptr) {
@@ -124,35 +108,35 @@ public:
         //padding columns with dummy data.
         switch (col_type) {
         case 'I': {
-            IntColumn* intCol = col->as_int();
+            DistributedIntColumn* intCol = col->as_dist_int();
             for (size_t i = col_size; i < this->schema_->length(); i++) {
               intCol->push_back(0);
             }
             break;
           }
         case 'S': {
-            StringColumn* strCol = col->as_string();
+            DistributedStringColumn* strCol = col->as_dist_string();
             for (size_t i = col_size; i < this->schema_->length(); i++) {
               strCol->push_back(nullptr);
             }
             break;
           }
         case 'B': {
-            BoolColumn* boolCol = col->as_bool();
+            DistributedBoolColumn* boolCol = col->as_dist_bool();
             for (size_t i = col_size; i < this->schema_->length(); i++) {
               boolCol->push_back(false);
             }
             break;
           }
         case 'F': {
-            FloatColumn* floatCol = col->as_float();
+            DistributedFloatColumn* floatCol = col->as_dist_float();
             for (size_t i = col_size; i < this->schema_->length(); i++) {
               floatCol->push_back((float) 0);
             }
             break;
           }
         case 'D': {
-          DoubleColumn* doublCol = col->as_double();
+          DistributedDoubleColumn* doublCol = col->as_dist_double();
           for (size_t i = col_size; i < this->schema_->length(); i++) {
             doublCol->push_back((double) 0);
           }
@@ -172,7 +156,7 @@ public:
       assert(col < this->schema_->width());
       char col_type = this->schema_->col_type(col);
       assert(col_type == 'I');
-      IntColumn* intCol = dynamic_cast<IntColumn*>(this->cols_->get(col));
+      DistributedIntColumn* intCol = dynamic_cast<DistributedIntColumn*>(this->cols_->get(col));
       assert(row < this->schema_->length());
       return intCol->get(row);
     }
@@ -183,7 +167,7 @@ public:
       assert(col < this->schema_->width());
       char col_type = this->schema_->col_type(col);
       assert(col_type == 'D');
-      DoubleColumn* doubCol = dynamic_cast<DoubleColumn*>(this->cols_->get(col));
+      DistributedDoubleColumn* doubCol = dynamic_cast<DistributedDoubleColumn*>(this->cols_->get(col));
       assert(row < this->schema_->length());
       return doubCol->get(row);
     }
@@ -194,7 +178,7 @@ public:
       assert(col < this->schema_->width());
       char col_type = this->schema_->col_type(col);
       assert(col_type == 'B');
-      BoolColumn* boolCol = dynamic_cast<BoolColumn*>(this->cols_->get(col));
+      DistributedBoolColumn* boolCol = dynamic_cast<DistributedBoolColumn*>(this->cols_->get(col));
       assert(row < this->schema_->length());
       return boolCol->get(row);
     }
@@ -205,7 +189,7 @@ public:
       assert(col < this->schema_->width());
       char col_type = this->schema_->col_type(col);
       assert(col_type == 'F');
-      FloatColumn* floatCol = dynamic_cast<FloatColumn*>(this->cols_->get(col));
+      DistributedFloatColumn* floatCol = dynamic_cast<DistributedFloatColumn*>(this->cols_->get(col));
       assert(row < this->schema_->length());
       return floatCol->get(row);
     }
@@ -216,7 +200,7 @@ public:
       assert(col < this->schema_->width());
       char col_type = this->schema_->col_type(col);
       assert(col_type == 'S');
-      StringColumn* stringCol = dynamic_cast<StringColumn*>(this->cols_->get(col));
+      DistributedStringColumn* stringCol = dynamic_cast<DistributedStringColumn*>(this->cols_->get(col));
       assert(row < this->schema_->length());
       return stringCol->get(row);
     }
@@ -238,7 +222,7 @@ public:
       if (col < this->schema_->width()) {
         char col_type = this->schema_->col_type(col);
         if (col_type == 'I') {
-          IntColumn* intCol = dynamic_cast<IntColumn*>(this->cols_->get(col));
+          DistributedIntColumn* intCol = dynamic_cast<DistributedIntColumn*>(this->cols_->get(col));
           if (row < this->schema_->length()) {
             intCol->set(row, val);
           } else {
@@ -259,7 +243,7 @@ public:
       if (col < this->schema_->width()) {
         char col_type = this->schema_->col_type(col);
         if (col_type == 'D') {
-          DoubleColumn* doubCol = dynamic_cast<DoubleColumn*>(this->cols_->get(col));
+          DistributedDoubleColumn* doubCol = dynamic_cast<DistributedDoubleColumn*>(this->cols_->get(col));
           if (row < this->schema_->length()) {
             doubCol->set(row, val);
           } else {
@@ -280,7 +264,7 @@ public:
        if (col < this->schema_->width()) {
         char col_type = this->schema_->col_type(col);
         if (col_type == 'B') {
-          BoolColumn* boolCol = dynamic_cast<BoolColumn*>(this->cols_->get(col));
+          DistributedBoolColumn* boolCol = dynamic_cast<DistributedBoolColumn*>(this->cols_->get(col));
           if (row < this->schema_->length()) {
             boolCol->set(row, val);
           } else {
@@ -301,7 +285,7 @@ public:
       if (col < this->schema_->width()) {
         char col_type = this->schema_->col_type(col);
         if (col_type == 'F') {
-          FloatColumn* floatCol = dynamic_cast<FloatColumn*>(this->cols_->get(col));
+          DistributedFloatColumn* floatCol = dynamic_cast<DistributedFloatColumn*>(this->cols_->get(col));
           if (row < this->schema_->length()) {
             floatCol->set(row, val);
           } else {
@@ -322,7 +306,7 @@ public:
       if (col < this->schema_->width()) {
         char col_type = this->schema_->col_type(col);
         if (col_type == 'S') {
-          StringColumn* stringCol = dynamic_cast<StringColumn*>(this->cols_->get(col));
+          DistributedStringColumn* stringCol = dynamic_cast<DistributedStringColumn*>(this->cols_->get(col));
           if (row < this->schema_->length()) {
             stringCol->set(row, val);
           } else {
@@ -338,7 +322,7 @@ public:
   
     /** Set the fields of the given row object with values from the columns at
       * the given offset.  If the row is not form the same schema as the
-      * dataframe, then the row does not get filled.
+      * DistributedDataFrame, then the row does not get filled.
       */
     void fill_row(size_t idx, Row& row) {
       Schema* row_schema = row.get_schema();
@@ -350,27 +334,27 @@ public:
             char col_type = this->schema_->col_type(i);
             switch (col_type) {
             case 'I': {
-                IntColumn* intCol = dynamic_cast<IntColumn*>(this->cols_->get(i));
+                DistributedIntColumn* intCol = dynamic_cast<DistributedIntColumn*>(this->cols_->get(i));
                 row.set(i, intCol->get(idx));
                 break;
               }
             case 'S': {
-                StringColumn* strCol = dynamic_cast<StringColumn*>(this->cols_->get(i));
+                DistributedStringColumn* strCol = dynamic_cast<DistributedStringColumn*>(this->cols_->get(i));
                 row.set(i, strCol->get(idx));
                 break;
               }
             case 'B': {
-                BoolColumn* boolCol = dynamic_cast<BoolColumn*>(this->cols_->get(i));
+                DistributedBoolColumn* boolCol = dynamic_cast<DistributedBoolColumn*>(this->cols_->get(i));
                 row.set(i, boolCol->get(idx));        
                 break;
               }
             case 'F': {
-                FloatColumn* floatCol = dynamic_cast<FloatColumn*>(this->cols_->get(i));
+                DistributedFloatColumn* floatCol = dynamic_cast<DistributedFloatColumn*>(this->cols_->get(i));
                 row.set(i, floatCol->get(idx));
                 break;
               }
             case 'D': {
-                DoubleColumn* doubCol = dynamic_cast<DoubleColumn*>(this->cols_->get(i));
+                DistributedDoubleColumn* doubCol = dynamic_cast<DistributedDoubleColumn*>(this->cols_->get(i));
                 row.set(i, doubCol->get(idx));
                 break;
               }
@@ -387,8 +371,8 @@ public:
       }
     }
   
-    /** Add a row at the end of this dataframe. The row is expected to have
-     *  the right schema and be filled with values, otherwise no row information added to the dataframe.  */
+    /** Add a row at the end of this DistributedDataFrame. The row is expected to have
+     *  the right schema and be filled with values, otherwise no row information added to the DistributedDataFrame.  */
     void add_row(Row& row) {
       Schema* row_schema = row.get_schema();
       bool schemas_equal = this->schema_->equals(row_schema);
@@ -398,27 +382,27 @@ public:
             char col_type = this->schema_->col_type(i);
             switch (col_type) {
             case 'I': {
-                IntColumn* intCol = dynamic_cast<IntColumn*>(this->cols_->get(i));
+                DistributedIntColumn* intCol = dynamic_cast<DistributedIntColumn*>(this->cols_->get(i));
                 intCol->push_back(row.get_int(i));
                 break;
               }
             case 'S': {
-                StringColumn* strCol = dynamic_cast<StringColumn*>(this->cols_->get(i));
+                DistributedStringColumn* strCol = dynamic_cast<DistributedStringColumn*>(this->cols_->get(i));
                 strCol->push_back(row.get_string(i));
                 break;
               }
             case 'B': {
-                BoolColumn* boolCol = dynamic_cast<BoolColumn*>(this->cols_->get(i));
+                DistributedBoolColumn* boolCol = dynamic_cast<DistributedBoolColumn*>(this->cols_->get(i));
                 boolCol->push_back(row.get_bool(i));       
                 break;
               }
             case 'F': {
-                FloatColumn* floatCol = dynamic_cast<FloatColumn*>(this->cols_->get(i));
+                DistributedFloatColumn* floatCol = dynamic_cast<DistributedFloatColumn*>(this->cols_->get(i));
                 floatCol->push_back(row.get_float(i));  
                 break;
               }
             case 'D': {
-                DoubleColumn* doubleCol = dynamic_cast<DoubleColumn*>(this->cols_->get(i));
+                DistributedDoubleColumn* doubleCol = dynamic_cast<DistributedDoubleColumn*>(this->cols_->get(i));
                 doubleCol->push_back(row.get_double(i));  
                 break;
               }
@@ -434,12 +418,12 @@ public:
       }
     }
   
-    /** The number of rows in the dataframe. */
+    /** The number of rows in the DistributedDataFrame. */
     size_t nrows() {
       return this->schema_->length();
     }
   
-    /** The number of columns in the dataframe.*/
+    /** The number of columns in the DistributedDataFrame.*/
     size_t ncols() {
       return this->schema_->width();
     }
@@ -458,7 +442,7 @@ public:
       delete row;
     }
     /**
-     * A multi-threaded map that divides the work of iterating over a dataframe into two threads before combining their payload
+     * A multi-threaded map that divides the work of iterating over a DistributedDataFrame into two threads before combining their payload
      * In order to decrease the amount of code needed to be stored for the various threads, instead of sending the whole schema
      * we send a char* representation of the schema that is then converted in pTraversal
      * numThreads expects an int between 2 and 4, defaults to 2
@@ -470,10 +454,10 @@ public:
           Rower* r4 = dynamic_cast<Rower*>(r.clone());
           int rowCount = nrows();
           Schema* scm = new Schema(this->get_schema());
-          std::thread t1(&DataFrame::pTraversal, std::ref(*this), 0, std::cref(rowCount)/4, std::ref(scm), std::ref(r));
-          std::thread t2(&DataFrame::pTraversal, std::ref(*this), std::cref(rowCount)/4, 2*(std::cref(rowCount)/4), std::ref(scm), std::ref(*r2));
-          std::thread t3(&DataFrame::pTraversal, std::ref(*this), 2*(std::cref(rowCount)/4), 3*(std::cref(rowCount)/4), std::ref(scm), std::ref(*r3));
-          std::thread t4(&DataFrame::pTraversal, std::ref(*this), 3*(std::cref(rowCount)/4), std::cref(rowCount), std::ref(scm), std::ref(*r4));
+          std::thread t1(&DistributedDataFrame::pTraversal, std::ref(*this), 0, std::cref(rowCount)/4, std::ref(scm), std::ref(r));
+          std::thread t2(&DistributedDataFrame::pTraversal, std::ref(*this), std::cref(rowCount)/4, 2*(std::cref(rowCount)/4), std::ref(scm), std::ref(*r2));
+          std::thread t3(&DistributedDataFrame::pTraversal, std::ref(*this), 2*(std::cref(rowCount)/4), 3*(std::cref(rowCount)/4), std::ref(scm), std::ref(*r3));
+          std::thread t4(&DistributedDataFrame::pTraversal, std::ref(*this), 3*(std::cref(rowCount)/4), std::cref(rowCount), std::ref(scm), std::ref(*r4));
           t1.join();
           t2.join();
           t3.join();
@@ -486,9 +470,9 @@ public:
           Rower* r3 = dynamic_cast<Rower*>(r.clone());
           int rowCount = nrows();
           Schema* scm = new Schema(this->get_schema());
-          std::thread t1(&DataFrame::pTraversal, std::ref(*this), 0, std::cref(rowCount)/3, std::ref(scm), std::ref(r));
-          std::thread t2(&DataFrame::pTraversal, std::ref(*this), std::cref(rowCount)/3, 2*(std::cref(rowCount)/3), std::ref(scm), std::ref(*r2));
-          std::thread t3(&DataFrame::pTraversal, std::ref(*this), 2*(std::cref(rowCount)/3), std::cref(rowCount), std::ref(scm), std::ref(*r3));
+          std::thread t1(&DistributedDataFrame::pTraversal, std::ref(*this), 0, std::cref(rowCount)/3, std::ref(scm), std::ref(r));
+          std::thread t2(&DistributedDataFrame::pTraversal, std::ref(*this), std::cref(rowCount)/3, 2*(std::cref(rowCount)/3), std::ref(scm), std::ref(*r2));
+          std::thread t3(&DistributedDataFrame::pTraversal, std::ref(*this), 2*(std::cref(rowCount)/3), std::cref(rowCount), std::ref(scm), std::ref(*r3));
           t1.join();
           t2.join();
           t3.join();
@@ -498,8 +482,8 @@ public:
           Rower* r2 = dynamic_cast<Rower*>(r.clone());
           int rowCount = nrows();
           Schema* scm = new Schema(this->get_schema());
-          std::thread t1(&DataFrame::pTraversal, std::ref(*this), 0, std::cref(rowCount)/2, std::ref(scm), std::ref(r));
-          std::thread t2(&DataFrame::pTraversal, std::ref(*this), std::cref(rowCount)/2, std::cref(rowCount), std::ref(scm), std::ref(*r2));
+          std::thread t1(&DistributedDataFrame::pTraversal, std::ref(*this), 0, std::cref(rowCount)/2, std::ref(scm), std::ref(r));
+          std::thread t2(&DistributedDataFrame::pTraversal, std::ref(*this), std::cref(rowCount)/2, std::cref(rowCount), std::ref(scm), std::ref(*r2));
           t1.join();
           t2.join();
           //wasting one good thread, why - forgetting the main thread man
@@ -519,10 +503,10 @@ public:
     }
 
   
-    /** Create a new dataframe, constructed from rows for which the given Rower
+    /** Create a new DistributedDataFrame, constructed from rows for which the given Rower
       * returned true from its accept method. */
-    DataFrame* filter(Rower& r) {
-      DataFrame* df = new DataFrame(*this);
+    DistributedDataFrame* filter(Rower& r) {
+      DistributedDataFrame* df = new DistributedDataFrame(*this);
       //create a new row.
       Row* row = new Row(*this->schema_);
 
@@ -538,7 +522,7 @@ public:
       return df;
     }
   
-    /** Print the dataframe in SoR format to standard output. */
+    /** Print the DistributedDataFrame in SoR format to standard output. */
     void print();
 
     /**
@@ -546,7 +530,7 @@ public:
     */
     bool equals(Object  * other) {
       if (other == this) return true;
-        DataFrame* x = dynamic_cast<DataFrame*>(other);
+        DistributedDataFrame* x = dynamic_cast<DistributedDataFrame*>(other);
         if (x == nullptr) return false;
         if (this->ncols() != x->ncols()) return false;
         if (this->nrows() != x->nrows()) return false;
@@ -562,26 +546,29 @@ public:
      */    
      char* serialize() {
         Serializable* sb = new Serializable();
-        sb->initSerialize("DataFrame");
+        sb->initSerialize("DistributedDataFrame");
         char * serializedschema = schema_->serialize();
-        sb->write("schema_", serializedschema);
+        sb->write("schema_", serializedschema, false);
         char * seralizedcols = cols_->serialize();
-        sb->write("cols_", seralizedcols);
+        sb->write("cols_", seralizedcols, false);
         sb->endSerialize();
         char* value = sb->get();
         delete sb;
         return value;
      }
 
-    static DataFrame* deserialize(char* s) {
-        Schema* sch = dynamic_cast<Schema*>(DataFrame::deserialize(JSONHelper::getValueFromKey("schema_", s)->c_str()));
-        Array* cols = new Array(JSONHelper::getValueFromKey("cols_", s)->c_str());
-        DataFrame* df = new DataFrame(sch, cols);
-        return df;
-    }
-
-    static DataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
+    static DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
       Schema* s = new Schema("D");
-
+      DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv);
+      for (size_t i = 0; i < length; i++) {
+        //std::cout << i <<" in from array\n";
+        s->add_row(nullptr);
+        dc->push_back(vals[i]);
+      }
+      DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
+      df->add_column(dc, nullptr);
+      Value* val = new Value(df->serialize());
+      kv->put(key, val);
+      return df;
     }
 };

@@ -4,6 +4,7 @@
 #include "string.h"
 #include "../utils/map.h"
 #include "../utils/primatives.h"
+#include "../serialize/serial.h"
 #include <iostream>
 
 //authors: shetty.y@husky.neu.edu eldrid.s@husky.neu.edu
@@ -60,6 +61,15 @@ public:
         this->row_name_idx = new Map();
         this->col_idx_name = new Map();
         this->row_idx_name = new Map();
+    }
+
+    Schema(char* serialized) {
+        //std::cout << "here" <<"\n";
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        this->capacity_ = std::stoi(JSONHelper::getValueFromKey("capacity_", payload)->c_str());
+        this->empty_index_ = std::stoi(JSONHelper::getValueFromKey("empty_index_", payload)->c_str());
+        this->num_rows_ = std::stoi(JSONHelper::getValueFromKey("num_rows_", payload)->c_str());
+        this->val_ = JSONHelper::getValueFromKey("val_", payload)->c_str();
     }
     
     /** Create a schema from a string of types. A string that contains
@@ -282,5 +292,19 @@ public:
         }
         
         return hash_;
+    }
+
+    //will lose the row/column names with serialization
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Schema");
+        sb->write("capacity_", capacity_);
+        sb->write("empty_index_", empty_index_);
+        sb->write("num_rows_", num_rows_);
+        sb->write("val_", this->val_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
     }
 };

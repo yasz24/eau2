@@ -1,11 +1,15 @@
 #pragma once
 #include "string.h"
 #include "../object.h"
+#include "../serialize/jsonHelper.h"
+#include "../serialize/serial.h"
 #include "array.h"
 #include "queue.h"
 #include "keyVal.h"
 
 //todo: Map should delete all keys, values.
+//todo: figure out the modulo.
+//todo: the map bug has something to do with key hash not being the same between get and put calls.
 //authors: eldrid.s@husky.neu.edu and shetty.y@husky.neu.edu
 /**
 * An object that represents a map to store keys and values.
@@ -30,6 +34,22 @@ class Map : public Object {
       }
     }
 
+    Map(size_t numBuckets,  size_t bucketsUsed, size_t items, Array *buckets) {
+      this->numBuckets_ = numBuckets;
+      this->bucketsUsed_ = bucketsUsed;
+      this->items_ = items;
+      this->buckets_ = buckets;
+    }
+
+    Map(char* serialized) {
+      char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+      this->numBuckets_ = std::stoi(JSONHelper::getValueFromKey("numBuckets_", payload)->c_str());
+      this->bucketsUsed_ = std::stoi(JSONHelper::getValueFromKey("bucketsUsed_", payload)->c_str());
+      this->items_ = std::stoi(JSONHelper::getValueFromKey("items_", payload)->c_str());
+      char* buckets_cstr = JSONHelper::getValueFromKey("buckets_", payload)->c_str();
+      this->buckets_ = new Array(buckets_cstr);
+    }
+
     /* The destructor*/
     virtual ~Map() { 
       delete this->buckets_;
@@ -49,9 +69,12 @@ class Map : public Object {
     * @param value the object to add to the Map
     */
     void add(Object* key, Object* value) {
+      //std::cout << "Map put: " << "key: " << key->serialize() << " val: " << value->serialize() << "\n";
       size_t key_hash = key->hash();
+      //std::cout << "put hash" << key_hash << "\n";
       KeyVal *key_val = new KeyVal(key, value);
-      int index = key_hash % this->numBuckets_;
+      size_t index = key_hash % this->numBuckets_;
+      //std::cout << "map put queue index: " << index << "\n";
       Queue *queue_at_index = dynamic_cast<Queue*>(this->buckets_->get(index));
       if (queue_at_index->size() == 0) {
         this->bucketsUsed_ += 1;
@@ -59,13 +82,13 @@ class Map : public Object {
           this->rehash_();
         }
       } 
-      if (this->get(key) == nullptr) {
+      if (queue_at_index->get(key_val) == nullptr) {
         queue_at_index->add(key_val);
       } else {
         Object* removed = this->pop_item(key);
-        String *before  = dynamic_cast<String*>(key_val->getVal());
+        //String *before  = dynamic_cast<String*>(key_val->getVal());
         queue_at_index->add(key_val);
-        String *after  = dynamic_cast<String*>(this->get(key));
+        //String *after  = dynamic_cast<String*>(this->get(key));
       }
       this->items_ += 1;
     }
@@ -104,16 +127,29 @@ class Map : public Object {
     * @return the value associated with the key
     */
     Object* get(Object* key) {
-      KeyVal *wrappedkey = new KeyVal(key, nullptr);
+      //std::cout << "Map get: " << "key: " << key->serialize() << "\n";
       size_t key_hash = key->hash();
-      int index = key_hash % this->numBuckets_;
-      Queue *queue_at_index = dynamic_cast<Queue *>(this->buckets_->get(index));
-      if (queue_at_index->get(wrappedkey) != nullptr) {
+      //std::cout << "get hash" << key_hash << "\n";
+      KeyVal *wrappedkey = new KeyVal(key, nullptr);
+      size_t index = key_hash % this->numBuckets_;
+      //std::cout << "map get queue index: " << index << " num buckets: "<< numBuckets_<<"\n";
+      Queue *queue_at_index = dynamic_cast<Queue*>(this->buckets_->get(index));
+      //std::cout << "get queue: " << queue_at_index->serialize() << "\n";
+      Object* keyVal = queue_at_index->get(wrappedkey);
+      if (keyVal != nullptr) {
         //key is in map.
-        KeyVal *key_val = dynamic_cast<KeyVal *>(queue_at_index->get(wrappedkey));
-        return key_val->getVal();
+        //std::cout << "found key in map\n";
+        KeyVal *key_val = dynamic_cast<KeyVal*>(keyVal);
+        Object* val = key_val->getVal();
+        // if (val == nullptr) {
+        //   std::cout << "val is null " << "\n";
+        // }
+        // std::cout << "val is not null " << "\n";
+        return val;
       } else {
+        std::cout << "ERROR: Key not found in map" << "key: " << key->serialize() << "\n";
         //key is not in map
+        //std::cout<<"ERROR: Key not found in map\n";
         return nullptr;
       }
     }
@@ -226,5 +262,32 @@ class Map : public Object {
       for (size_t i = 0; i < items; i++) {
         this->add(key_val[i]->getKey(), key_val[i]->getVal());
       }     
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Map");
+        sb->write("numBuckets_", numBuckets_);
+        sb->write("bucketsUsed_", bucketsUsed_);
+        sb->write("items_", items_);
+        char * seralizedBuckets = buckets_->serialize();
+        sb->write("buckets_", seralizedBuckets, false);
+        sb->endSerialize();
+        char* value = sb->get();
+        
+        delete sb;
+        return value;
+    }
+
+    static Map* deserialize(char* s) {
+      size_t numBuckets = std::stoi(JSONHelper::getValueFromKey("numBuckets_", s)->c_str());
+      size_t bucketsUsed = std::stoi(JSONHelper::getValueFromKey("bucketsUsed_", s)->c_str());
+      size_t items = std::stoi(JSONHelper::getValueFromKey("items_", s)->c_str());
+      String* buckets_string = JSONHelper::getValueFromKey("buckets_", s);
+      char* buckets_cstr = buckets_string->c_str();
+      Array* buckets = new Array(buckets_cstr);
+
+      Map* m = new Map(numBuckets, bucketsUsed, items, buckets);
+      return m;
     }
 };
