@@ -16,7 +16,7 @@
 #include <thread>
 
 //authors: eldrid.s@husky.neu.edu shetty.y@husky.neu.edu
-
+//todo: serialization always produces double arrays.
 /****************************************************************************
  * DistributedDataFrame::
  *
@@ -69,15 +69,9 @@ public:
 
     }
 
-    DistributedDataFrame(Schema* sch, Array* cols) {
-      this->schema_ = sch;
-      this->cols_ = cols;
-    }
-
     DistributedDataFrame(char* serialized) {
       Deserializable* d = new Deserializable();
       char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-      std::cout << JSONHelper::getValueFromKey("schema_", payload)->c_str() << "\n";
       Schema* sch = new Schema(JSONHelper::getValueFromKey("schema_", payload)->c_str());
       Array* cols = new Array(JSONHelper::getValueFromKey("cols_", payload)->c_str());
       this->schema_ = sch;
@@ -554,21 +548,14 @@ public:
         Serializable* sb = new Serializable();
         sb->initSerialize("DistributedDataFrame");
         char * serializedschema = schema_->serialize();
-        sb->write("schema_", serializedschema);
+        sb->write("schema_", serializedschema, false);
         char * seralizedcols = cols_->serialize();
-        sb->write("cols_", seralizedcols);
+        sb->write("cols_", seralizedcols, false);
         sb->endSerialize();
         char* value = sb->get();
         delete sb;
         return value;
      }
-
-    // static DistributedDataFrame* deserialize(char* s) {
-    //     Schema* sch = dynamic_cast<Schema*>(DistributedDataFrame::deserialize(JSONHelper::getValueFromKey("schema_", s)->c_str()));
-    //     Array* cols = new Array(JSONHelper::getValueFromKey("cols_", s)->c_str());
-    //     DistributedDataFrame* df = new DistributedDataFrame(sch, cols);
-    //     return df;
-    // }
 
     static DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, int* vals) {
       Schema* s = new Schema("D");

@@ -88,7 +88,7 @@ public:
                     break;
                 }
                 buff[loc] = temp;
-                    loc++;
+                loc++;
             } else if(valueStarted) {
                 buff[loc] = temp;
                 loc++;

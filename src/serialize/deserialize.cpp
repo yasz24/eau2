@@ -8,6 +8,7 @@
 #include "../dataframe/schema.h"
 #include "../utils/distributedArray.h"
 #include "../dataframe/distributedDataframe.h"
+#include "../dataframe/distributedColumn.h"
 
 /**
  * A generic Deserialize method that calls the correct deserialization method of the given serialized class
@@ -74,6 +75,16 @@
             return new StringDistributedArray(s);
         } else if(0 == strncmp(className, "DistributedDataFrame", strlen(className))) {
             return new DistributedDataFrame(s);
+        } else if(0 == strncmp(className, "DistributedIntColumn", strlen(className))) {
+            return new DistributedIntColumn(s);
+        } else if(0 == strncmp(className, "DistributedDoubleColumn", strlen(className))) {
+            return new DistributedDoubleColumn(s);
+        } else if(0 == strncmp(className, "DistributedFloatColumn", strlen(className))) {
+            return new DistributedFloatColumn(s);
+        } else if(0 == strncmp(className, "DistributedBoolColumn", strlen(className))) {
+            return new DistributedBoolColumn(s);
+        } else if(0 == strncmp(className, "DistributedStringColumn", strlen(className))) {
+            return new DistributedStringColumn(s);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

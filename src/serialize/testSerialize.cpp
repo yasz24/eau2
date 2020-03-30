@@ -146,7 +146,7 @@ void testDistributedIntColumn() {
         dfc->push_back(i);
     }
     char* serialized = dfc->serialize();
-    //std::cout << serialized << "\n";   
+    std::cout << serialized << "\n";   
     DistributedIntColumn* fda2 = new DistributedIntColumn(serialized);
     String* s = new String(serialized);
     char* serial = fda2->serialize();
@@ -282,9 +282,10 @@ void testDistributedDataframe() {
     dd->add_column(dc, nullptr);
 
     char* serialized = dd->serialize();
-    //std::cout << serialized << "\n";   
+    std::cout << serialized << "\n";   
     DistributedDataFrame* dd2 = new  DistributedDataFrame(serialized);
     String* s = new String(serialized);
+    std::cout << dd2->serialize() << "\n";
     String* s2 = new String(dd2->serialize());
     system->t_true(s2->equals(s));
 
@@ -299,7 +300,7 @@ int main() {
     // testIntDistributedArrays();
     // testStringDistributedArrays();
     // testFloatDistributedArrays();
-    // testDistributedIntColumn();
+    //testDistributedIntColumn();
     // testDistributedDoubleColumn();
     // testDistributedFloatColumn();
     // testDistributedBoolColumn();

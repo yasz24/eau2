@@ -195,13 +195,11 @@ class IntArray: public Object {
      */ 
     IntArray(char* serialized) {
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-        //std::cout << "in Intarray "<< payload << "\n";
         this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
-        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
         char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
-        this->listLength_ = len;
-        IntArray* temp = new IntArray(len);
-        for(int i = 0; i < len; i++) {
+        IntArray* temp = new IntArray(this->listLength_);
+        for(int i = 0; i < this->listLength_; i++) {
             temp->pushBack(std::stoi(JSONHelper::getArrayValueAt(vals, i)->c_str()));
         }
         this->vals_ = temp->vals_;
@@ -268,6 +266,7 @@ class IntArray: public Object {
      * Creates a char* serialized version of this class, storing all necessary fields and variables in a JSON string
      */    
      char* serialize() {
+         //std::cout << "in IntArray"<< "\n";
         Serializable* sb = new Serializable();
         sb->initSerialize("IntArray");
         sb->write("listLength_", listLength_);
@@ -302,10 +301,10 @@ class DoubleArray: public Object {
     DoubleArray(char* serialized) {
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
-        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
         char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
-        DoubleArray* temp = new DoubleArray(len);
-         for(int i = 0; i < len; i++) {
+        DoubleArray* temp = new DoubleArray(this->listLength_);
+         for(int i = 0; i < this->listLength_; i++) {
              temp->pushBack(std::stod(JSONHelper::getArrayValueAt(vals, i)->c_str()));
          }
          this->vals_=temp->vals_;
@@ -373,6 +372,7 @@ class DoubleArray: public Object {
      */    
      char* serialize() {
         Serializable* sb = new Serializable();
+        //std::cout << "in DoubleArray"<< "\n";
         sb->initSerialize("DoubleArray");
         sb->write("listLength_", listLength_);
         sb->write("arraySize_", arraySize_);
@@ -406,11 +406,10 @@ class FloatArray: public Object {
     FloatArray(char* serialized) {
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
-        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
-        this->listLength_ = len;
+        this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
         char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
-        FloatArray* ia = new FloatArray(len);
-        for(int i = 0; i < len; i++) {
+        FloatArray* ia = new FloatArray(this->listLength_);
+        for(int i = 0; i < this->listLength_; i++) {
             ia->pushBack(std::stof(JSONHelper::getArrayValueAt(vals, i)->c_str()));
         }
         this->vals_ = ia->vals_;
@@ -511,10 +510,10 @@ class BoolArray: public Object {
     BoolArray(char* serialized) {
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
-        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
         char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
-        BoolArray* ia = new BoolArray(len);
-         for(int i = 0; i < len; i++) {
+        BoolArray* ia = new BoolArray(this->listLength_);
+         for(int i = 0; i < this->listLength_; i++) {
              ia->pushBack(std::stoi(JSONHelper::getArrayValueAt(vals, i)->c_str()));
          }
         this->vals_ = ia->vals_;
@@ -609,11 +608,10 @@ class StringArray: public Object {
     StringArray(char* serialized) {
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         this->arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
-        size_t len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        this->listLength_ = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
         char* vals = JSONHelper::getValueFromKey("vals_", payload)->c_str();
-        this->listLength_ = len;
-        StringArray* temp = new StringArray(len);
-        for(int i = 0; i < len; i++) {
+        StringArray* temp = new StringArray(this->listLength_);
+        for(int i = 0; i < this->listLength_; i++) {
             temp->pushBack(JSONHelper::getArrayValueAt(vals, i));
         }
         this->vals_ = temp->vals_;
