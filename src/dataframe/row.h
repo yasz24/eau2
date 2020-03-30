@@ -3,7 +3,6 @@
 #include "schema.h"
 #include "column.h"
 #include "fielder.h"
-#include "printFielder.h"
 
 //authors: eldrid.s@husky.neu.edu shetty.y@husky.neu.edu
 /*************************************************************************

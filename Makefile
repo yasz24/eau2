@@ -1,5 +1,5 @@
 build:
-	cd tests; g++ -std=c++11 test_sorer_dataframe.cpp
+	cd tests; g++ -w -std=c++11 testSerialize.cpp ../src/serialize/deserialize.cpp -g
 
 run: 
 	cd tests; ./a.out
@@ -9,4 +9,4 @@ valgrind:
 	docker run -ti -v `pwd`:/test memory-test:0.1 bash -c "cd /test/tests; g++ -o test test_sorer_dataframe.cpp && valgrind --leak-check=full ./test"
 
 clean:
-	cd ./tests/ ; rm a.out; rm test
+	cd ./tests/ ; rm a.out; rm -rf a.out.dSYM; rm test;

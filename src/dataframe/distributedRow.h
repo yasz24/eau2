@@ -4,7 +4,6 @@
 #include "column.h"
 #include "distributedColumn.h"
 #include "fielder.h"
-#include "printFielder.h"
 #include "../store/kvstore.h"
 
 //authors: eldrid.s@husky.neu.edu shetty.y@husky.neu.edu
