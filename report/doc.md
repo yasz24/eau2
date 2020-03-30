@@ -19,7 +19,6 @@ The topmost layer is the application layer where users of the system write code 
 
 ```
 class KVStore {
-//fields.
 
 //methods:
 void put(Key k, Value v);
@@ -31,12 +30,12 @@ KVStore is where the majority of the all of the node delegation networking occur
 
 ```
 class Key {
-String name;
-size_t node;
+    String name;
+    size_t node;
 }
 
 class Value {
-char* data;
+    char* data;
 }
 ```
 Keys include a specific name that is unique to class, stored values, whatever helps identify it, and a node number so the KVStore knows how to dispatch. 
@@ -84,7 +83,7 @@ KVStore(num_nodes: 10, this_node: 0)
 KVStore(num_nodes: 10, this_node: 10)
 //these are added on each node in the system
 
-Dataframe* df1 = new Dataframe(schema, kvstore0);
+DistributedDataFrame* df1 = new DistributedDataFrame(schema, kvstore0);
 df1->add_row(r1);
 df1->add_row(r2);
 .
@@ -106,6 +105,7 @@ void pushBack(int val) {
     //initialize first key
     if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
         storeChunk(); //stores the previous chunk values in the kv_store
+        chunkArray_->pushBack(val);
     } else {
         chunkArray_->pushBack(val);
     }
