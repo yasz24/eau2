@@ -119,11 +119,16 @@ We're beginning work on the Networking layer that will finally put our distribut
 
 ## Status:
 For MS1:
-Currently we have brought our existing dataframe implementation up to speed and combined it with a C++ Sorer representation provided by github user euhlmann (https://github.ccs.neu.edu/euhlmann/CS4500-A1-part1). We are able to successfully read .sor files into our dp using the main.cpp file located in the sorer directory.
+Currently we have brought our existing dataframe implementation up to speed and combined it with a C++ Sorer representation provided by github user euhlmann (https://github.ccs.neu.edu/euhlmann/CS4500-A1-part1). We are able to successfully read .sor files into our dp using the main.cpp file located in the sorer directory.  
+
+
 03/29/20:
 To put it simply - coronavirus. We've been doing our best to keep up with the workload and adjust to this system of working remote and zoom calling but it definitely has taken a long time to get used to since that really wasn't our style prior to moving completely online. Milestone 2 took significantly longer than expected but we're happy with the result, re-evaluating extra baggage in the codebase. For this milestone our focus has been on the distributed aspect involving new code in:
 * utils/distributedArray.h
 * dataframe/distributedColumn.h
 * dataframe/distributedDataframe.h
 * store/
-* updated serialization all around with tests in serialize/main.cpp and serialize/testSerialize.cpp
+* updated serialization all around with tests in serialize/main.cpp and serialize/testSerialize.cpp  
+
+
+While we did encounter a malloc error when actually running the application code for MS2 (testApplication() in tests/testSerialize.cpp) we believe we have all the pieces to make the code snippet run, and it is only a case of debugging.
