@@ -12,6 +12,7 @@
 #include "../src/dataframe/distributedRow.h"
 #include "../src/application/application.h"
 #include "../src/serialize/network.h"
+#include <map>
 
 //helper methods for testbuilding
 KVStore* tempStore() {
@@ -462,6 +463,24 @@ void testApplication() {
     delete [] system;
 }
 
+void tryMap() {
+    Value v1("muffin", 6);
+    Value v3("carrot", 6);
+    Key k1("payload_1", 0);
+    Key k2("payload_1", 0);
+    char* c1 =  "payload_1";
+    char* c2 = "payload_3";
+
+    std::map<Key, Value, KeyCompare> store;
+    std::map<Key, Value>::iterator it;
+    store.insert(std::pair<Key, Value>(k1, v1));
+
+    std::cout << (c1 < c2)  <<"\n";
+    std::cout <<  store.find(k1)->second.serialize() <<"\n";
+    store.find(k2)->second = v3;   
+    std::cout <<  store.find(k1)->second.serialize() <<"\n";
+}
+
 
 
 int main() {
@@ -486,6 +505,7 @@ int main() {
     testDistributedStringColumn();
     testSchema();
     testDistributedDataframe();
+    tryMap();
     //testApplication(); //currently fails
     return 0;
 }
