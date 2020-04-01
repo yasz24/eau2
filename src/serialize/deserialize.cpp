@@ -63,32 +63,48 @@
             return new Value(s);
         } else if(0 == strncmp(className, "KVStore", strlen(className))) {
             return new KVStore(s);
-        } else if(0 == strncmp(className, "IntDistributedArray", strlen(className))) {
-            return new IntDistributedArray(s);
-        } else if(0 == strncmp(className, "FloatDistributedArray", strlen(className))) {
-            return new FloatDistributedArray(s);
-        } else if(0 == strncmp(className, "DoubleDistributedArray", strlen(className))) {
-            return new DoubleDistributedArray(s);
-        } else if(0 == strncmp(className, "BoolDistributedArray", strlen(className))) {
-            return new BoolDistributedArray(s);
-        } else if(0 == strncmp(className, "StringDistributedArray", strlen(className))) {
-            return new StringDistributedArray(s);
-        } else if(0 == strncmp(className, "DistributedDataFrame", strlen(className))) {
-            return new DistributedDataFrame(s);
-        } else if(0 == strncmp(className, "DistributedIntColumn", strlen(className))) {
-            return new DistributedIntColumn(s);
-        } else if(0 == strncmp(className, "DistributedDoubleColumn", strlen(className))) {
-            return new DistributedDoubleColumn(s);
-        } else if(0 == strncmp(className, "DistributedFloatColumn", strlen(className))) {
-            return new DistributedFloatColumn(s);
-        } else if(0 == strncmp(className, "DistributedBoolColumn", strlen(className))) {
-            return new DistributedBoolColumn(s);
-        } else if(0 == strncmp(className, "DistributedStringColumn", strlen(className))) {
-            return new DistributedStringColumn(s);
-        } else if(0 == strncmp(className, "DistributedDataFrame", strlen(className))) {
-            return new DistributedDataFrame(s);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }
         return nullptr;
     };
+
+    Object* Deserializable::deserialize(char* s, KVStore* kv) {
+        String* classString = JSONHelper::getPayloadKey(s);
+        char* className = classString->c_str();
+        String* valueString = JSONHelper::getPayloadValue(s);
+        char* valueName = valueString->c_str();
+        //figure out correct deserialization method to call...
+        if (0 == strncmp(className, "Array", strlen(className))) {
+            return new Array(s, kv);
+        } else if(0 == strncmp(className, "IntDistributedArray", strlen(className))) {
+            return new IntDistributedArray(s, kv);
+        } else if(0 == strncmp(className, "FloatDistributedArray", strlen(className))) {
+            return new FloatDistributedArray(s, kv);
+        } else if(0 == strncmp(className, "DoubleDistributedArray", strlen(className))) {
+            return new DoubleDistributedArray(s, kv);
+        } else if(0 == strncmp(className, "BoolDistributedArray", strlen(className))) {
+            return new BoolDistributedArray(s, kv);
+        } else if(0 == strncmp(className, "StringDistributedArray", strlen(className))) {
+            return new StringDistributedArray(s, kv);
+        } else if(0 == strncmp(className, "DistributedDataFrame", strlen(className))) {
+            return new DistributedDataFrame(s, kv);
+        } else if(0 == strncmp(className, "DistributedIntColumn", strlen(className))) {
+            return new DistributedIntColumn(s, kv);
+        } else if(0 == strncmp(className, "DistributedDoubleColumn", strlen(className))) {
+            return new DistributedDoubleColumn(s, kv);
+        } else if(0 == strncmp(className, "DistributedFloatColumn", strlen(className))) {
+            return new DistributedFloatColumn(s, kv);
+        } else if(0 == strncmp(className, "DistributedBoolColumn", strlen(className))) {
+            return new DistributedBoolColumn(s, kv);
+        } else if(0 == strncmp(className, "DistributedStringColumn", strlen(className))) {
+            return new DistributedStringColumn(s, kv);
+        } else if(0 == strncmp(className, "DistributedDataFrame", strlen(className))) {
+            return new DistributedDataFrame(s, kv);
+        } else {
+            std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
+        }
+        return nullptr;
+    };
+
+        

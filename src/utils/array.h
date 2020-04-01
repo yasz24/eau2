@@ -46,10 +46,32 @@ public:
             Object* o = ds->deserialize(serial);
             temp->pushBack(o);
         }
-
+        //delete temp;
         this->objs_ = temp->objs_;
         delete ds;
     }; //special constructor to deal with serialized data
+
+    Array(char* serialized, KVStore* kv) {
+        Deserializable* ds = new Deserializable();
+        //std::cout<<serialized<<"\n\n";
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
+        int len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
+        this->listLength_ = len;
+
+        char* vals = JSONHelper::getValueFromKey("objs_", payload)->c_str();
+        Array* temp = new Array(len);
+        for(int i = 0; i < len; i++) {
+            char* serial = JSONHelper::getArrayValueAt(vals, i)->c_str();
+            //std::cout<<serial<<"\n";
+            Object* o = ds->deserialize(serial, kv);
+            temp->pushBack(o);
+        }
+        //delete temp;
+        this->objs_ = temp->objs_;
+        delete ds;
+    }; //special constructor to deal with serialized data, in a distributed context  
+
 
   virtual ~Array() {
       delete [] objs_;
@@ -190,6 +212,10 @@ class IntArray: public Object {
         vals_=new int[arraySize_];
     }
 
+    ~IntArray() {
+        delete[] vals_;
+    }
+
     /**
      * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
      */ 
@@ -202,6 +228,7 @@ class IntArray: public Object {
         for(int i = 0; i < this->listLength_; i++) {
             temp->pushBack(std::stoi(JSONHelper::getArrayValueAt(vals, i)->c_str()));
         }
+        //delete temp;
         this->vals_ = temp->vals_;
     }
 
@@ -290,6 +317,10 @@ class DoubleArray: public Object {
         vals_=new double[arraySize_];
     }
 
+    ~DoubleArray() {
+        delete[] vals_;
+    }
+
     DoubleArray(int as) {
         arraySize_ = as;
         vals_=new double[arraySize_];
@@ -307,11 +338,13 @@ class DoubleArray: public Object {
          for(int i = 0; i < this->listLength_; i++) {
              temp->pushBack(std::stod(JSONHelper::getArrayValueAt(vals, i)->c_str()));
          }
+         //delete temp;
          this->vals_=temp->vals_;
      }
 
     double get(size_t index) {
         assert(index < listLength_);
+        //std::cout << "in double array get " << index <<"\n";
         return vals_[index];
     }; //returns the object at index
 
@@ -400,6 +433,10 @@ class FloatArray: public Object {
         vals_ = new float[arraySize_];
     }
 
+    ~FloatArray() {
+        delete[] vals_;
+    }
+
     /**
      * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
      */ 
@@ -412,6 +449,7 @@ class FloatArray: public Object {
         for(int i = 0; i < this->listLength_; i++) {
             ia->pushBack(std::stof(JSONHelper::getArrayValueAt(vals, i)->c_str()));
         }
+        //delete ia;
         this->vals_ = ia->vals_;
     }
 
@@ -504,6 +542,10 @@ class BoolArray: public Object {
         vals_ = new bool[arraySize_];
     }
 
+    ~BoolArray() {
+        delete[] vals_;
+    }
+
     /**
      * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
      */ 
@@ -516,6 +558,7 @@ class BoolArray: public Object {
          for(int i = 0; i < this->listLength_; i++) {
              ia->pushBack(std::stoi(JSONHelper::getArrayValueAt(vals, i)->c_str()));
          }
+        //delete ia;
         this->vals_ = ia->vals_;
      }
 
@@ -602,6 +645,10 @@ class StringArray: public Object {
         vals_ = new String*[arraySize_];
     }
 
+    ~StringArray() {
+        delete[] vals_;
+    }
+
     /**
      * Method of deserialization that creates a new instance of this class with all the same data as the provided serialized object
      */ 
@@ -614,6 +661,7 @@ class StringArray: public Object {
         for(int i = 0; i < this->listLength_; i++) {
             temp->pushBack(JSONHelper::getArrayValueAt(vals, i));
         }
+        //delete temp;
         this->vals_ = temp->vals_;
     }
 

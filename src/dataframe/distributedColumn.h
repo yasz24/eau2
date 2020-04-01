@@ -27,9 +27,9 @@ class DistributedIntColumn : public Column {
   };
 
 
-  DistributedIntColumn(char* serialized) {
+  DistributedIntColumn(char* serialized, KVStore* kv) {
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-    this->val_ = new IntDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+    this->val_ = new IntDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
 
   ~DistributedIntColumn() {
@@ -93,13 +93,12 @@ class DistributedIntColumn : public Column {
   }
 
   char* serialize() {
-    Serializable* sb = new Serializable();
-    sb->initSerialize("DistributedIntColumn");
+    Serializable sb;
+    sb.initSerialize("DistributedIntColumn");
     char * seralizedArr = val_->serialize();
-    sb->write("val_", seralizedArr, false);
-    sb->endSerialize();
-    char* value = sb->get();
-    delete sb;
+    sb.write("val_", seralizedArr, false);
+    sb.endSerialize();
+    char* value = sb.get();
     return value;
   }
 };
@@ -117,9 +116,9 @@ class DistributedDoubleColumn : public Column {
     this->val_ = new DoubleDistributedArray(kv);
   };
 
-  DistributedDoubleColumn(char* serialized) {
+  DistributedDoubleColumn(char* serialized, KVStore* kv) {
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-    this->val_ = new DoubleDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+    this->val_ = new DoubleDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
 
   ~DistributedDoubleColumn() {
@@ -204,9 +203,9 @@ class DistributedFloatColumn : public Column {
     this->val_ = new FloatDistributedArray(kv);
   };
 
-  DistributedFloatColumn(char* serialized) {
+  DistributedFloatColumn(char* serialized, KVStore* kv) {
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-    this->val_ = new FloatDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+    this->val_ = new FloatDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
 
   ~DistributedFloatColumn() {
@@ -294,9 +293,9 @@ class DistributedBoolColumn : public Column {
     this->val_ = new BoolDistributedArray(kv);
   };
 
-  DistributedBoolColumn(char* serialized) {
+  DistributedBoolColumn(char* serialized, KVStore* kv) {
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-    this->val_ = new BoolDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+    this->val_ = new BoolDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
 
   ~DistributedBoolColumn() {
@@ -383,9 +382,9 @@ class DistributedStringColumn : public Column {
 
   };
 
-  DistributedStringColumn(char* serialized) {
+  DistributedStringColumn(char* serialized, KVStore* kv) {
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-    this->val_ = new StringDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str());
+    this->val_ = new StringDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
 
 

@@ -40,10 +40,10 @@ class IntDistributedArray: public Object {
         itemCount_ = 0;
         chunkCount_ = 0;
         keys_ = new Array();
-        chunkArray_ = new IntArray();
+        chunkArray_ = new IntArray(chunkSize_);
     }
 
-    IntDistributedArray(char* serialized) {
+    IntDistributedArray(char* serialized, KVStore* kv) {
         //std::cout << serialized <<"\n";
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
@@ -55,7 +55,7 @@ class IntDistributedArray: public Object {
         this->itemCount_ = std::stoi(JSONHelper::getValueFromKey("itemCount_", payload)->c_str());
         this->chunkCount_ = std::stoi(JSONHelper::getValueFromKey("chunkCount_", payload)->c_str());
         this->keys_ = new Array(JSONHelper::getValueFromKey("keys_", payload)->c_str());
-        this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
+        this->kv_ = kv;
         this->chunkArray_ = new IntArray(JSONHelper::getValueFromKey("chunkArray_", payload)->c_str());
     }
     /*
@@ -70,7 +70,9 @@ class IntDistributedArray: public Object {
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data;
         IntArray* intVals = new IntArray(serlializedNode); //turns payload into IntArray object
-        return intVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
+        int res = intVals->get(index % chunkSize_);
+        delete intVals;
+        return res; //returns int at correct index in array at this chunk
     };
     /*
     * Given an index, updates the value at that index
@@ -98,16 +100,17 @@ class IntDistributedArray: public Object {
     */
     void storeChunk() {
         //creates a unique keyname based on provided ID - could be modified to randomly pick number?
-        StrBuff* sb = new StrBuff();
-        sb->c(uid_);
-        sb->c("_dist_int_array_chunk_");
-        sb->c(chunkCount_);
-        String* s = sb->get();
+        StrBuff sb;
+        sb.c(uid_);
+        sb.c("_dist_int_array_chunk_");
+        sb.c(chunkCount_);
+        String* s = sb.get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
         kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
         //std::cout << "in store chunk\n";
-        chunkArray_ = new IntArray(); //creates new Int array to store values for new chunk
+        delete chunkArray_;
+        chunkArray_ = new IntArray(chunkSize_); //creates new Int array to store values for new chunk
         curNode_+=1;
         chunkCount_+=1;
         if(curNode_ == totalNodes_) { //starts cycle of chunks on nodes again
@@ -168,7 +171,6 @@ class IntDistributedArray: public Object {
       sb->write("curNode_", curNode_);
       sb->write("totalNodes_", totalNodes_);
       sb->write("keys_", keys_->serialize(), false);
-      sb->write("kv_", kv_->serialize(), false);
       sb->write("chunkArray_", chunkArray_->serialize(), false);
       sb->endSerialize();
       char* value = sb->get();
@@ -198,10 +200,10 @@ class FloatDistributedArray: public Object {
         itemCount_ = 0;
         chunkCount_ = 0;
         keys_ = new Array();
-        chunkArray_ = new FloatArray();
+        chunkArray_ = new FloatArray(chunkSize_);
     }
 
-    FloatDistributedArray(char* serialized) {
+    FloatDistributedArray(char* serialized, KVStore* kv) {
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         this->chunkSize_ = std::stoi(JSONHelper::getValueFromKey("chunkSize_", payload)->c_str());
@@ -211,7 +213,8 @@ class FloatDistributedArray: public Object {
         this->itemCount_ = std::stoi(JSONHelper::getValueFromKey("itemCount_", payload)->c_str());
         this->chunkCount_ = std::stoi(JSONHelper::getValueFromKey("chunkCount_", payload)->c_str());
         this->keys_ = new Array(JSONHelper::getValueFromKey("keys_", payload)->c_str());
-        this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
+        this->kv_ = kv;
+        //this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
         this->chunkArray_ = new FloatArray(JSONHelper::getValueFromKey("chunkArray_", payload)->c_str());
     }
     /*
@@ -226,7 +229,9 @@ class FloatDistributedArray: public Object {
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data; 
         FloatArray* floatVals = new FloatArray(serlializedNode); //turns payload into IntArray object
-        return floatVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
+        float res = floatVals->get(index % chunkSize_);
+        delete floatVals;
+        return res; //returns int at correct index in array at this chunk
     };
     /*
     * Given an index, updates the value at that index
@@ -253,15 +258,16 @@ class FloatDistributedArray: public Object {
     */
     void storeChunk() {
         //creates a unique keyname based on provided ID - could be modified to randomly pick number?
-        StrBuff* sb = new StrBuff();
-        sb->c(uid_);
-        sb->c("_dist_int_array_chunk_");
-        sb->c(chunkCount_);
-        String* s = sb->get();
+        StrBuff sb;
+        sb.c(uid_);
+        sb.c("_dist_float_array_chunk_");
+        sb.c(chunkCount_);
+        String* s = sb.get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
         kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
-        chunkArray_ = new FloatArray(); //creates new Int array to store values for new chunk
+        delete chunkArray_;
+        chunkArray_ = new FloatArray(chunkSize_);         
         curNode_+=1;
         chunkCount_+=1;
         if(curNode_ == totalNodes_) { //starts cycle of chunks on nodes again
@@ -323,7 +329,6 @@ class FloatDistributedArray: public Object {
         sb->write("curNode_", curNode_);
         sb->write("totalNodes_", totalNodes_);
         sb->write("keys_", keys_->serialize(), false);
-        sb->write("kv_", kv_->serialize(), false);
         sb->write("chunkArray_", chunkArray_->serialize(), false);
         sb->endSerialize();
         char* value = sb->get();
@@ -353,10 +358,10 @@ class StringDistributedArray: public Object {
         itemCount_ = 0;
         chunkCount_ = 0;
         keys_ = new Array();
-        chunkArray_ = new StringArray();
+        chunkArray_ = new StringArray(chunkSize_);
     }
 
-    StringDistributedArray(char* serialized) {
+    StringDistributedArray(char* serialized, KVStore* kv) {
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         //std::cout<<payload<<"\n";
@@ -367,7 +372,7 @@ class StringDistributedArray: public Object {
         this->itemCount_ = std::stoi(JSONHelper::getValueFromKey("itemCount_", payload)->c_str());
         this->chunkCount_ = std::stoi(JSONHelper::getValueFromKey("chunkCount_", payload)->c_str());
         this->keys_ = new Array(JSONHelper::getValueFromKey("keys_", payload)->c_str());
-        this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
+        this->kv_ = kv;
         this->chunkArray_ = new StringArray(JSONHelper::getValueFromKey("chunkArray_", payload)->c_str());
     }
     /*
@@ -381,7 +386,9 @@ class StringDistributedArray: public Object {
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data; 
         StringArray* strVals = new StringArray(serlializedNode); //turns payload into IntArray object
-        return strVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
+        String* res = strVals->get(index % chunkSize_); 
+        delete strVals;
+        return res; //returns int at correct index in array at this chunk
     };
     /*
     * Given an index, updates the value at that index
@@ -408,15 +415,16 @@ class StringDistributedArray: public Object {
     */
     void storeChunk() {
         //creates a unique keyname based on provided ID - could be modified to randomly pick number?
-        StrBuff* sb = new StrBuff();
-        sb->c(uid_);
-        sb->c("_dist_int_array_chunk_");
-        sb->c(chunkCount_);
-        String* s = sb->get();
+        StrBuff sb;
+        sb.c(uid_);
+        sb.c("_dist_string_array_chunk_");
+        sb.c(chunkCount_);
+        String* s = sb.get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
         kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
-        chunkArray_ = new StringArray(); //creates new Int array to store values for new chunk
+        delete chunkArray_;
+        chunkArray_ = new StringArray(chunkSize_); 
         curNode_+=1;
         chunkCount_+=1;
         if(curNode_ == totalNodes_) { //starts cycle of chunks on nodes again
@@ -478,7 +486,6 @@ class StringDistributedArray: public Object {
       sb->write("curNode_", curNode_);
       sb->write("totalNodes_", totalNodes_);
       sb->write("keys_", keys_->serialize(), false);
-      sb->write("kv_", kv_->serialize(), false);
       sb->write("chunkArray_", chunkArray_->serialize(), false);
       sb->endSerialize();
       char* value = sb->get();
@@ -508,10 +515,10 @@ class BoolDistributedArray: public Object {
         itemCount_ = 0;
         chunkCount_ = 0;
         keys_ = new Array();
-        chunkArray_ = new BoolArray();
+        chunkArray_ = new BoolArray(chunkSize_);
     }
 
-    BoolDistributedArray(char* serialized) {
+    BoolDistributedArray(char* serialized, KVStore* kv) {
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         //std::cout<<payload<<"\n";
@@ -522,7 +529,8 @@ class BoolDistributedArray: public Object {
         this->itemCount_ = std::stoi(JSONHelper::getValueFromKey("itemCount_", payload)->c_str());
         this->chunkCount_ = std::stoi(JSONHelper::getValueFromKey("chunkCount_", payload)->c_str());
         this->keys_ = new Array(JSONHelper::getValueFromKey("keys_", payload)->c_str());
-        this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
+        this->kv_ = kv;
+        //this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
         this->chunkArray_ = new BoolArray(JSONHelper::getValueFromKey("chunkArray_", payload)->c_str());
     }
     /*
@@ -536,7 +544,9 @@ class BoolDistributedArray: public Object {
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data; 
         BoolArray* strVals = new BoolArray(serlializedNode); //turns payload into IntArray object
-        return strVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
+        bool res = strVals->get(index % chunkSize_); 
+        delete strVals;
+        return res; //returns int at correct index in array at this chunk
     };
     /*
     * Given an index, updates the value at that index
@@ -563,15 +573,16 @@ class BoolDistributedArray: public Object {
     */
     void storeChunk() {
         //creates a unique keyname based on provided ID - could be modified to randomly pick number?
-        StrBuff* sb = new StrBuff();
-        sb->c(uid_);
-        sb->c("_dist_int_array_chunk_");
-        sb->c(chunkCount_);
-        String* s = sb->get();
+        StrBuff sb;
+        sb.c(uid_);
+        sb.c("_dist_bool_array_chunk_");
+        sb.c(chunkCount_);
+        String* s = sb.get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
         kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
-        chunkArray_ = new BoolArray(); //creates new Int array to store values for new chunk
+        delete chunkArray_;
+        chunkArray_ = new BoolArray(chunkSize_); 
         curNode_+=1;
         chunkCount_+=1;
         if(curNode_ == totalNodes_) { //starts cycle of chunks on nodes again
@@ -633,7 +644,6 @@ class BoolDistributedArray: public Object {
         sb->write("curNode_", curNode_);
         sb->write("totalNodes_", totalNodes_);
         sb->write("keys_", keys_->serialize(), false);
-        sb->write("kv_", kv_->serialize(), false);
         sb->write("chunkArray_", chunkArray_->serialize(), false);
         sb->endSerialize();
         char* value = sb->get();
@@ -664,10 +674,10 @@ class DoubleDistributedArray: public Object {
         itemCount_ = 0;
         chunkCount_ = 0;
         keys_ = new Array();
-        chunkArray_ = new DoubleArray();
+        chunkArray_ = new DoubleArray(chunkSize_);
     }
 
-    DoubleDistributedArray(char* serialized) {
+    DoubleDistributedArray(char* serialized, KVStore* kv) {
         Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         //std::cout<<payload<<"\n";
@@ -678,7 +688,7 @@ class DoubleDistributedArray: public Object {
         this->itemCount_ = std::stoi(JSONHelper::getValueFromKey("itemCount_", payload)->c_str());
         this->chunkCount_ = std::stoi(JSONHelper::getValueFromKey("chunkCount_", payload)->c_str());
         this->keys_ = new Array(JSONHelper::getValueFromKey("keys_", payload)->c_str());
-        this->kv_ = new KVStore(JSONHelper::getValueFromKey("kv_", payload)->c_str());
+        this->kv_ = kv;
         this->chunkArray_ = new DoubleArray(JSONHelper::getValueFromKey("chunkArray_", payload)->c_str());
     }
     /*
@@ -691,8 +701,12 @@ class DoubleDistributedArray: public Object {
         }
         Value* v = kv_->get(dynamic_cast<Key*>(keys_->get(floor((index/chunkSize_) % totalNodes_)))); //gets value of given key
         char* serlializedNode = v->data; 
+        //std::cout << serlializedNode <<"\n";
         DoubleArray* strVals = new DoubleArray(serlializedNode); //turns payload into IntArray object
-        return strVals->get(index % chunkSize_); //returns int at correct index in array at this chunk
+        double res  = strVals->get(index % chunkSize_);
+        //std::cout << "in get " << res <<"\n";
+        delete strVals;
+        return res; //returns int at correct index in array at this chunk
     };
     /*
     * Given an index, updates the value at that index
@@ -719,15 +733,18 @@ class DoubleDistributedArray: public Object {
     */
     void storeChunk() {
         //creates a unique keyname based on provided ID - could be modified to randomly pick number?
-        StrBuff* sb = new StrBuff();
-        sb->c(uid_);
-        sb->c("_dist_int_array_chunk_");
-        sb->c(chunkCount_);
-        String* s = sb->get();
+        StrBuff sb;
+        sb.c(uid_);
+        sb.c("_dist_double_array_chunk_");
+        sb.c(chunkCount_);
+        String* s = sb.get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
-        kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
-        chunkArray_ = new DoubleArray(); //creates new Int array to store values for new chunk
+        char* serialized = chunkArray_->serialize();
+        //std::cout << serialized << "\n";
+        kv_->put(k, new Value(serialized, 0)); //adds new IntArray to kvStore
+        delete chunkArray_;
+        chunkArray_ = new DoubleArray(chunkSize_); //creates new Int array to store values for new chunk
         curNode_+=1;
         chunkCount_+=1;
         if(curNode_ == totalNodes_) { //starts cycle of chunks on nodes again
@@ -737,7 +754,7 @@ class DoubleDistributedArray: public Object {
     /*
     *   Adds a new int to the back of the Distributed Int Array
     */ 
-    void pushBack(bool val) {
+    void pushBack(double val) {
         //initialize first key
         if(itemCount_ % chunkSize_ == 0 && itemCount_ != 0) { //if current chunk is full..
             storeChunk(); //stores the previous chunk values in the kv_store
@@ -746,6 +763,7 @@ class DoubleDistributedArray: public Object {
             chunkArray_->pushBack(val);
         }
         itemCount_ +=1;
+        //std::cout << uid_ << " " <<itemCount_ << "\n";
     }; //add o to end of array
 
   bool empty() {
@@ -789,7 +807,6 @@ class DoubleDistributedArray: public Object {
         sb->write("curNode_", curNode_);
         sb->write("totalNodes_", totalNodes_);
         sb->write("keys_", keys_->serialize(), false);
-        sb->write("kv_", kv_->serialize(), false);
         sb->write("chunkArray_", chunkArray_->serialize(), false);
         sb->endSerialize();
         char* value = sb->get();

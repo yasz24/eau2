@@ -118,7 +118,7 @@ public:
     String* get() {
         assert(val_ != nullptr); // can be called only once
         grow_by_(1);     // ensure space for terminator
-        val_[size_] = 0; // terminate
+        val_[size_] = '\0'; // terminate
         String *res = new String(true, val_, size_);
         val_ = nullptr; // val_ was consumed above
         return res;

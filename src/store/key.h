@@ -54,8 +54,8 @@ public:
 };
 
 struct KeyCompare {
-    bool operator() (const Key& k1, const Key& k2) const {
-       if (strcmp(k1.name_->c_str(), k2.name_->c_str()) < 0) {
+    bool operator() (const Key* k1, const Key* k2) const {
+       if (strcmp(k1->name_->c_str(), k2->name_->c_str()) < 0) {
            return true;
        }
        return false;
