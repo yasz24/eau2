@@ -114,7 +114,7 @@ public:
 
 class Register : public Message {
 public:
-    sockaddr_in client;
+    char* client;
     size_t port;
 
     /**
@@ -142,7 +142,16 @@ public:
         target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
         id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
         port = std::stoi(JSONHelper::getValueFromKey("port", payload)->c_str());
-        client = std::stoi(JSONHelper::getValueFromKey("client", s)->c_str());
+        client = JSONHelper::getValueFromKey("client", s)->c_str();
+    }
+
+    Register(size_t idx, char* addr, size_t port) {
+        kind_ = (enum MsgKind)8;
+        sender_ = idx;
+        target_ = 0; //assuming node 0 is server
+        id_ = 0; // no indexing right now.
+        client = addr;
+        port = port;
     }
 };
 
@@ -184,33 +193,34 @@ public:
         clients = std::stoi(JSONHelper::getValueFromKey("clients", payload)->c_str());
         char* portsVals = JSONHelper::getValueFromKey("ports", payload)->c_str();
         int numPorts = JSONHelper::arrayLen(portsVals);
-        ports = new size_t[numPorts];
+        size_t* tmp = new size_t[numPorts];
         for(int i = 0; i < numPorts; i++) {
-            ports[i] = std::stoi(JSONHelper::getArrayValueAt(portsVals, i)->c_str());
+            tmp[i] = std::stoi(JSONHelper::getArrayValueAt(portsVals, i)->c_str());
         }
+        ports = tmp;
         char* addressesVals = JSONHelper::getValueFromKey("addresses", payload)->c_str();
         int numAddresses = JSONHelper::arrayLen(addressesVals);
-        addresses = new String*[numAddresses];
+        String** addresses_tmp = new String*[numAddresses];
         for(int i = 0; i < numAddresses; i++) {
-            addresses[i] = JSONHelper::getArrayValueAt(addressesVals, i);
+            addresses_tmp[i] = JSONHelper::getArrayValueAt(addressesVals, i);
         }
+        addresses = addresses_tmp;
     }
 
-    Directory(int sender, int target, int id, size_t i_clients, size_t* i_ports, String** i_addresses) {
+    Directory(int sender, int id, size_t i_clients, size_t* i_ports, String** i_addresses) {
         kind_ = (enum MsgKind)9;
         sender_ = sender;
-        target_ = target;
         id_ = id;
         clients = i_clients;
-        int portsLen = sizeof(*i_ports)/sizeof(i_ports[0]);
-        ports = new size_t[portsLen];
-        int addressesLen = sizeof(i_addresses)/sizeof(i_addresses[0]);
-        addresses = new String*[addressesLen];
-        for(int i = 0;  i < portsLen; i++) {
-            ports[i] = i_ports[i];
+        size_t* tmp_ports = new size_t[i_clients];
+        String** tmp_addresses = new String*[i_clients];
+        for(int i = 0;  i < i_clients; i++) {
+            tmp_ports[i] = i_ports[i];
         }
-        for(int i = 0; i < addressesLen; i++) {
-            addresses[i] = i_addresses[i]->clone();
+        ports = tmp_ports;
+        for(int i = 0; i < i_clients; i++) {
+            tmp_addresses[i] = i_addresses[i]->clone();
         }
+        addresses = tmp_addresses; 
     }
 };
