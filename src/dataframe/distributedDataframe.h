@@ -607,9 +607,9 @@ public:
       Schema* s = new Schema(schema);
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
       while(!v.done()) {
-        Row row = Row(*s);
-        v.visit(row);
-        df->add_row(row);
+        Row* row = new Row(*s);
+        v.visit(*row);
+        df->add_row(*row);
       }
       Value* val = new Value(df->serialize(), 0);
       kv->put(key, val);

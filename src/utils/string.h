@@ -3,7 +3,6 @@
 #include <cstring>
 #include <string>
 #include <cassert>
-#include "../store/key.h"
 #include "../object.h"
 
 /** An immutable string class that wraps a character array.
