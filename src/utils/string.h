@@ -3,6 +3,7 @@
 #include <cstring>
 #include <string>
 #include <cassert>
+#include "../store/key.h"
 #include "../object.h"
 
 /** An immutable string class that wraps a character array.
@@ -84,6 +85,15 @@ public:
     }
  };
 
+ struct StringCompare {
+     bool operator() (const String* s1, const String* s2) const {
+         if(strcmp(s1->cstr_, s2->cstr_) < 0) {
+             return true;
+         }
+         return false;
+     }
+ };
+
 /** A string buffer builds a string from various pieces.
  *  author: jv */
 class StrBuff : public Object {
@@ -96,6 +106,7 @@ public:
         val_ = new char[capacity_ = 10];
         size_ = 0;
     }
+
     void grow_by_(size_t step) {
         if (step + size_ < capacity_) return;
         capacity_ *= 2;

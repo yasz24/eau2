@@ -57,6 +57,8 @@ public:
         size_t node = key->node();
         if (node == this->this_node_) {
             //while loop?. might stack overflow. could sleep and try at regular intervals.
+            Value* val = local_store_.find(key)->second;
+            return val;
         } else {
             //networking. dispatch request and get from appropriate node.
             std::cout<<"ERROR: ENCOUNTERED NETWORKING CODE IN KVSTORE-WAITANDGET\n";

@@ -1,6 +1,10 @@
+#pragma once
 #include "../utils/string.h"
+#include "../dataframe/visitor.h"
+#include "../helper.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <ostream>
 
 class FileReader : public Writer {
 public:
@@ -22,7 +26,7 @@ public:
         }
         buf_[i_] = 0;
         String word(buf_ + wStart, i_ - wStart);
-        r.set(0, word);
+        r.set(0, &word);
         ++i_;
         skipWhitespace_();
     }
@@ -33,9 +37,10 @@ public:
     bool done() override { return (i_ >= end_) && feof(file_);  }
  
     /** Creates the reader and opens the file for reading.  */
-    FileReader() {
-        file_ = fopen(arg.file, "r");
-        if (file_ == nullptr) FATAL_ERROR("Cannot open file " << arg.file);
+    FileReader(char* fileName) {
+        Sys print = Sys();
+        file_ = fopen(fileName, "r");
+        print.exit_if_not(file_ != nullptr, "Cannot open file");
         buf_ = new char[BUFSIZE + 1]; //  null terminator
         fillBuffer_();
         skipWhitespace_();

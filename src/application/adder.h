@@ -1,3 +1,8 @@
+#pragma once
+#include "../dataframe/visitor.h"
+#include "../utils/string.h"
+#include "jvMap.h"
+
 class Adder : public Reader {
 public:
   SIMap& map_;  // String to Num map;  Num holds an int

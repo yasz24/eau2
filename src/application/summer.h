@@ -1,7 +1,8 @@
+#pragma once
 #include "../utils/string.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "jvMap.h"
 class Summer : public Writer {
 public:
   SIMap& map_;
@@ -13,34 +14,34 @@ public:
  
   void next() {
       if (i == map_.capacity_ ) return;
-      if ( j < map_.items_[i].keys_.size() ) {
+      if ( j < map_.items_[i].keys_.length() ) {
           j++;
           ++seen;
       } else {
           ++i;
           j = 0;
-          while( i < map_.capacity_ && map_.items_[i].keys_.size() == 0 )  i++;
+          while( i < map_.capacity_ && map_.items_[i].keys_.length() == 0 )  i++;
           if (k()) ++seen;
       }
   }
  
   String* k() {
-      if (i==map_.capacity_ || j == map_.items_[i].keys_.size()) return nullptr;
-      return (String*) (map_.items_[i].keys_.get_(j));
+      if (i==map_.capacity_ || j == map_.items_[i].keys_.length()) return nullptr;
+      return (String*) (map_.items_[i].keys_.get(j));
   }
  
   size_t v() {
-      if (i == map_.capacity_ || j == map_.items_[i].keys_.size()) {
+      if (i == map_.capacity_ || j == map_.items_[i].keys_.length()) {
           assert(false); return 0;
       }
-      return ((Num*)(map_.items_[i].vals_.get_(j)))->v;
+      return ((Num*)(map_.items_[i].vals_.get(j)))->v;
   }
  
   void visit(Row& r) {
       if (!k()) next();
       String & key = *k();
       size_t value = v();
-      r.set(0, key);
+      r.set(0, &key);
       r.set(1, (int) value);
       next();
   }

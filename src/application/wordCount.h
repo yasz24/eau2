@@ -1,6 +1,11 @@
+#pragma once
 #include "application.h"
-#include "../dataframe/dataframe.h"
+#include "../dataframe/distributedDataframe.h"
+#include "../utils/keyBuff.h"
 #include "fileReader.h"
+#include "adder.h"
+#include "summer.h"
+#include "jvMap.h"
 /****************************************************************************
  * Calculate a word count for given file:
  *   1) read the data (single node)
@@ -13,15 +18,21 @@ public:
   Key in;
   KeyBuff kbuf;
   SIMap all;
+  char* fileName_;
+  size_t num_nodes_;
  
-  WordCount(size_t idx, NetworkIfc & net):
-    Application(idx, net), in("data"), kbuf(new Key("wc-map-",0)) { }
+  WordCount(size_t idx, char* fileName, size_t num_nodes):
+    Application(idx), in("data"), kbuf(new Key("wc-map-",0)) { 
+        fileName_ = fileName;
+        num_nodes_ = num_nodes;
+    }
  
   /** The master nodes reads the input, then all of the nodes count. */
   void run_() override {
     if (index == 0) {
-      FileReader fr;
-      delete DataFrame::fromVisitor(&in, &kv, "S", fr);
+      //FileReader fr;
+      FileReader fr(fileName_);
+      delete DistributedDataFrame::fromVisitor(&in, kv_, "S", fr);
     }
     local_count();
     reduce();
@@ -31,20 +42,21 @@ public:
    *  which then joins them one by one. */
   Key* mk_key(size_t idx) {
       Key * k = kbuf.c(idx).get();
-      LOG("Created key " << k->c_str());
+      std::cout << "Created key " << k->c_str();
       return k;
   }
  
   /** Compute word counts on the local node and build a data frame. */
   void local_count() {
-    DataFrame* words = (kv.waitAndGet(in));
+    DistributedDataFrame* words = dynamic_cast<DistributedDataFrame*>((kv_->waitAndget(&in)));
     p("Node ").p(index).pln(": starting local count...");
     SIMap map;
     Adder add(map);
     words->local_map(add);
     delete words;
     Summer cnt(map);
-    delete DataFrame::fromVisitor(mk_key(index), &kv, "SI", cnt);
+    //delete DistributedDataFrame::fromVisitor(mk_key(index), kv_, "SI", cnt);
+    delete DistributedDataFrame::fromVisitor(mk_key(kv_->this_node_), kv_, "SI", cnt);
   }
  
   /** Merge the data frames of all nodes */
@@ -53,17 +65,19 @@ public:
     pln("Node 0: reducing counts...");
     SIMap map;
     Key* own = mk_key(0);
-    merge(kv.get(*own), map);
-    for (size_t i = 1; i < arg.num_nodes; ++i) { // merge other nodes
+    DistributedDataFrame* ddf = new DistributedDataFrame(kv_->get(own)->data, kv_);
+    merge(ddf, map);
+    for (size_t i = 1; i < num_nodes_; ++i) { // merge other nodes
       Key* ok = mk_key(i);
-      merge(kv.waitAndGet(*ok), map);
+      DistributedDataFrame* temp_ddf = new DistributedDataFrame(kv_->waitAndget(ok)->data, kv_);
+      merge(temp_ddf, map);
       delete ok;
     }
     p("Different words: ").pln(map.size());
     delete own;
   }
  
-  void merge(DataFrame* df, SIMap& m) {
+  void merge(DistributedDataFrame* df, SIMap& m) {
     Adder add(m);
     df->map(add);
     delete df;
