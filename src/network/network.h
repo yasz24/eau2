@@ -137,7 +137,7 @@ public:
     //Special constructor that given a serialized representation of an object of this class, generates a new one with the same data
     Register(char* s) {
         char* payload = JSONHelper::getPayloadValue(s)->c_str();
-        std::cout << "payload: " << payload << "\n";
+        //std::cout << "payload: " << payload << "\n";
         kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
         sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
         target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
@@ -148,7 +148,7 @@ public:
     }
 
     Register(size_t idx, char* addr, size_t port) {
-        std::cout << "registration constructor, port: " << port <<"\n";
+        //std::cout << "registration constructor, port: " << port <<"\n";
         kind_ = (enum MsgKind)8;
         sender_ = idx;
         target_ = 0; //assuming node 0 is server

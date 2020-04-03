@@ -42,7 +42,7 @@ public:
         nodes_[0].id = 0;
         for (size_t i = 1; i < num_nodes; i++) {
             Register* msg = dynamic_cast<Register*>(recv_msg());
-            std::cout  << "Registration msg received, " << "client: " << msg->client << ":" << msg->port_ <<"\n";
+            //std::cout  << "Registration msg received, " << "client: " << msg->client << ":" << msg->port_ <<"\n";
             nodes_[msg->sender()].id = msg->sender();
             nodes_[msg->sender()].address.sin_family = AF_INET;
             inet_pton(AF_INET, msg->client, &nodes_[msg->sender()].address.sin_addr);
@@ -130,10 +130,11 @@ public:
         }
         //assert(connect(connection, (sockaddr*)&target.address, sizeof(target.address)) >= 0);
         char* serialized = msg->serialize();
-        std::cout << "sending: " << serialized << "\n";
+        std::cout << "sending msg: " << serialized << "\n";
         size_t length = strlen(serialized);
         send(connection, &length, sizeof(size_t), 0);
         send(connection, serialized, length, 0);
+        close(connection);
     }
 
     Message* recv_msg() {
@@ -147,9 +148,10 @@ public:
         while (rd != size) {
             rd+= read(req, buf + rd, size - rd);
         }
-        std::cout << buf << "\n";
+        std::cout << "received msg: " << buf << "\n";
         Deserializable ds;
         Message* msg = dynamic_cast<Message*>(ds.deserialize(buf));
+        close(req);
         return msg;
     }
 };
