@@ -69,11 +69,11 @@ public:
 
     }
 
-    DistributedDataFrame(char* serialized) {
+    DistributedDataFrame(char* serialized, KVStore* kv) {
       Deserializable* d = new Deserializable();
       char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
       Schema* sch = new Schema(JSONHelper::getValueFromKey("schema_", payload)->c_str());
-      Array* cols = new Array(JSONHelper::getValueFromKey("cols_", payload)->c_str());
+      Array* cols = new Array(JSONHelper::getValueFromKey("cols_", payload)->c_str(), kv);
       this->schema_ = sch;
       this->cols_ = cols;
     }
@@ -167,6 +167,7 @@ public:
       assert(col < this->schema_->width());
       char col_type = this->schema_->col_type(col);
       assert(col_type == 'D');
+      //std::cout<< "get_double: " << this->cols_->get(col) << "\n";
       DistributedDoubleColumn* doubCol = dynamic_cast<DistributedDoubleColumn*>(this->cols_->get(col));
       assert(row < this->schema_->length());
       return doubCol->get(row);
@@ -558,7 +559,7 @@ public:
      }
 
     static DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
-      Schema* s = new Schema("D");
+      Schema* s = new Schema();
       DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv);
       for (size_t i = 0; i < length; i++) {
         //std::cout << i <<" in from array\n";
@@ -567,7 +568,7 @@ public:
       }
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
       df->add_column(dc, nullptr);
-      Value* val = new Value(df->serialize());
+      Value* val = new Value(df->serialize(), 0);
       kv->put(key, val);
       return df;
     }

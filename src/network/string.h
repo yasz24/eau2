@@ -3,7 +3,7 @@
 #include <cstring>
 #include <string>
 #include <cassert>
-#include "../object.h"
+#include "object.h"
 
 /** An immutable string class that wraps a character array.
  * The character array is zero terminated. The size() of the
@@ -118,7 +118,7 @@ public:
     String* get() {
         assert(val_ != nullptr); // can be called only once
         grow_by_(1);     // ensure space for terminator
-        val_[size_] = '\0'; // terminate
+        val_[size_] = 0; // terminate
         String *res = new String(true, val_, size_);
         val_ = nullptr; // val_ was consumed above
         return res;
