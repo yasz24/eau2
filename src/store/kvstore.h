@@ -32,6 +32,8 @@ public:
             local_store_.insert(std::pair<Key*, Value*>(key, value));
             //std::cout << "in put\n";
         } else {
+            //send_msg();
+            //recv_msg();
             //networking. dispatch and put in appropriate node.
             std::cout<<"ERROR: ENCOUNTERED NETWORKING CODE IN KVSTORE-PUT\n";
         }
