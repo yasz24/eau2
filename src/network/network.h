@@ -88,7 +88,7 @@ public:
      */ 
    char* serialize() {
         Serializable* sb = new Serializable();
-        sb->initSerialize("Message");
+        sb->initSerialize("Status");
         sb->write("kind_", (int)kind_);
         sb->write("sender_", sender_);
         sb->write("target_", target_);
@@ -115,19 +115,19 @@ public:
 class Register : public Message {
 public:
     char* client;
-    size_t port;
+    size_t port_;
 
     /**
      * Creates a char* serialized version of this class, storing all necessary fields and variables in a JSON string
      */ 
     char* serialize() {
         Serializable* sb = new Serializable();
-        sb->initSerialize("Message");
+        sb->initSerialize("Register");
         sb->write("kind_", (int)kind_);
         sb->write("sender_", sender_);
         sb->write("target_", target_);
         sb->write("id_", id_);
-        sb->write("port", port);
+        sb->write("port", port_);
         sb->write("client", client);
         sb->endSerialize();
         char* value = sb->get();
@@ -137,21 +137,24 @@ public:
     //Special constructor that given a serialized representation of an object of this class, generates a new one with the same data
     Register(char* s) {
         char* payload = JSONHelper::getPayloadValue(s)->c_str();
+        //std::cout << "payload: " << payload << "\n";
         kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
         sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
         target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
         id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
-        port = std::stoi(JSONHelper::getValueFromKey("port", payload)->c_str());
+        port_ = std::stoi(JSONHelper::getValueFromKey("port", payload)->c_str());
         client = JSONHelper::getValueFromKey("client", s)->c_str();
+        //std::cout << "here\n";
     }
 
     Register(size_t idx, char* addr, size_t port) {
+        //std::cout << "registration constructor, port: " << port <<"\n";
         kind_ = (enum MsgKind)8;
         sender_ = idx;
         target_ = 0; //assuming node 0 is server
         id_ = 0; // no indexing right now.
         client = addr;
-        port = port;
+        port_ = port;
     }
 };
 
@@ -168,16 +171,14 @@ public:
      */ 
    char* serialize() {
         Serializable* sb = new Serializable();
-        int portsLen = sizeof(&ports)/sizeof(ports[0]);
-        int addressLen = sizeof(&addresses)/sizeof(addresses[0]);
-        sb->initSerialize("Message");
+        sb->initSerialize("Directory");
         sb->write("kind_", (int)kind_);
         sb->write("sender_", sender_);
         sb->write("target_", target_);
         sb->write("id_", id_);
-        sb->write("ports", ports, portsLen);
+        sb->write("ports", ports, clients);
         sb->write("clients", clients);
-        sb->write("addresses", addresses, addressLen);
+        sb->write("addresses", addresses, clients);
         sb->endSerialize();
         char* value = sb->get();
         delete sb;

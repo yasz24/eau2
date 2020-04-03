@@ -1,20 +1,12 @@
 build:
-	g++ server.cpp -o server -std=c++11
-	g++ client.cpp -o client -std=c++11
+	g++ server.cpp ../serialize/deserialize.cpp -o server -std=c++11 -w
+	g++ client.cpp ../serialize/deserialize.cpp -o client -std=c++11 -w
 run:
-	./server -ip 127.0.0.1:8888 &
-	./client -ip 127.0.0.1:50000 &
-	./client -ip 127.0.0.1:50001 &
-	./client -ip 127.0.0.1:50002 &
-	./client -ip 127.0.0.1:50003 &
-	./client -ip 127.0.0.1:50004 &
-	./client -ip 127.0.0.1:50005 &
-	./client -ip 127.0.0.1:50006 &
-	./client -ip 127.0.0.1:50007 &
-	./client -ip 127.0.0.1:50008 &
-	./client -ip 127.0.0.1:50009 &
-	# max clients hit, shutdown system.
-	./client -ip 127.0.0.1:500010
+	./server -ip 127.0.0.1:3000 -nodes 5 &
+	./client -ip 127.0.0.1:3001 -idx 1 &
+	./client -ip 127.0.0.1:3002 -idx 2 &
+	./client -ip 127.0.0.1:3003 -idx 3 &
+	./client -ip 127.0.0.1:3004 -idx 4 &
 clean:
 	rm -rf ./server
 	rm -rf ./client
