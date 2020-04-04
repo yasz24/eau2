@@ -68,7 +68,6 @@ public:
           this->cols_->pushBack(col);
         }
       }
-
     }
 
     DistributedDataFrame(char* serialized, KVStore* kv) {
@@ -463,7 +462,6 @@ public:
     void local_map(Reader& r) {
       //create a new row.
       Row* row = new Row(*this->schema_);
-
       //apply the rower to each row.
       for (size_t i = 0; i < this->schema_->length(); i++) {
         this->fill_row(i, *row);
@@ -580,9 +578,7 @@ public:
         sb->initSerialize("DistributedDataFrame");
         char * serializedschema = schema_->serialize();
         sb->write("schema_", serializedschema, false);
-        std::cout<<"preparing to serialize columns...\n";
         char * seralizedcols = cols_->serialize();
-        std::cout<<"serialized object columns\n";
         sb->write("cols_", seralizedcols, false);
         sb->endSerialize();
         char* value = sb->get();
@@ -607,17 +603,15 @@ public:
 
     /** Given a visitor, builds a df to those specifications **/
     static DistributedDataFrame* fromVisitor(Key* key, KVStore* kv, const char* schema, Writer* v) {
+      std::cout<<"made it here with: "<<schema<<" schema\n";
       Schema* s = new Schema(schema);
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
       while(!v->done()) {
         Row* row = new Row(*s);
         v->visit(*row);
-        std::cout<<"value in row: "<<row->get_string(0)<<"\n";
         df->add_row(*row);
         //delete row;
       }
-      std::cout<<df->serialize()<<"\n";
-      std::cout<<"do we get here?\n";
       Value* val = new Value(df->serialize(), 0);
       kv->put(key, val);
       return df;

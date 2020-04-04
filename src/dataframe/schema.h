@@ -34,6 +34,7 @@ public:
 
     /** Copying constructor */
     Schema(Schema& from) {
+        //std::cout<<"entered copy constructor\n";
         this->capacity_ = from.capacity_;
         this->empty_index_ = from.empty_index_;
         this->val_ = new char[this->capacity_ + 1];
@@ -41,9 +42,10 @@ public:
         for (size_t i = 0; i < this->empty_index_; i++) {
             this->val_[i] = from.val_[i]; 
         }
-
         this->num_rows_ = from.num_rows_;
+        //std::cout<<"upper bound\n";
         this->col_name_idx = from.col_name_idx->clone();
+        //std::cout<<"lower bound\n";
         this->row_name_idx = from.row_name_idx->clone();
         this->col_idx_name = from.col_idx_name->clone();
         this->row_idx_name = from.row_idx_name->clone();
@@ -64,12 +66,16 @@ public:
     }
 
     Schema(char* serialized) {
-        //std::cout << "here" <<"\n";
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         this->capacity_ = std::stoi(JSONHelper::getValueFromKey("capacity_", payload)->c_str());
         this->empty_index_ = std::stoi(JSONHelper::getValueFromKey("empty_index_", payload)->c_str());
         this->num_rows_ = std::stoi(JSONHelper::getValueFromKey("num_rows_", payload)->c_str());
         this->val_ = JSONHelper::getValueFromKey("val_", payload)->c_str();
+        //for reasons
+        this->col_name_idx = new Map();
+        this->row_name_idx = new Map();
+        this->col_idx_name = new Map();
+        this->row_idx_name = new Map();
     }
     
     /** Create a schema from a string of types. A string that contains

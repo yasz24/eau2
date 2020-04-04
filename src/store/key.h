@@ -25,6 +25,10 @@ public:
         return this->node_;
     }
 
+    String* name() {
+        return this->name_;
+    }
+
     size_t hash_me() {
         //std::cout << this->name_->c_str() << "\n";
         size_t _hash = 0;

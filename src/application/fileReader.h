@@ -25,9 +25,9 @@ public:
             ++i_;
         }
         buf_[i_] = 0;
-        String word(buf_ + wStart, i_ - wStart);
-        std::cout<<"word found: "<<word.c_str()<<"\n";
-        r.set(0, &word);
+        String* word = new String(buf_ + wStart, i_ - wStart);
+        std::cout<<"word found: "<<word->c_str()<<"\n";
+        r.set(0, word);
         ++i_;
         skipWhitespace_();
     }
@@ -48,7 +48,6 @@ public:
         buf_ = new char[BUFSIZE + 1]; //  null terminator
         fillBuffer_();
         skipWhitespace_();
-        std::cout<<"i_: "<<i_<<", end_: "<<end_<<"\n";
     }
  
     static const size_t BUFSIZE = 1024;

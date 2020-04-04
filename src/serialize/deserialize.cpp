@@ -47,7 +47,6 @@
         } else if(0 == strncmp(className, "DataFrame", strlen(className))) {
             return DataFrame::deserialize(valueName);
         } else if(0 == strncmp(className, "Schema", strlen(className))) {
-            std::cout << "in deserial\n";
             return new Schema(valueName);
         } else if(0 == strncmp(className, "Array", strlen(className))) {
             return new Array(s);

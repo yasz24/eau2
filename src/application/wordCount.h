@@ -16,13 +16,13 @@ class WordCount: public Application {
 public:
   static const size_t BUFSIZE = 1024;
   Key in;
-  KeyBuff kbuf;
+  KeyBuff* kbuf;
   SIMap all;
   char* fileName_;
   size_t num_nodes_;
  
   WordCount(size_t idx, char* fileName, size_t num_nodes):
-    Application(idx), in("data", idx), kbuf(new Key("wc-map-",0)), fileName_{ fileName }, num_nodes_{num_nodes} {}
+    Application(idx), in("data", idx), kbuf{ new KeyBuff(new Key("wc-map-",0))}, fileName_{ fileName }, num_nodes_{num_nodes} {}
  
   /** The master nodes reads the input, then all of the nodes count. */
   void run_() override {
@@ -38,8 +38,9 @@ public:
   /** Returns a key for given node.  These keys are homed on master node
    *  which then joins them one by one. */
   Key* mk_key(size_t idx) {
-      Key * k = kbuf.c(idx).get();
-      std::cout << "Created key " << k->c_str();
+      kbuf->c(idx);
+      Key * k = kbuf->get();
+      std::cout << "Created key " << k->name()->c_str()<<"\n";
       return k;
   }
  
@@ -53,8 +54,9 @@ public:
     words->local_map(add);
     delete words;
     Summer cnt(map);
+    Key* k = mk_key(kv_->this_node_);
     //delete DistributedDataFrame::fromVisitor(mk_key(index), kv_, "SI", cnt);
-    delete DistributedDataFrame::fromVisitor(mk_key(kv_->this_node_), kv_, "SI", &cnt);
+    delete DistributedDataFrame::fromVisitor(k, kv_, "SI", &cnt);
   }
  
   /** Merge the data frames of all nodes */
