@@ -81,7 +81,9 @@ public:
   size_t off_(Object& k) { return  k.hash() % capacity_; }
   
   /** Get the value.  nullptr is allowed as a value.  */
-  Object* get_(Object &key) { return items_[off_(key)].get_(key); }
+  Object* get_(Object &key) {
+    return items_[off_(key)].get_(key); 
+  }
 
   /** Add item->val_ at item->key_ either by updating an existing Item_ or
    * creating a new one if not found.  */
@@ -143,6 +145,8 @@ public:
 class SIMap : public JVMap {
 public:
   SIMap () {}
-  Num* get(String& key) { return dynamic_cast<Num*>(get(key)); }
+  Num* get(String& key) {
+    return dynamic_cast<Num*>(JVMap::get_(key));
+  }
   void set(String& k, Num* v) { assert(v); JVMap::set(k, v); }
 }; // KVMap

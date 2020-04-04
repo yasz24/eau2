@@ -3,14 +3,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "jvMap.h"
-class Summer : public Writer {
+
+class MapPrinter {
 public:
   SIMap& map_;
   size_t i = 0;
   size_t j = 0;
   size_t seen = 0;
  
-  Summer(SIMap& map) : map_(map) {}
+  MapPrinter(SIMap& map) : map_(map) {}
  
   void next() {
       if (i == map_.capacity_ ) return;
@@ -28,7 +29,6 @@ public:
   String* k() {
       if (i==map_.capacity_ || j == map_.items_[i].keys_.length()) {
         return nullptr;
-        std::cout<<"we never get THIS nullptr\n";
       }
       return (String*) (map_.items_[i].keys_.get(j));
   }
@@ -41,16 +41,15 @@ public:
       return ((Num*)(map_.items_[i].vals_.get(j)))->v;
   }
  
-  void visit(Row& r) override {
+  void getNextVal() {
       if (k() == nullptr) {
           next();
       }
       String & key = *k();
       size_t value = v();
-      r.set(0, &key);
-      r.set(1, (int) value);
+      std::cout<<key.c_str()<<" : "<<value<<"\n";
       next();
   }
  
-  bool done() override {return seen == map_.size(); }
+  bool done() {return seen == map_.size(); }
 };

@@ -5,6 +5,8 @@
 #include "fileReader.h"
 #include "adder.h"
 #include "summer.h"
+#include "mapPrinter.h"
+#include "mergeAdder.h"
 #include "jvMap.h"
 /****************************************************************************
  * Calculate a word count for given file:
@@ -68,7 +70,6 @@ public:
     SIMap map;
     Key* own = mk_key(0);
     DistributedDataFrame* ddf = new DistributedDataFrame(kv_->get(own)->data, kv_);
-    std::cout<<kv_->get(own)->data<<"\n";
     merge(ddf, map);
     for (size_t i = 1; i < num_nodes_; ++i) { // merge other nodes
       Key* ok = mk_key(i);
@@ -77,11 +78,16 @@ public:
       delete ok;
     }
     p("Different words: ").pln(map.size());
+    //here we go...
+    MapPrinter mp(map);
+    while(!mp.done()) {
+      mp.getNextVal();
+    }
     delete own;
   }
  
   void merge(DistributedDataFrame* df, SIMap& m) {
-    Adder add(m);
+    MergeAdder add(m);
     df->map(add);
     delete df;
   }

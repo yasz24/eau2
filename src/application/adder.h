@@ -16,7 +16,6 @@ public:
     assert(num != nullptr);
     num->v++;
     map_.set(*word, num);
-    std::cout<<"map set word: "<<word->c_str()<<" and count "<<num->v<<"\n";
     return false;
   }
 };
