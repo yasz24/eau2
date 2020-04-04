@@ -55,6 +55,7 @@ public:
     delete words;
     Summer cnt(map);
     Key* k = mk_key(kv_->this_node_);
+    std::cout<<"size of map: "<< map.size() << "\n";
     //delete DistributedDataFrame::fromVisitor(mk_key(index), kv_, "SI", cnt);
     delete DistributedDataFrame::fromVisitor(k, kv_, "SI", &cnt);
   }

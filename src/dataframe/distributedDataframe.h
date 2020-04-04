@@ -603,14 +603,13 @@ public:
 
     /** Given a visitor, builds a df to those specifications **/
     static DistributedDataFrame* fromVisitor(Key* key, KVStore* kv, const char* schema, Writer* v) {
-      std::cout<<"made it here with: "<<schema<<" schema\n";
       Schema* s = new Schema(schema);
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
       while(!v->done()) {
         Row* row = new Row(*s);
         v->visit(*row);
         df->add_row(*row);
-        //delete row;
+       // delete row;
       }
       Value* val = new Value(df->serialize(), 0);
       kv->put(key, val);
