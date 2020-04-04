@@ -77,7 +77,7 @@ public:
         char client_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &ip_.sin_addr, client_ip, INET_ADDRSTRLEN);
         std::cout << "creating registration msg, port: " << port <<"\n";
-        Register reg(idx, client_ip, port);
+        Register reg(this_node_, 0, msg_id, client_ip, port);
 
         send_msg(&reg);
 

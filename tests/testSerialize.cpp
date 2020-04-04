@@ -179,6 +179,99 @@ void testMessageSerialization() {
     delete msg;
 }
 
+void testAckSerialization() {
+    Sys* tester = new Sys();
+    Ack ack(1,2,3);
+    char* msg_serialized = ack.serialize();
+    Ack* msg_two = new Ack(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Ack Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+
+void testNackSerialization() {
+    Sys* tester = new Sys();
+    Nack ack(1,2,3);
+    char* msg_serialized = ack.serialize();
+    Nack* msg_two = new Nack(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Nack Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testPutSerialization() {
+    Sys* tester = new Sys();
+    Key k("key1", 0);
+    Value v("val", 3);
+    Put ack(&k, &v, 1,2,3);
+    char* msg_serialized = ack.serialize();
+    Put* msg_two = new Put(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Put Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testGetSerialization() {
+    Sys* tester = new Sys();
+    Key k("key1", 0);
+    Get ack(&k, 1,2,3);
+    char* msg_serialized = ack.serialize();
+    Get* msg_two = new Get(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Get Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testWaitAndGetSerialization() {
+    Sys* tester = new Sys();
+    Key k("key1", 0);
+    WaitAndGet ack(&k, 1,2,3);
+    char* msg_serialized = ack.serialize();
+    WaitAndGet* msg_two = new WaitAndGet(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Get Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testStatusSerialization() {
+    Sys* tester = new Sys();
+    Status ack("status", 1,2,3);
+    char* msg_serialized = ack.serialize();
+    Status* msg_two = new Status(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Status Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testReplySerialization() {
+    Sys* tester = new Sys();
+    Reply ack("status", 1,2,3);
+    char* msg_serialized = ack.serialize();
+    Reply* msg_two = new Reply(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Reply Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testRegisterSerialization() {
+    Sys* tester = new Sys();
+    Register ack(1,2,3, "127.0.0.1", 3001);
+    char* msg_serialized = ack.serialize();
+    Register* msg_two = new Register(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Register Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
 /**
  * Tests Directory serialization and deserialization by comparing the serialization of a Directory
  * to the serialized representation of a Directory built by deserializing the initial directory
@@ -506,6 +599,14 @@ int main() {
     testFloatArraySerialization();
     testFloatColumnSerialization();
     testMessageSerialization();
+    testAckSerialization();
+    testNackSerialization();
+    testPutSerialization();
+    testGetSerialization();
+    testWaitAndGetSerialization();
+    testStatusSerialization();
+    testReplySerialization();
+    testRegisterSerialization();
     testDirectorySerialization();
     testIntDistributedArrays();
     testStringDistributedArrays();

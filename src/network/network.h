@@ -163,7 +163,7 @@ public:
 
     char* serialize() {
         Serializable* sb = new Serializable();
-        sb->initSerialize("Nack");
+        sb->initSerialize("Put");
         sb->write("kind_", (int)kind_);
         sb->write("sender_", sender_);
         sb->write("target_", target_);
@@ -189,7 +189,48 @@ public:
     }
 };
 
+class Reply : public Message {
+public:
+    char* reply_msg_; // owned
+
+    Reply(char* reply_msg, size_t sender, size_t target, size_t id) {
+        kind_ = (MsgKind)6; 
+        sender_ = sender;
+        target_ = target;
+        id_ = id;
+        reply_msg_ = reply_msg;
+    }
+
+    /**
+     * Creates a char* serialized version of this class, storing all necessary fields and variables in a JSON string
+     */ 
+   char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Reply");
+        sb->write("kind_", (int)kind_);
+        sb->write("sender_", sender_);
+        sb->write("target_", target_);
+        sb->write("id_", id_);
+        sb->write("msg_", reply_msg_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+    }
+    //Special constructor that given a serialized representation of an object of this class, generates a new one with the same data
+    Reply(char* s) {
+        char* payload = JSONHelper::getPayloadValue(s)->c_str();
+        kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
+        sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
+        target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
+        id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+        reply_msg_ = JSONHelper::getValueFromKey("msg_", payload)->c_str();
+    }
+};
+
+
 class Get : public Message {
+public:
     Key* key_;
 
     Get(Key* key, size_t sender, size_t target, size_t id) {
@@ -202,7 +243,7 @@ class Get : public Message {
 
     char* serialize() {
         Serializable* sb = new Serializable();
-        sb->initSerialize("Nack");
+        sb->initSerialize("Get");
         sb->write("kind_", (int)kind_);
         sb->write("sender_", sender_);
         sb->write("target_", target_);
@@ -226,6 +267,7 @@ class Get : public Message {
 };
 
 class WaitAndGet : public Message {
+public:
     Key* key_;
 
     WaitAndGet(Key* key, size_t sender, size_t target, size_t id) {
@@ -238,7 +280,7 @@ class WaitAndGet : public Message {
 
     char* serialize() {
         Serializable* sb = new Serializable();
-        sb->initSerialize("Nack");
+        sb->initSerialize("WaitAndGet");
         sb->write("kind_", (int)kind_);
         sb->write("sender_", sender_);
         sb->write("target_", target_);
@@ -284,7 +326,7 @@ public:
         sb->write("sender_", sender_);
         sb->write("target_", target_);
         sb->write("id_", id_);
-        sb->write("msg_", status_msg_);
+        sb->write("status_msg_", status_msg_);
         sb->endSerialize();
         char* value = sb->get();
         delete sb;
@@ -297,11 +339,9 @@ public:
         sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
         target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
         id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
-        status_msg_ = JSONHelper::getValueFromKey("msg_", payload)->c_str();
+        status_msg_ = JSONHelper::getValueFromKey("status_msg_", payload)->c_str();
     }
 };
-
- 
 
 class Register : public Message {
 public:
@@ -338,12 +378,12 @@ public:
         //std::cout << "here\n";
     }
 
-    Register(size_t idx, char* addr, size_t port) {
+    Register(size_t sender, size_t target, size_t id, char* addr, size_t port) {
         //std::cout << "registration constructor, port: " << port <<"\n";
         kind_ = (enum MsgKind)8;
-        sender_ = idx;
-        target_ = 0; //assuming node 0 is server
-        id_ = 0; // no indexing right now.
+        sender_ = sender;
+        target_ = target; //assuming node 0 is server
+        id_ = id; // no indexing right now.
         client = addr;
         port_ = port;
     }
