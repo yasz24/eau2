@@ -21,13 +21,14 @@ public:
           ++i;
           j = 0;
           while( i < map_.capacity_ && map_.items_[i].keys_.length() == 0 )  i++;
-          if (k()) ++seen;
+          //if (k()) ++seen;
       }
   }
  
   String* k() {
       if (i==map_.capacity_ || j == map_.items_[i].keys_.length()) {
         return nullptr;
+        std::cout<<"we never get THIS nullptr\n";
       }
       return (String*) (map_.items_[i].keys_.get(j));
   }
@@ -43,7 +44,6 @@ public:
   void visit(Row& r) override {
       std::cout<<"seen: "<<seen<<" map_: "<<map_.size()<<"\n";
       if (k() == nullptr) {
-          std::cout<<"triggered\n";
           next();
       }
       String & key = *k();
