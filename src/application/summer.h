@@ -37,7 +37,7 @@ public:
       return ((Num*)(map_.items_[i].vals_.get(j)))->v;
   }
  
-  void visit(Row& r) {
+  void visit(Row& r) override {
       if (!k()) next();
       String & key = *k();
       size_t value = v();
@@ -46,5 +46,5 @@ public:
       next();
   }
  
-  bool done() {return seen == map_.size(); }
+  bool done() override {return seen == map_.size(); }
 };

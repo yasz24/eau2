@@ -192,6 +192,8 @@ public:
         sb->endSerialize();
         char* value = sb->get();
         delete sb;
+        std::cout<<"array serialized\n";
+        std::cout<<value<<"\n";
         return value;
     }
 };

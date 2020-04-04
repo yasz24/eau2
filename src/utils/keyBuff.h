@@ -9,7 +9,8 @@ class KeyBuff : public Object {
   Key* orig_; // external                                                        
   StrBuff buf_;                                                                  
                                                                                  
-  KeyBuff(Key* orig) : orig_(orig) {
+  KeyBuff(Key* orig) {
+    orig_ = orig;
     buf_ = StrBuff();
     buf_.c(*orig->name_);
   }                               

@@ -26,6 +26,7 @@ public:
         }
         buf_[i_] = 0;
         String word(buf_ + wStart, i_ - wStart);
+        std::cout<<"word found: "<<word.c_str()<<"\n";
         r.set(0, &word);
         ++i_;
         skipWhitespace_();
@@ -34,16 +35,20 @@ public:
     /** Returns true when there are no more words to read.  There is nothing
        more to read if we are at the end of the buffer and the file has
        all been read.     */
-    bool done() override { return (i_ >= end_) && feof(file_);  }
+    bool done() override {
+        return (i_ >= end_) && feof(file_);  
+    }
  
     /** Creates the reader and opens the file for reading.  */
     FileReader(char* fileName) {
         Sys print = Sys();
+        std::cout<<"filename: "<<fileName<<"\n";
         file_ = fopen(fileName, "r");
         print.exit_if_not(file_ != nullptr, "Cannot open file");
         buf_ = new char[BUFSIZE + 1]; //  null terminator
         fillBuffer_();
         skipWhitespace_();
+        std::cout<<"i_: "<<i_<<", end_: "<<end_<<"\n";
     }
  
     static const size_t BUFSIZE = 1024;

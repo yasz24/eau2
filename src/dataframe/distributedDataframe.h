@@ -7,6 +7,7 @@
 #include "column.h"
 #include "row.h"
 #include "visitor.h"
+#include "../application/fileReader.h"
 #include "distributedRow.h"
 #include "rower.h"
 #include "../utils/primatives.h"
@@ -579,7 +580,9 @@ public:
         sb->initSerialize("DistributedDataFrame");
         char * serializedschema = schema_->serialize();
         sb->write("schema_", serializedschema, false);
+        std::cout<<"preparing to serialize columns...\n";
         char * seralizedcols = cols_->serialize();
+        std::cout<<"serialized object columns\n";
         sb->write("cols_", seralizedcols, false);
         sb->endSerialize();
         char* value = sb->get();
@@ -603,14 +606,18 @@ public:
     }
 
     /** Given a visitor, builds a df to those specifications **/
-    static DistributedDataFrame* fromVisitor(Key* key, KVStore* kv, const char* schema, Writer v) {
+    static DistributedDataFrame* fromVisitor(Key* key, KVStore* kv, const char* schema, Writer* v) {
       Schema* s = new Schema(schema);
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
-      while(!v.done()) {
+      while(!v->done()) {
         Row* row = new Row(*s);
-        v.visit(*row);
+        v->visit(*row);
+        std::cout<<"value in row: "<<row->get_string(0)<<"\n";
         df->add_row(*row);
+        //delete row;
       }
+      std::cout<<df->serialize()<<"\n";
+      std::cout<<"do we get here?\n";
       Value* val = new Value(df->serialize(), 0);
       kv->put(key, val);
       return df;

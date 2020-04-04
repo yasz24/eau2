@@ -1,17 +1,12 @@
 #pragma once
 #include "row.h"
-class Visitor {
-    public:
-    virtual void visit(Row & r) {}
-};
-
 class Reader {
     public:
-    virtual bool visit(Row & r) {}
+    virtual bool visit(Row & r) { return false; }
 };
 
-class Writer : public Visitor {
+class Writer {
     public:
-    void visit(Row & r) {}
-    virtual bool done() {}
+    virtual void visit(Row & r) {};
+    virtual bool done() { return true; };
 };
