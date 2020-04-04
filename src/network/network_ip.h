@@ -57,7 +57,7 @@ public:
             inet_ntop(AF_INET, &nodes_[i].address.sin_addr, client_ip, INET_ADDRSTRLEN);
             addresses[i] = new String(client_ip);
         }
-        Directory ipd(this_node_, 0, num_nodes_, ports, addresses);
+        Directory ipd(this_node_, 0, msg_id, num_nodes_, ports, addresses);
 
         for (size_t i = 1; i < num_nodes_; i++) {
             ipd.target_ = i;

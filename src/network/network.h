@@ -4,6 +4,8 @@
 #include "../utils/string.h"
 #include "../serialize/jsonHelper.h"
 #include "../serialize/serial.h"
+#include "../store/key.h"
+#include "../store/value.h"
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -71,17 +73,206 @@ public:
     Message() {}
 };
 
- 
+//create all msg types. Serialize, Deserialize constructor, and add to deserialize class.
 
+/**
+ * Acknowledgement. May also be interpreted as success for something like a put. 
+*/
 class Ack : public Message {
 public:
+    Ack(size_t sender, size_t target, size_t id) {
+        kind_ = (MsgKind)0; 
+        sender_ = sender;
+        target_ = target;
+        id_ = id;
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Ack");
+        sb->write("kind_", (int)kind_);
+        sb->write("sender_", sender_);
+        sb->write("target_", target_);
+        sb->write("id_", id_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+    }
+
+    //Special constructor that given a serialized representation of an object of this class, generates a new one with the same data
+    Ack(char* s) {
+        char* payload = JSONHelper::getPayloadValue(s)->c_str();
+        kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
+        sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
+        target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
+        id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+    }
 };
 
- 
+
+/**
+ * Negative acknowledgement. May also be interpreted as failure for something like a put. 
+*/
+class Nack : public Message {
+public:
+    Nack(size_t sender, size_t target, size_t id) {
+        kind_ = (MsgKind)1; 
+        sender_ = sender;
+        target_ = target;
+        id_ = id;
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Nack");
+        sb->write("kind_", (int)kind_);
+        sb->write("sender_", sender_);
+        sb->write("target_", target_);
+        sb->write("id_", id_);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+    }
+
+    //Special constructor that given a serialized representation of an object of this class, generates a new one with the same data
+    Nack(char* s) {
+        char* payload = JSONHelper::getPayloadValue(s)->c_str();
+        kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
+        sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
+        target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
+        id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+    }
+};
+
+
+class Put : public Message {
+public:
+    Key* key_;
+    Value* value_;
+
+    Put(Key* key, Value* value, size_t sender, size_t target, size_t id) {
+        kind_ = (MsgKind)2; 
+        sender_ = sender;
+        target_ = target;
+        id_ = id;
+        key_ = key;
+        value_ = value;
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Nack");
+        sb->write("kind_", (int)kind_);
+        sb->write("sender_", sender_);
+        sb->write("target_", target_);
+        sb->write("id_", id_);
+        char* serializedKey = key_->serialize();
+        sb->write("key_", serializedKey, false);
+        char* serializedValue = value_->serialize();
+        sb->write("value_", serializedValue, false);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+    }
+
+    Put(char* s) {
+        char* payload = JSONHelper::getPayloadValue(s)->c_str();
+        kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
+        sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
+        target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
+        id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+        key_ = new Key(JSONHelper::getValueFromKey("key_", payload)->c_str());
+        value_ = new Value(JSONHelper::getValueFromKey("value_", payload)->c_str()); 
+    }
+};
+
+class Get : public Message {
+    Key* key_;
+
+    Get(Key* key, size_t sender, size_t target, size_t id) {
+        kind_ = (MsgKind)4; 
+        sender_ = sender;
+        target_ = target;
+        id_ = id;
+        key_ = key;
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Nack");
+        sb->write("kind_", (int)kind_);
+        sb->write("sender_", sender_);
+        sb->write("target_", target_);
+        sb->write("id_", id_);
+        char* serializedKey = key_->serialize();
+        sb->write("key_", serializedKey, false);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+    }
+
+    Get(char* s) {
+        char* payload = JSONHelper::getPayloadValue(s)->c_str();
+        kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
+        sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
+        target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
+        id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+        key_ = new Key(JSONHelper::getValueFromKey("key_", payload)->c_str());
+    }
+};
+
+class WaitAndGet : public Message {
+    Key* key_;
+
+    WaitAndGet(Key* key, size_t sender, size_t target, size_t id) {
+        kind_ = (MsgKind)5; 
+        sender_ = sender;
+        target_ = target;
+        id_ = id;
+        key_ = key;
+    }
+
+    char* serialize() {
+        Serializable* sb = new Serializable();
+        sb->initSerialize("Nack");
+        sb->write("kind_", (int)kind_);
+        sb->write("sender_", sender_);
+        sb->write("target_", target_);
+        sb->write("id_", id_);
+        char* serializedKey = key_->serialize();
+        sb->write("key_", serializedKey, false);
+        sb->endSerialize();
+        char* value = sb->get();
+        delete sb;
+        return value;
+    }
+
+    WaitAndGet(char* s) {
+        char* payload = JSONHelper::getPayloadValue(s)->c_str();
+        kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
+        sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
+        target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
+        id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+        key_ = new Key(JSONHelper::getValueFromKey("key_", payload)->c_str());
+    }
+};
+
 
 class Status : public Message {
 public:
-   String* msg_; // owned
+    char* status_msg_; // owned
+
+    Status(char* status_msg, size_t sender, size_t target, size_t id) {
+        kind_ = (MsgKind)6; 
+        sender_ = sender;
+        target_ = target;
+        id_ = id;
+        status_msg_ = status_msg;
+    }
 
     /**
      * Creates a char* serialized version of this class, storing all necessary fields and variables in a JSON string
@@ -93,7 +284,7 @@ public:
         sb->write("sender_", sender_);
         sb->write("target_", target_);
         sb->write("id_", id_);
-        sb->write("msg_", msg_);
+        sb->write("msg_", status_msg_);
         sb->endSerialize();
         char* value = sb->get();
         delete sb;
@@ -106,7 +297,7 @@ public:
         sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
         target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
         id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
-        msg_ = JSONHelper::getValueFromKey("msg_", payload);
+        status_msg_ = JSONHelper::getValueFromKey("msg_", payload)->c_str();
     }
 };
 
@@ -208,9 +399,10 @@ public:
         addresses = addresses_tmp;
     }
 
-    Directory(int sender, int id, size_t i_clients, size_t* i_ports, String** i_addresses) {
+    Directory(size_t sender, size_t target, size_t id, size_t i_clients, size_t* i_ports, String** i_addresses) {
         kind_ = (enum MsgKind)9;
         sender_ = sender;
+        target_ = target;
         id_ = id;
         clients = i_clients;
         size_t* tmp_ports = new size_t[i_clients];
