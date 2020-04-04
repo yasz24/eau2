@@ -21,7 +21,9 @@ KVStore* tempStore() {
     Key* k1 = new Key("payload_1", 0);
     Key* k3 = new Key("payload_3", 0);
 
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     kvs1->put(k1, v1);
     kvs1->put(k3, v3);
     return kvs1;
@@ -241,7 +243,8 @@ void testKVStoreSerialization() {
 
 void testIntDistributedArrays() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     IntDistributedArray* ida = new IntDistributedArray(kvs1);
     for(int i = 0; i < 10; i++) {
         //std::cout << "here\n";
@@ -260,7 +263,8 @@ void testIntDistributedArrays() {
 
 void testStringDistributedArrays() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     StringDistributedArray* sda = new StringDistributedArray(kvs1);
     StringArray* sa = genStringArray();
     for(int i = 0; i < 10; i++) {
@@ -281,7 +285,8 @@ void testStringDistributedArrays() {
 
 void testFloatDistributedArrays() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     FloatDistributedArray* fda = new FloatDistributedArray(kvs1);
     for(int i = 0; i < 40; i++) {
         fda->pushBack(i);
@@ -301,7 +306,8 @@ void testFloatDistributedArrays() {
 
 void testDistributedIntColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedIntColumn* dfc = new DistributedIntColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -324,7 +330,8 @@ void testDistributedIntColumn() {
 
 void testDistributedDoubleColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedDoubleColumn* dfc = new DistributedDoubleColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -346,7 +353,8 @@ void testDistributedDoubleColumn() {
 
 void testDistributedFloatColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedFloatColumn* dfc = new DistributedFloatColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -368,7 +376,8 @@ void testDistributedFloatColumn() {
 
 void testDistributedBoolColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedBoolColumn* dfc = new DistributedBoolColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -390,7 +399,8 @@ void testDistributedBoolColumn() {
 
 void testDistributedStringColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedStringColumn* dfc = new DistributedStringColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -428,7 +438,8 @@ void testSchema() {
 void testDistributedDataframe() {
     Sys* system = new Sys();
     Schema* sch = new Schema();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedIntColumn* ic = new DistributedIntColumn(kvs1);
     for (int i = 0; i < 50; i++) {
         sch->add_row(nullptr);
@@ -457,7 +468,8 @@ void testDistributedDataframe() {
 
 void testApplication() {
     Sys* system = new Sys();
-    Trivial* triv = new Trivial(0);
+    NetworkIP network;
+    Trivial* triv = new Trivial(0, &network);
     triv->run_();
 
     system->OK("Passed Application code M2");
