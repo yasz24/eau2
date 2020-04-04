@@ -8,16 +8,16 @@ public:
     KVStore* kv_;
     size_t this_node_;
 
-    Application(size_t idx) {
+    Application(size_t idx, NetworkIP* network) {
         this->this_node_ = idx;
-        this->kv_ = new KVStore(1, idx);
+        this->kv_ = new KVStore(1, idx, network);
     }
 
 };
 
 class Trivial : public Application {
  public:
-  Trivial(size_t idx) : Application(idx) { }
+  Trivial(size_t idx, NetworkIP* network) : Application(idx, network) { }
   void run_() {
     size_t SZ = 1000*1000;
     double* vals = new double[SZ];

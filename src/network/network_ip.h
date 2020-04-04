@@ -22,6 +22,7 @@ public:
     size_t this_node_;
     int sock_;
     sockaddr_in ip_;
+    size_t msg_id = 0;
 
     ~NetworkIP() {
         close(sock_);
@@ -56,7 +57,7 @@ public:
             inet_ntop(AF_INET, &nodes_[i].address.sin_addr, client_ip, INET_ADDRSTRLEN);
             addresses[i] = new String(client_ip);
         }
-        Directory ipd(this_node_, 0, num_nodes_, ports, addresses);
+        Directory ipd(this_node_, 0, msg_id, num_nodes_, ports, addresses);
 
         for (size_t i = 1; i < num_nodes_; i++) {
             ipd.target_ = i;
@@ -76,7 +77,7 @@ public:
         char client_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &ip_.sin_addr, client_ip, INET_ADDRSTRLEN);
         std::cout << "creating registration msg, port: " << port <<"\n";
-        Register reg(idx, client_ip, port);
+        Register reg(this_node_, 0, msg_id, client_ip, port);
 
         send_msg(&reg);
 
@@ -128,6 +129,8 @@ public:
             perror("connection failed. Error");
             return;
         }
+        msg->id_ = msg_id;
+        msg_id++;
         //assert(connect(connection, (sockaddr*)&target.address, sizeof(target.address)) >= 0);
         char* serialized = msg->serialize();
         std::cout << "sending msg: " << serialized << "\n";
