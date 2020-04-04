@@ -40,7 +40,7 @@ public:
   Key* mk_key(size_t idx) {
       kbuf->c(idx);
       Key * k = kbuf->get();
-      std::cout << "Created key " << k->name()->c_str()<<"\n";
+      std::cout << "Created key :" << k->name()->c_str()<<"\n";
       return k;
   }
  
@@ -52,6 +52,7 @@ public:
     SIMap map;
     Adder add(map);
     words->local_map(add);
+    
     delete words;
     Summer cnt(map);
     Key* k = mk_key(kv_->this_node_);
@@ -63,10 +64,11 @@ public:
   /** Merge the data frames of all nodes */
   void reduce() {
     if (kv_->this_node_ != 0) return;
-    pln("Node 0: reducing counts...");
+    pln("Node 0: reducing counts...\n");
     SIMap map;
     Key* own = mk_key(0);
     DistributedDataFrame* ddf = new DistributedDataFrame(kv_->get(own)->data, kv_);
+    std::cout<<kv_->get(own)->data<<"\n";
     merge(ddf, map);
     for (size_t i = 1; i < num_nodes_; ++i) { // merge other nodes
       Key* ok = mk_key(i);

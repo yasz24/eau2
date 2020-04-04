@@ -41,7 +41,9 @@ public:
   }
  
   void visit(Row& r) override {
-      if (!k()) {
+      std::cout<<"seen: "<<seen<<" map_: "<<map_.size()<<"\n";
+      if (k() == nullptr) {
+          std::cout<<"triggered\n";
           next();
       }
       String & key = *k();
@@ -51,5 +53,5 @@ public:
       next();
   }
  
-  bool done() override {return seen >= map_.size(); }
+  bool done() override {return seen == map_.size(); }
 };

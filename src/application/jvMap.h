@@ -26,7 +26,7 @@ public:
   Object* get_(Object& k) {
     for (int i = 0; i < keys_.length(); i++) 
       if (k.equals(keys_.get(i)))
-	return vals_.get(i);
+	      return vals_.get(i);
     return nullptr;
   }
 

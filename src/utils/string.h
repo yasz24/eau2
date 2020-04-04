@@ -131,6 +131,7 @@ public:
         val_[size_] = '\0'; // terminate
         String *res = new String(true, val_, size_);
         val_ = new char[capacity_ = 10]; // val_ was consumed above
+        size_ = 0;
         return res;
     }
 };
