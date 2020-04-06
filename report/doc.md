@@ -9,24 +9,48 @@ The eau2 system is a distributed key value store that allows us to build complex
 The architecture of the system is three-tiered.
 
 The bottom layer is a KV store, run on each of the networked nodes containing an underlying map for key to value. Each key passed to the KVStore includes Node information so the request can be routed to the correct storage location. 
-This is also where the networking and concurrency information live to be as far away from the end user as possible and really only necessary at the KVStore level since everything else will be built under the premise there is only one KVStore to connect to - and it will do the rest. 
+This is also where the networking and concurrency information live to be as far away from the end user as possible and really only necessary at the KVStore level since everything else will be built under the premise there is only one KVStore to connect to. The KVStore will serve it's API requests in a multithreaded fashion, with a main worker thread that provisions data that lives locally, as well as making requests that live on a remote node, and also a seperate listening thread that is responsible for handling responses, as well as any requests from any remote nodes. Network requests in the KVStore are made through a specialized object that allows for registration of all nodes in the network upon system startup and further supports sending and receiving messages from any of the registered nodes. Further more we use mutex, and conditional variables to ensure thread saftey between the worker and the listener threads. 
 
-The next level is our original bottom platform of Arrays, Columns, and Queues. Each adapted to now store data in a KVStore, updating the appropriate networked-node to send the next chunk of data to and how to pull data effectively from the KVStore and network architecture. 
+On top of this foundationaly distributed KVStore, we're able to build distributed datastructures such as Arrays and Queues. In particular, we leverage the KVStore to build a Distributed array class that is adapted to now store data in a KVStore, updating the appropriate networked-node to send the next chunk of data to and how to pull data effectively from the KVStore and network architecture. The distributed arrays are suffiecient in allowing us to build a distributed version of the dataframes that we have been working with, with the distrubted arrays representing columns in the dataframe.
 
 The topmost layer is the application layer where users of the system write code that uses these data-structures, particularly our now-distributed dataframe, as if it was completely stored on a single machine. In doing so, the eau2 systems provides the ability for large systems to operate with data-structures of a size that would otherwise be too large to hold in memory on one single machine. 
 
 ## Implementation:
 
 ```
-class KVStore {
+class NetworkIP {
+    NodeInfo* nodes_;
+    int sock_;
+    ...
 
-//methods:
-void put(Key k, Value v);
-Value get(Key k);
-Value getAndWait(Key k);  // blocking.
+    void server_init(); // start up a server on this node. Wait for client registrations, and broadcast directory.
+    void client_init(); // start up a client and register with server. Wait to receive Directory
+    void send_msg(Message* m); //connect to a remote node and send a message.
+    Message* receive_msg(); //accept an incoming connection and receive a message.
 }
 ```
-KVStore is where the majority of the all of the node delegation networking occurs. Each of the put, get, and getAndWait methods given a key will either return the value if it is on the node of this KVStore, or they will have enough information to make a network request to the appropriate node and get the value
+The NetworkIP class provides an interface to establish a network of remote nodes and to facilitate seamless inter-node-communication. The network is established through a registration process. A node may act as a server in the eau2 network where it will initialize itself and wait for fixed number of client nodes to register, at which point it broadcasts a Directory containing the ip and port information for each of the registered clients. On the other hand, a node may as a client where it registers with the known server, and subsequently waits to receive a Directory for network nodes. Once a server broadcasts the directory from its end, and the clients receive them on their respective ends, the registration process is complete.
+At this point the nodes in the network have all the information they need, to send/receive messages, to/from any other nodes in the network.
+
+
+```
+class KVStore {
+    std::map<Key*, Value*, KeyCompare> local_store_; // contains all the key's that are supposed to be on the local store.
+    NetworkIP* network_; //Composition of the NetworkIfc.
+    Lock store_mtx_; // Provides utilites such as locks and waits that are harnessed to ensure thread safety. 
+    Array pendingGets; // An object array of WaitAndGet requests that are resolved when new Key's are put into the local store.
+    ...
+
+    //methods:
+    void put(Key k, Value v); // put the given Key, Value pair in the store.
+    Value get(Key k); // get the associated Value for the given Key if it exists. nullptr otherwise
+    Value getAndWait(Key k);  // get the associated Value for the given Key if it exists. If not, block until it's available.
+```
+KVStore uses a C++ map utility to store a one-to-one association between Keys and Values locally. However, that's not all, the KVStore also serves as an abstraction of data that may live on remote nodes elsewhere in the eau2 system. The network_ is where the majority of the all of the node delegation networking occurs. 
+The put and get methods do what one might expect, creating a Key/Value association, and the retreival of such an association respectively. The getAndWait method is special in that it blocks the worker thread until the requested key exists in the kv store. 
+While the local requests on any given node running the KVStore are processed by the worker thread, requests coming into the node from other remote nodes in the network are processed by a separate listener thread. Additionally any waitAndGet's, for which the key is not available in the local store, are queued up in the pendingGets array. These requests are resolved when the missing key's are put into the local_store, and are Reply is created with the Value serialized in the message payload.
+The Local API provides a mutex locking/unlocking API, essential in ensuring thread safety of shared resources between the listener and worker threads. Furthermore, it also provides conditional variables that are used to ensure request fulfillment on the worker thread.
+
 
 ```
 class Key {
@@ -45,11 +69,13 @@ class DistributedArray {
     KVStore* kv_;
     Array* chunkArray_;
     Array* keys;
+    Array** cache_
     size_t uid_ = rand();
     size_t chunkSize, chunkCount, itemCount, curNode, totalNodes;
 }
 ```
 If KVStores are the airplanes shuttling data back and forth, the distributedArrays are mission control. They keep track of how much data goes in each "chunk" that is stored on a node before starting to store information on the next node in the system. They also keep track of all the keys associated with their data and randomly generate a UID to minimize the risk of storing data with the same key as another distributedArray. itemCount, ChunkCount, and chunkArray are all to further help the Array delegate data effectively and with a minimum amount of calls to the KVStore assuming every time we reach out to the KVStore it'll require a network request.
+To easy up the number of queries made from the DistributedArray to the KVStore, and to avoid the expensive deserialization of Value's returned, a cache of the array chunks was included in this implementation. This not only accomplishes a signifcant improvement in the performance of our DistributedArray, but is better, and more robust in design, expanding the scope of usage in terms of magnitude of data that can be handled.
 
 ```
 class DistributedColumn : public Column {
@@ -132,3 +158,6 @@ To put it simply - coronavirus. We've been doing our best to keep up with the wo
 
 
 While we did encounter a malloc error when actually running the application code for MS2 (testApplication() in tests/testSerialize.cpp) we believe we have all the pieces to make the code snippet run, and it is only a case of debugging.
+
+4/6/20:
+Over the past several days we've been working to get caught up with Milestone3. Significant areas of work include resolving existing bugs in the code for milestone 2 that included fixing a malloc error, as well as improving the performance of our DistributedArrays drastically, through local caching. We further worked on building out a simple network layer where nodes can connect and communicate with each other. With that done, we started out work on actually distrubting the KVStore across nodes in the network, sketching out an implementation that is, at least in theory, robust and more importantly fault - tolerant. While the implementation is complete, atleast in terms of code, we didn't have the chance to fully test and fix any bugs with our implementation and run the Demo application. However, we believe we're extremely close to getting there.

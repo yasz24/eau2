@@ -1,57 +1,28 @@
-// code adapted from: https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/
-#include <stdio.h> 
-#include <sys/socket.h> 
-#include <arpa/inet.h> 
-#include <unistd.h> 
-#include <string.h> 
-#include "string.h"
-#include "client.h"
+//code adapted from jan vitek's networking video
+#include "network_ip.h"
 #include <iostream>
-#define TRUE 1 
-#define PORT 8888
+#define PORT 3000
 #define SERVER_IP "127.0.0.1"
 
 //authors: shetty.y@husky.neu.edu, eldrid.s@husky.neu.edu
 
 int main(int argc, char *argv[]) 
 { 
-	int opt = TRUE;
-	int sock = 0, valread; 
-	struct sockaddr_in serv_addr; 
-	char buffer[1024] = {0}; 
+	char *ip;
+	size_t port;
+	size_t node_idx;
 
-	if (argc != 3  || (strcmp(argv[1], "-ip"))) {
-	    fprintf(stderr,"usage: server -ip <host-ip-address>:PORT\n");
+	if (argc != 5  || (strcmp(argv[1], "-ip") != 0) || (strcmp(argv[3], "-idx") != 0)) {
+	    fprintf(stderr,"usage: client -ip <host-ip-address>:PORT -idx <node_idx>\n");
 	    _exit(1);
 	} 
-	char * ip = strtok(argv[2], ":");
-    char * port = strtok(NULL, ":");
+	ip = strtok(argv[2], ":");
+    port = std::stoi(strtok(NULL, ":"));
+	node_idx = std::stoi(argv[4]);
 
-	Client* client = new Client(ip, port);
-	
-	StrBuff* address_buf = new StrBuff();
-	//build the string to send
-	address_buf->c(ip);
-	address_buf->c(":");
-	address_buf->c(port);
+	std::cout<< "port is: "<<port << "\n";
+	NetworkIP* client_ = new NetworkIP();
 
-	char* ip_str = address_buf->get()->c_str();	
-	std::cout << ip_str <<"\n";
-	
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(PORT); 
-	
-	// Convert IPv4 and IPv6 addresses from text to binary form 
-	if(inet_pton(AF_INET, SERVER_IP, &serv_addr.sin_addr)<=0) 
-	{ 
-		printf("\nInvalid address/ Address not supported \n"); 
-		return -1; 
-	}
-
-	client->connect_to_server(serv_addr);
-	client->init_listening_socket(ip, port);
-	client->sock_listen();
-	client->register_with_server();
-    client->start();  
+	client_->client_init(node_idx, ip, port, SERVER_IP, PORT);
 	return 0; 
 } 

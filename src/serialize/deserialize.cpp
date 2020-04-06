@@ -4,6 +4,7 @@
 #include "../object.h"
 #include "jsonHelper.h"
 #include "string.h"
+#include "../network/network.h"
 #include "../dataframe/dataframe.h"
 #include "../dataframe/schema.h"
 #include "../utils/distributedArray.h"
@@ -62,6 +63,12 @@
             return new Value(s);
         } else if(0 == strncmp(className, "KVStore", strlen(className))) {
             return new KVStore(s);
+        } else if(0 == strncmp(className, "Message", strlen(className))) {
+            return new Message(s);
+        } else if(0 == strncmp(className, "Register", strlen(className))) {
+            return new Register(s);
+        } else if(0 == strncmp(className, "Directory", strlen(className))) {
+            return new Directory(s);
         } else {
             std::cout<<"ERROR: Classname picked up: "<<className<<"\n";
         }

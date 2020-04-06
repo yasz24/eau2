@@ -21,7 +21,9 @@ KVStore* tempStore() {
     Key* k1 = new Key("payload_1", 0);
     Key* k3 = new Key("payload_3", 0);
 
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     kvs1->put(k1, v1);
     kvs1->put(k3, v3);
     return kvs1;
@@ -164,40 +166,133 @@ void testIntColumnSerialization() {
  * Also compares serialized message to expected JSON value
  * 
  */ 
-// void testMessageSerialization() {
-//     Sys* tester = new Sys();
-//     Message* msg = new Message(1, 2, 3, 5);
-//     char* msg_serialized = msg->serialize();
-//     Message* msg_two = new Message(msg_serialized);
-//     char* expected = "{ 'Message' : { 'kind_' : '1', 'sender_' : '2', 'target_' : '3', 'id_' : '5',  } }";
-//     tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
-//     tester->t_true(strcmp(msg_serialized, expected) == 0);
-//     tester->OK("Passed Message Serialization Tests");
-//     delete tester;
-//     delete msg;
-// }
+void testMessageSerialization() {
+    Sys* tester = new Sys();
+    Message* msg = new Message(1, 2, 3, 5);
+    char* msg_serialized = msg->serialize();
+    Message* msg_two = new Message(msg_serialized);
+    char* expected = "{ 'Message' : { 'kind_' : '1', 'sender_' : '2', 'target_' : '3', 'id_' : '5',  } }";
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->t_true(strcmp(msg_serialized, expected) == 0);
+    tester->OK("Passed Message Serialization Tests");
+    delete tester;
+    delete msg;
+}
+
+void testAckSerialization() {
+    Sys* tester = new Sys();
+    Ack ack(1,2,3);
+    char* msg_serialized = ack.serialize();
+    Ack* msg_two = new Ack(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Ack Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+
+void testNackSerialization() {
+    Sys* tester = new Sys();
+    Nack ack(1,2,3);
+    char* msg_serialized = ack.serialize();
+    Nack* msg_two = new Nack(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Nack Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testPutSerialization() {
+    Sys* tester = new Sys();
+    Key k("key1", 0);
+    Value v("val", 3);
+    Put ack(&k, &v, 1,2,3);
+    char* msg_serialized = ack.serialize();
+    Put* msg_two = new Put(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Put Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testGetSerialization() {
+    Sys* tester = new Sys();
+    Key k("key1", 0);
+    Get ack(&k, 1,2,3);
+    char* msg_serialized = ack.serialize();
+    Get* msg_two = new Get(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Get Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testWaitAndGetSerialization() {
+    Sys* tester = new Sys();
+    Key k("key1", 0);
+    WaitAndGet ack(&k, 1,2,3);
+    char* msg_serialized = ack.serialize();
+    WaitAndGet* msg_two = new WaitAndGet(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Get Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testStatusSerialization() {
+    Sys* tester = new Sys();
+    Status ack("status", 1,2,3);
+    char* msg_serialized = ack.serialize();
+    Status* msg_two = new Status(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Status Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testReplySerialization() {
+    Sys* tester = new Sys();
+    Reply ack("status", 1,2,3);
+    char* msg_serialized = ack.serialize();
+    Reply* msg_two = new Reply(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Reply Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
+
+void testRegisterSerialization() {
+    Sys* tester = new Sys();
+    Register ack(1,2,3, "127.0.0.1", 3001);
+    char* msg_serialized = ack.serialize();
+    Register* msg_two = new Register(msg_serialized);
+    tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
+    tester->OK("Passed Register Serialization Tests");
+    delete tester;
+    delete msg_two;
+}
 
 /**
  * Tests Directory serialization and deserialization by comparing the serialization of a Directory
  * to the serialized representation of a Directory built by deserializing the initial directory
  * 
  */ 
-// void testDirectorySerialization() {
-//     Sys* tester = new Sys();
-//     size_t ports[5] = {1,2,4,5,6};
-//     String* sa = new String("mama mia");
-//     String* sb = new String("here we");
-//     String* sc = new String("go");
-//     String* sd = new String("again");
-//     String* strings[4] = {sa,sb,sc,sd};
-//     Directory* d = new Directory(1,2,3,5,6, ports, strings);
-//     char* d_serialized = d->serialize();
-//     Directory* d_two = new Directory(d_serialized);
-//     char* d_serialized_two = d_two->serialize();
-//     tester->t_true(strcmp(d_serialized, d_two->serialize()) == 0);
-//     tester->OK("Passed Directory Serialization Tests!");
-//     delete tester;
-// }
+void testDirectorySerialization() {
+    Sys* tester = new Sys();
+    size_t ports[5] = {1,2,4,5};
+    String* sa = new String("mama mia");
+    String* sb = new String("here we");
+    String* sc = new String("go");
+    String* sd = new String("again");
+    String* strings[4] = {sa,sb,sc,sd};
+    Directory* d = new Directory(0, 1, 1, 4, ports, strings);
+    char* d_serialized = d->serialize();
+    Directory* d_two = new Directory(d_serialized);
+    char* d_serialized_two = d_two->serialize();
+    tester->t_true(strcmp(d_serialized, d_two->serialize()) == 0);
+    tester->OK("Passed Directory Serialization Tests!");
+    delete tester;
+}
 
 
 void testValueSerialization() {
@@ -241,7 +336,8 @@ void testKVStoreSerialization() {
 
 void testIntDistributedArrays() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     IntDistributedArray* ida = new IntDistributedArray(kvs1);
     for(int i = 0; i < 10; i++) {
         //std::cout << "here\n";
@@ -260,7 +356,8 @@ void testIntDistributedArrays() {
 
 void testStringDistributedArrays() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     StringDistributedArray* sda = new StringDistributedArray(kvs1);
     StringArray* sa = genStringArray();
     for(int i = 0; i < 10; i++) {
@@ -281,7 +378,8 @@ void testStringDistributedArrays() {
 
 void testFloatDistributedArrays() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     FloatDistributedArray* fda = new FloatDistributedArray(kvs1);
     for(int i = 0; i < 40; i++) {
         fda->pushBack(i);
@@ -301,7 +399,8 @@ void testFloatDistributedArrays() {
 
 void testDistributedIntColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedIntColumn* dfc = new DistributedIntColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -324,7 +423,8 @@ void testDistributedIntColumn() {
 
 void testDistributedDoubleColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedDoubleColumn* dfc = new DistributedDoubleColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -346,7 +446,8 @@ void testDistributedDoubleColumn() {
 
 void testDistributedFloatColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedFloatColumn* dfc = new DistributedFloatColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -368,7 +469,8 @@ void testDistributedFloatColumn() {
 
 void testDistributedBoolColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedBoolColumn* dfc = new DistributedBoolColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -390,7 +492,8 @@ void testDistributedBoolColumn() {
 
 void testDistributedStringColumn() {
     Sys* system = new Sys();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedStringColumn* dfc = new DistributedStringColumn(kvs1);
     for(int i = 0; i < 40; i++) {
         dfc->push_back(i);
@@ -428,7 +531,8 @@ void testSchema() {
 void testDistributedDataframe() {
     Sys* system = new Sys();
     Schema* sch = new Schema();
-    KVStore* kvs1 = new KVStore(1, 0);
+    NetworkIP network;
+    KVStore* kvs1 = new KVStore(1, 0, &network);
     DistributedIntColumn* ic = new DistributedIntColumn(kvs1);
     for (int i = 0; i < 50; i++) {
         sch->add_row(nullptr);
@@ -457,7 +561,8 @@ void testDistributedDataframe() {
 
 void testApplication() {
     Sys* system = new Sys();
-    Trivial* triv = new Trivial(0);
+    NetworkIP network;
+    Trivial* triv = new Trivial(0, &network);
     triv->run_();
 
     system->OK("Passed Application code M2");
@@ -487,15 +592,22 @@ void tryMap() {
 int main() {
     testValueSerialization();
     testKeySerialization();
-    //testKVStoreSerialization(); //issue with map currently
     testIntArraySerialization();
     testIntColumnSerialization();
     testStringArraySerialization();
     testStringColumnSerialization();
     testFloatArraySerialization();
     testFloatColumnSerialization();
-    //testMessageSerialization();
-    //testDirectorySerialization();
+    testMessageSerialization();
+    testAckSerialization();
+    testNackSerialization();
+    testPutSerialization();
+    testGetSerialization();
+    testWaitAndGetSerialization();
+    testStatusSerialization();
+    testReplySerialization();
+    testRegisterSerialization();
+    testDirectorySerialization();
     testIntDistributedArrays();
     testStringDistributedArrays();
     testFloatDistributedArrays();

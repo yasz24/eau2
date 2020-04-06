@@ -41,7 +41,6 @@ public:
         Key* x = dynamic_cast<Key *>(other);
         if (x == nullptr) return false;
         //std::cout << "in key equals: name: " << name_->c_str() << " " << x->name_->c_str() <<"\n";
-        bool res = this->name_->equals(x->name_) && (this->node_ == x->node_) ;
         //std::cout << res << "\n";
         return this->name_->equals(x->name_) && (this->node_ == x->node_);
     }
