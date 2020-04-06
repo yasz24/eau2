@@ -1,7 +1,15 @@
+//lang::CwC
 #pragma once
 #include "../object.h"
 #include "../utils/string.h"
 #include "../utils/array.h"
+
+/** Map implementation provided by Corporate - used to Get WordCount running in
+ * the time provided so we can get it in front of customers. Will be phased out with
+ * updated implementation or std::map sometime soon
+ * author: vitekj@me.com
+ */ 
+
 /**  Item_ are entries in a Map, they are not exposed, are immutable, own
  *   they key, but the value is external.  author: jv */
 class Items_ {

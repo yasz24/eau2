@@ -1,3 +1,4 @@
+//lang::CwC
 #pragma once
 #include "application.h"
 #include "../dataframe/distributedDataframe.h"
@@ -14,6 +15,13 @@
  *   2) produce word counts per homed chunks, in parallel
  *   3) combine the results
  **********************************************************author: pmaj ****/
+/** c.e & y.s: 
+ * Adapated from initial project briefing by engineering team to better fit current implementation
+ * Will be adjusted in the next sprint to better reflect existing technologies.
+ * Currently reliant on Corporate provided map implementation that adds extra tech debt
+ * and does not fully support the distributed infrastructure we're trying to bring in across the board
+ * will be updated with each week
+ */
 class WordCount: public Application {
 public:
   static const size_t BUFSIZE = 1024;
