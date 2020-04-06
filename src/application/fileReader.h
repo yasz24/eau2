@@ -26,7 +26,7 @@ public:
         }
         buf_[i_] = 0;
         String* word = new String(buf_ + wStart, i_ - wStart);
-        std::cout<<"word found: "<<word->c_str()<<"\n";
+        //std::cout<<"word found: "<<word->c_str()<<"\n";
         r.set(0, word);
         ++i_;
         skipWhitespace_();

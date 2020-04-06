@@ -4,7 +4,7 @@
 #include <iostream>
 
 void test() {
-    WordCount wc = WordCount(0, "test.txt", 1);
+    WordCount wc = WordCount(0, "100k.txt", 1);
     wc.run_();
 }
 
