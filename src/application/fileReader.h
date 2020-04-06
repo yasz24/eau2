@@ -1,3 +1,4 @@
+//lang::CwC
 #pragma once
 #include "../utils/string.h"
 #include "../dataframe/visitor.h"
@@ -6,6 +7,9 @@
 #include <stdlib.h>
 #include <ostream>
 
+/** Reads an input file into a Dataframe - adding each word of text to new row
+ * author: vitekj@me.com
+ */ 
 class FileReader : public Writer {
 public:
   /** Reads next word and stores it in the row. Actually read the word.

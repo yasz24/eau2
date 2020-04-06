@@ -9,12 +9,12 @@ The eau2 system is a distributed key value store that allows us to build complex
 The architecture of the system is three-tiered.
 
 The bottom layer is a KV store, run on each of the networked nodes containing an underlying map for key to value. Each key passed to the KVStore includes Node information so the request can be routed to the correct storage location. 
-This is also where the networking and concurrency information live to be as far away from the end user as possible and really only necessary at the KVStore level since everything else will be built under the premise there is only one KVStore to connect to. The KVStore will serve it's API requests in a multithreaded fashion, with a main worker thread that provisions data that lives locally, as well as making requests that live on a remote node, and also a seperate listening thread that is responsible for handling responses, as well as any requests from any remote nodes. Network requests in the KVStore are made through a specialized object that allows for registration of all nodes in the network upon system startup and further supports sending and receiving messages from any of the registered nodes. Further more we use mutex, and conditional variables to ensure thread saftey between the worker and the listener threads. 
+This is also where the networking and concurrency information live to be as far away from the end user as possible and really only necessary at the KVStore level. Everything else will be built under the impression there is only one KVStore to connect to/worry about. The KVStore will serve its API requests in a multithreaded fashion, with a main worker thread that provisions data that lives locally, as well as making requests for data that lives on remote nodes. There is also a seperate listening thread that is responsible for handling responses, as well as all requests from remote nodes. Network requests in the KVStore are made through a specialized object that allows for registration of all nodes in the network upon system startup and further supports sending and receiving messages from any of the registered nodes. Furthermore, we use mutex and conditional variables to ensure thread saftey between the worker and the listener threads. 
 
-On top of this foundationaly distributed KVStore, we're able to build distributed datastructures such as Arrays and Queues. In particular, we leverage the KVStore to build a Distributed array class that is adapted to now store data in a KVStore, updating the appropriate networked-node to send the next chunk of data to and how to pull data effectively from the KVStore and network architecture. The distributed arrays are suffiecient in allowing us to build a distributed version of the dataframes that we have been working with, with the distrubted arrays representing columns in the dataframe.
+On top of this networked foundation, we're able to build datastructures that take advantage of the distributed nature of our data. These include special versions of Array and Queue. In particular, we leverage the KVStore to build a Distributed Array class that is adapted to now store data in a KVStore, updating the appropriate networked-node to send the next chunk of data to and how to pull data effectively from the KVStore utilizing the network architecture appropriately. These distributed Arrays provide us with all the necessary network information and storage logic so we can comfortably build a set of columns and a dataframe that take advantage of these features.
 
-The topmost layer is the application layer where users of the system write code that uses these data-structures, particularly our now-distributed dataframe, as if it was completely stored on a single machine. In doing so, the eau2 systems provides the ability for large systems to operate with data-structures of a size that would otherwise be too large to hold in memory on one single machine. 
 
+The topmost layer is the application layer, which uses all the distributed logic baked into the distributed Arrays and KVStore to provide a seamless service for consumers who will benefit from the added networking infrastructure without having to get their hands dirty with those implementations. The lowest level application we provide as an example is the dataframe: a storage solution for the main types of SORER data. As an example of this dataframe in action, there is also the provided Application API for both Networked and non-networked programs. This provides an interface to connect programs that perform tasks of all kinds on an underlying dataframe. with little to no networking knowledge required. See: WordCount.
 ## Implementation:
 
 ```
@@ -46,7 +46,7 @@ class KVStore {
     Value get(Key k); // get the associated Value for the given Key if it exists. nullptr otherwise
     Value getAndWait(Key k);  // get the associated Value for the given Key if it exists. If not, block until it's available.
 ```
-KVStore uses a C++ map utility to store a one-to-one association between Keys and Values locally. However, that's not all, the KVStore also serves as an abstraction of data that may live on remote nodes elsewhere in the eau2 system. The network_ is where the majority of the all of the node delegation networking occurs. 
+KVStore uses a C++ map utility to store a one-to-one association between Keys and Values locally. The KVStore also serves as an abstraction of data that may live on remote nodes elsewhere in the eau2 system. The network_ is where the majority of the all of the node delegation networking occurs. 
 The put and get methods do what one might expect, creating a Key/Value association, and the retreival of such an association respectively. The getAndWait method is special in that it blocks the worker thread until the requested key exists in the kv store. 
 While the local requests on any given node running the KVStore are processed by the worker thread, requests coming into the node from other remote nodes in the network are processed by a separate listener thread. Additionally any waitAndGet's, for which the key is not available in the local store, are queued up in the pendingGets array. These requests are resolved when the missing key's are put into the local_store, and are Reply is created with the Value serialized in the message payload.
 The Local API provides a mutex locking/unlocking API, essential in ensuring thread safety of shared resources between the listener and worker threads. Furthermore, it also provides conditional variables that are used to ensure request fulfillment on the worker thread.
@@ -75,7 +75,7 @@ class DistributedArray {
 }
 ```
 If KVStores are the airplanes shuttling data back and forth, the distributedArrays are mission control. They keep track of how much data goes in each "chunk" that is stored on a node before starting to store information on the next node in the system. They also keep track of all the keys associated with their data and randomly generate a UID to minimize the risk of storing data with the same key as another distributedArray. itemCount, ChunkCount, and chunkArray are all to further help the Array delegate data effectively and with a minimum amount of calls to the KVStore assuming every time we reach out to the KVStore it'll require a network request.
-To easy up the number of queries made from the DistributedArray to the KVStore, and to avoid the expensive deserialization of Value's returned, a cache of the array chunks was included in this implementation. This not only accomplishes a signifcant improvement in the performance of our DistributedArray, but is better, and more robust in design, expanding the scope of usage in terms of magnitude of data that can be handled.
+To reduce the number of queries made from the DistributedArray to the KVStore, and to avoid the expensive deserialization of Value's returned, a cache of the array chunks is included in this implementation. This provides a signifcant improvement in the performance of our DistributedArray and is a more robust design, expanding the scope of usage in terms of magnitude of data that can be handled.
 
 ```
 class DistributedColumn : public Column {
@@ -83,7 +83,7 @@ class DistributedColumn : public Column {
     DistributedArray* val_;
 }
 ```
-DistributedColumn is essentially a wrapper over the DistributedArrays that add more metadata for our Dataframe implementation (Columntype, as_int, as_bool) that allow all DistributedColumns to inherit from the same baseclass with all the same functionality and allow for polymorphism in terms of each type of DistributedColumn (int, bool, float) having the same getters and setters.
+DistributedColumn is essentially a wrapper over the DistributedArrays that adds more metadata for our Dataframe implementation (Columntype, as_int, as_bool) that allow all DistributedColumns to inherit from the same baseclass with all the same functionality and allow for polymorphism in terms of each type of DistributedColumn (int, bool, float) having the same getters and setters.
 
 ```
 class DistributedDataFrame() {
@@ -94,9 +94,86 @@ class DistributedDataFrame() {
 ```
 Since all of our delegation and networking calls are done on much lower levels - it allows our DistributedDataFrame to be virtually indistinguishable from our previous DataFrame model. Besides the addition of a KVStore in the constructor which can then be passed down appropriately, all the accessor methods of getting rows, columns, or specific values function very much the same as before but call upon DistributedColumns as opposed to regular columns. This is the layer our clients should be seeing.
 
-## Use cases:
+```
+class Application() {
+    KVStore* kv_;
+    size_t this_node_;
 
-Perhaps the biggest use-case for our distributed KVStore is with the aformentioned Dataframe implementation. This class gives clients access to large-scale data storage with essentially limitless capability depending on how many nodes they add to the KVStore network.
+    void run();
+}
+```
+The base API for our Applications that given a KVStore (with/without a NetworkIP object) and the node the application is running on provide an interface between higher level code and the underlying dataframe and network architecture. The run method is the entry point to begin all Applications.
+
+```
+class Items_() {
+    Array keys_;
+    Array vals_;
+    ...
+    get,set,contains,pushback();
+}
+
+class JVMap() {
+    size_t capacity_;
+    size_t size_;
+    Items_* items_;
+    ...
+    get,set,contains();
+}
+
+class Num() {
+    size_t v;
+}
+
+class SIMap : public JVMap() {
+
+}
+```
+In order to get our WordCount demo in front of customers as soon as possible we implmented the 3rd-party "JanVitekMap" library suggested by another dev team as the package used in the design brief. While it did speed up development time in our understanding of example Applications, it is somewhat redundant considering our previous map imlpementation and our move toward C++'s standard map. A future release will remove this dependency but right now it is required by several of our applications and dataframe visitors. 
+Sample Docs for the library can be found here: https://piazza.com/class/k51bluky59n2jr?cid=1049_f1
+
+
+
+## Use cases:
+let's explore three different use cases that each take advantage of a different level of our distributed application architecture.
+
+The biggest use case for our distributed data solution will be at that top level - utilizing the Application API to design programs that build off of all our distributed dataframe.
+This would require you to inherit from the Application interface and provide it with network details so our software knows how to run and implement your new program.
+For example, imagine you want to count the number of unique words and occurances per word in a provided data file. You might be tempted to design an Application called...WordCount!
+
+```
+class WordCount: public Application {
+public:
+  static const size_t BUFSIZE = 1024;
+  Key in;
+  KeyBuff* kbuf;
+  SIMap all;
+  char* fileName_;
+  size_t num_nodes_;
+
+  WordCount(size_t idx, char* fileName, size_t num_nodes):
+    Application(idx), in("data", idx), kbuf{ new KeyBuff(new Key("wc-map-",0))}, fileName_{ fileName }, num_nodes_{num_nodes} {}
+ 
+    void run_() override {
+        //read from file, store in dataframe, store dataframe in KVStore
+        //run local_count
+        //run reduce    
+    }
+
+    void local_count() {
+        //pull stored dataframe from this node
+        //generate map that stores count of each word from dataframe
+        //store total from this node into new dataframe containing words and counts
+    }
+
+    void reduce() {
+        //merge all local dataframes together combining results into one map
+        //print words and count from the mega map
+    }
+}
+```
+With very little knowledge of the network besides number of nodes, network connection, and a filename WordCount can calculate the results of an arbitrary length text file distributing the workload across the number of provided nodes. This same technique of "divide and conquor" can then be applied to any other combination of storing node-specific dataframes in the KVStore and combining results at the end - similar to our original forray into multi-threaded visitors in a previous rendition of dataframe. 
+
+Another potential use case for our distributed KVStore is with the aformentioned Dataframe implementation. This class gives clients access to large-scale data storage with essentially limitless capability depending on how many nodes they add to the KVStore network.
 
 Let’s consider representing a dataframe with 100 rows in it on the eau2 system that has a single home node and 10 auxiliary nodes. 
 
@@ -141,7 +218,9 @@ void pushBack(int val) {
 By changing the chunkSize you can minimize the number of network calls if that is something your application requires or for further redundancy you can reduce chunkSize to make sure data is constantly being stored in the other nodes.
 
 ## Open questions: 
-We're beginning work on the Networking layer that will finally put our distributedArray and dataframe structures to the test. While we did meet with Jan to help clear up some stuff we're still stuck kind of wrapping our heads around the idea of how to simulate this on one machine. It does help to have an idea where this is all headed though - the inclusion of every milestone has really helped us out.
+Our current wordcount implementation uses a single node while we finalize a lot of the tests and safety nets in the networking implementation. While we don't think the connection of the two will be too painful since both parts were built with the other in mind (WordCount has certain networking specific lines prepared to "switch on") - it just wasn't something we had time for this week and that will be the focus of our next sprint - how easily will these two parts fit together?
+
+Another is our reliance on the JV library of maps which we hope to get rid of in the near future but how easily will it be to detangle ourselves of unnecessary dependencies?
 
 ## Status:
 For MS1:
@@ -160,4 +239,8 @@ To put it simply - coronavirus. We've been doing our best to keep up with the wo
 While we did encounter a malloc error when actually running the application code for MS2 (testApplication() in tests/testSerialize.cpp) we believe we have all the pieces to make the code snippet run, and it is only a case of debugging.
 
 4/6/20:
-Over the past several days we've been working to get caught up with Milestone3. Significant areas of work include resolving existing bugs in the code for milestone 2 that included fixing a malloc error, as well as improving the performance of our DistributedArrays drastically, through local caching. We further worked on building out a simple network layer where nodes can connect and communicate with each other. With that done, we started out work on actually distrubting the KVStore across nodes in the network, sketching out an implementation that is, at least in theory, robust and more importantly fault - tolerant. While the implementation is complete, atleast in terms of code, we didn't have the chance to fully test and fix any bugs with our implementation and run the Demo application. However, we believe we're extremely close to getting there.
+Over the past several days we've been working to get caught up with Milestone3. Significant areas of work include resolving existing bugs in the code for milestone 2 that included fixing a malloc error, as well as improving the performance of our DistributedArrays drastically through local caching. We further worked on building out a simple network layer where nodes can connect and communicate with each other. With that done, we started out work on actually distrubting the KVStore across nodes in the network, sketching out an implementation that is, at least in theory, robust and more importantly fault-tolerant. While the implementation is complete, atleast in terms of code, we didn't have the chance to fully test and fix any bugs with our implementation and run the Demo application. However, we believe we're extremely close to getting there.
+
+While we are much more used to the peer programming method of doing things, both of our bandwidths have made that somewhat...difficult. So instead we've opted to go forward with parallel programming with daily "standup" and bug reports. This has allowed us to progress in the networking side of things, getting it up to speed with the requirements of M3 while also pushing forward with M4. The one drawback of course being that building a distributed application on a system without a fully functioning distributed layer is not really ideal. Instead, the focus has been on designing the WordCount application on a single node with structures in place to make the transition to multi-node once networking is up and running as seamless as possible. The WordCount test is located in the makefile running on the provided 100k.txt sample file with results printing to console. Obviously this will be faster once we have it working across nodes but the integration of specs into our current implementation was something that took quite a bit of work. At this point we believe it'll really be a matter of plugging the two cables together and yelling "IT'S ALIIIIIVE" before it all blows up in a shower of sparks.
+
+Our next goal is to pair as much as possible to handle the integration and then proceed to M5 more or less back up to level with management's current expectations.
