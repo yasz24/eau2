@@ -8,6 +8,7 @@
 #include <map>
 #include <thread>
 #include <mutex>
+#include "../utils/lock.h"
 
 class KVStore : public Object {
 public:
@@ -15,7 +16,10 @@ public:
     size_t this_node_;
     std::map<Key*, Value*, KeyCompare> local_store_; // Map<Key, Value>, owned. contains all the key's that are supposed to be on the local store.
     NetworkIP* network_;
-    std::mutex store_mtx_;
+    Lock store_mtx_;
+    Message* received_msg;
+    Array pendingGets;
+    Key* wait_for_key_;
     std::thread listening_thread_;
     bool msg_consumed = false;
 
@@ -41,27 +45,54 @@ public:
         } else {
             Put put(key, value, this_node_, target, network_->msg_id);
             network_->send_msg(&put); // send put msg over the network to appropriate KVStore.
-            Message* m = network_->recv_msg(); //wait to receive resp. Ack or Nack.
-            msg_consumed = true; //indicate to listening thread that the incoming message has been consumed.
+            store_mtx_.wait();
+            Message* m = received_msg; //wait to receive resp. Ack or Nack.
             //expect Ack or Nack
             if (m->kind_ == MsgKind::Nack) {
                 std::cout<< "put on " << target << "node failed\n";
                 res = false;
-            } else {
-                assert((m->kind_ == MsgKind::Ack)); //just to test. take out
-            }
+            }  
         }
+        // notification procedure.
+        resolve_local_wait(key);
+        //loop through pendingGets, and resolve any that should be.
+        resolve_remote_wait(key, value);
         store_mtx_.unlock();
         return res;
     }
 
+    void resolve_local_wait(Key* key) {
+         // notification procedure.
+        if (wait_for_key_ != nullptr) {
+            if (wait_for_key_->equals(key)) {
+                store_mtx_.notify_all();
+            }
+        }
+    }
+
+    void resolve_remote_wait(Key* key, Value* val) {
+        size_t outstandingReqs = pendingGets.length();
+        if (outstandingReqs > 0) {
+            for (size_t i = 0; i < outstandingReqs; i++) {
+                WaitAndGet* req = dynamic_cast<WaitAndGet*>(pendingGets.get(i));
+                if (req->key_->equals(key)) {
+                    //remove the req from pending reqs list.
+                    pendingGets.remove(i);
+                    //compose a response to the sender
+                    Reply resp(val->serialize(), this_node_, req->sender_, network_->msg_id);
+                    //send the message
+                    network_->send_msg(&resp);
+                }   
+            }
+        }
+    }
+
     Value* get(Key* key) {
         store_mtx_.lock();
-        // std::cout << "calling get\n";
         size_t target = key->node();
         //std::cout << "get: " << "key: " << key->serialize() << "\n";
         Value* val = nullptr;
-        if (target == this->this_node_) {
+        if (target == this_node_) {
             std::map<Key*, Value*, KeyCompare>::iterator iter;
             iter = local_store_.find(key);
             if (iter != local_store_.end()) {
@@ -70,8 +101,8 @@ public:
         } else {
             Get get(key, this_node_, target, network_->msg_id);
             network_->send_msg(&get); // send get msg over the network to appropriate KVStore.
-            Message* m = network_->recv_msg(); //wait to receive resp. Reply or Nack.
-            msg_consumed = true; //indicate to listening thread that the incoming message has been consumed.
+            store_mtx_.wait();
+            Message* m = received_msg;
             //expect Reply or Nack.
             if (m->kind_ == MsgKind::Reply) {
                 Reply* resp = dynamic_cast<Reply*>(m);
@@ -80,6 +111,7 @@ public:
             } else if (m->kind_ == MsgKind::Nack) {
                 std::cout << "unable to get key from node " << target <<"\n";
             }
+            received_msg = nullptr;
         }
         store_mtx_.unlock();
         return val;
@@ -90,10 +122,29 @@ public:
         size_t node = key->node();
         Value* val = nullptr;
         if (node == this->this_node_) {
-            //while loop?. might stack overflow. could sleep and try at regular intervals.
+            std::map<Key*, Value*, KeyCompare>::iterator iter;
+            iter = local_store_.find(key);
+            if (iter != local_store_.end()) {
+                val = iter->second;
+            } else {
+                wait_for_key_ = key;
+                store_mtx_.wait();
+                iter = local_store_.find(key);
+                val = iter->second;
+                wait_for_key_ = nullptr;
+            }
         } else {
-            //networking. dispatch request and get from appropriate node.
-            std::cout<<"ERROR: ENCOUNTERED NETWORKING CODE IN KVSTORE-WAITANDGET\n";
+            WaitAndGet get(key, this_node_, node, network_->msg_id);
+            network_->send_msg(&get); // send get msg over the network to appropriate KVStore.
+            store_mtx_.wait();
+            Message* m = received_msg;
+            //expect Reply. 
+            if (m->kind_ == MsgKind::Reply) {
+                Reply* resp = dynamic_cast<Reply*>(m);
+                char* serializedValue = resp->reply_msg_;
+                val = new Value(serializedValue);
+            } 
+            received_msg = nullptr;
         }
         store_mtx_.unlock();
         return val;
@@ -105,49 +156,54 @@ public:
 
     //think about case when recv calls accept first, because select would still unblock i think.
     void listen() {
-        fd_set read_fds;
-        int listener = network_->sock_;
-        FD_ZERO(&read_fds);
-        FD_SET(listener, &read_fds);
-
         //listen for any incoming requests to the store.
         while (true) {
-            msg_consumed = false;
-            //wait till we read some activity on the listener.
-            if (select(listener + 1, &read_fds, NULL, NULL, NULL) == -1) {
-                perror("select");
-                return;
-            }
-            store_mtx_.lock(); //acquire the lock so we're the only ones accepting on the network_ sock or modifying local store.
-
-            if (FD_ISSET(listener, &read_fds) && !(msg_consumed)) {
-                Message* request = network_->recv_msg();
-                process_request_(request);
-            } 
-            store_mtx_.unlock();
+            Message* message = network_->recv_msg();
+            process_message_(message);
         }
     }
 
     //figure out the type of request and act accordingly.
-    void process_request_(Message* m) {
+    void process_message_(Message* m) {
         MsgKind kind = m->kind_;
 
         //switch on the kind and call the appropriate processing function.
         switch (kind) {
         case MsgKind::Put: {
-            Put* _put = dynamic_cast<Put*>(m);
-            process_put_request_(_put);
+            Put* put = dynamic_cast<Put*>(m);
+            process_put_request_(put);
             break;
         }
         case MsgKind::Get: {
-            Get* _get = dynamic_cast<Get*>(m);
-            process_get_request_(_get);
+            Get* get = dynamic_cast<Get*>(m);
+            process_get_request_(get);
             break;
         }
         case MsgKind::WaitAndGet: {
-            WaitAndGet* _waitAndget = dynamic_cast<WaitAndGet*>(m);
-            process_waitAndGet_request_(_waitAndget);
+            WaitAndGet* waitAndget = dynamic_cast<WaitAndGet*>(m);
+            process_waitAndGet_request_(waitAndget);
             break;
+        }
+        case MsgKind::Reply: {
+            store_mtx_.lock();
+            Reply* reply = dynamic_cast<Reply*>(m);
+            received_msg = reply;
+            store_mtx_.notify_all();
+            store_mtx_.unlock();
+        }
+        case MsgKind::Ack: {
+            store_mtx_.lock();
+            Ack* reply = dynamic_cast<Ack*>(m);
+            received_msg = reply;
+            store_mtx_.notify_all();
+            store_mtx_.unlock();
+        }
+        case MsgKind::Nack: {
+            store_mtx_.lock();
+            Nack* reply = dynamic_cast<Nack*>(m);
+            received_msg = reply;
+            store_mtx_.notify_all();
+            store_mtx_.unlock();
         }
         default:
             break;
@@ -177,7 +233,13 @@ public:
     }
 
     void process_waitAndGet_request_(WaitAndGet* _waitAndget) {
-
+        Value* val = get(_waitAndget->key_);
+        if (val != nullptr) {
+            Reply res(val->serialize(), this_node_, _waitAndget->sender_, network_->msg_id);
+            network_->send_msg(&res);
+        } else {
+            pendingGets.pushBack(_waitAndget);
+        }
     }
 
     char* serialize() {
