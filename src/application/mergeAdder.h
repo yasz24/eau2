@@ -21,7 +21,7 @@ public:
         num = new Num(r.get_int(1));
     }
     map_.set(*word, num);
-    std::cout<<"map set word: "<<word->c_str()<<" and count "<<num->v<<"\n";
+    //std::cout<<"map set word: "<<word->c_str()<<" and count "<<num->v<<"\n";
     return false;
   }
 };

@@ -48,7 +48,8 @@ public:
  
   /** Compute word counts on the local node and build a data frame. */
   void local_count() {
-    Value* temp = kv_->waitAndget(&in);
+    //Value* temp = kv_->waitAndget(&in);
+    Value* temp = kv_->get(&in);
     DistributedDataFrame* words = new DistributedDataFrame(temp->data, kv_);
     p("Node ").p(kv_->this_node_).pln(": starting local count...");
     SIMap map;
@@ -73,7 +74,8 @@ public:
     merge(ddf, map);
     for (size_t i = 1; i < num_nodes_; ++i) { // merge other nodes
       Key* ok = mk_key(i);
-      DistributedDataFrame* temp_ddf = new DistributedDataFrame(kv_->waitAndget(ok)->data, kv_);
+      //DistributedDataFrame* temp_ddf = new DistributedDataFrame(kv_->waitAndget(ok)->data, kv_);
+      DistributedDataFrame* temp_ddf = new DistributedDataFrame(kv_->get(ok)->data, kv_);
       merge(temp_ddf, map);
       delete ok;
     }

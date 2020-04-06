@@ -1,3 +1,4 @@
+#pragma once
 #include "../object.h"
 #include "../utils/string.h"
 #include "../serialize/serial.h"

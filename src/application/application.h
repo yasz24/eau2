@@ -9,9 +9,15 @@ public:
     KVStore* kv_;
     size_t this_node_;
 
+    //Networked Application Constructor
     Application(size_t idx, NetworkIP* network) {
         this->this_node_ = idx;
         this->kv_ = new KVStore(1, idx, network);
+    }
+
+    Application(size_t idx) {
+        this->this_node_ = idx;
+        this->kv_ = new KVStore(1, idx);
     }
 
     virtual void run_() {}
