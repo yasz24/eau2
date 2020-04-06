@@ -94,7 +94,6 @@ public:
   virtual Object* get(size_t index) {
       if(listLength_ == 0 || index > listLength_-1) {
             return nullptr;
-            std::cout<<"trigged!!!!\n";
         }
         return objs_[index];
   }; //returns the object at index

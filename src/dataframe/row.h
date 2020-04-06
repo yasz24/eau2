@@ -170,6 +170,6 @@ class Row : public Object {
    * Return a copy of the schema for this row. Users responsibility to free the memory.
   */
   Schema* get_schema() {
-    return new Schema(this->schema);
+    return new Schema(schema);
   }
 };

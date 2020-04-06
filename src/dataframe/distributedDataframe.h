@@ -6,6 +6,8 @@
 #include "schema.h"
 #include "column.h"
 #include "row.h"
+#include "visitor.h"
+#include "../application/fileReader.h"
 #include "distributedRow.h"
 #include "rower.h"
 #include "../utils/primatives.h"
@@ -66,7 +68,6 @@ public:
           this->cols_->pushBack(col);
         }
       }
-
     }
 
     DistributedDataFrame(char* serialized, KVStore* kv) {
@@ -429,7 +430,7 @@ public:
       return this->schema_->width();
     }
   
-    /** Visit rows in order */
+    /** Visit rows in order - using rower */
     void map(Rower& r) {
       //create a new row.
       Row* row = new Row(*this->schema_);
@@ -439,6 +440,33 @@ public:
         this->fill_row(i, *row);
         row->set_idx(i);
         r.accept(*row);
+      }
+      delete row;
+    }
+
+    /** Visit rows in order for a reader - NOT a rower*/
+    void map(Reader& r) {
+      //create a new row.
+      Row* row = new Row(*this->schema_);
+
+      //apply the rower to each row.
+      for (size_t i = 0; i < this->schema_->length(); i++) {
+        this->fill_row(i, *row);
+        row->set_idx(i);
+        r.visit(*row);
+      }
+      delete row;
+    }
+
+    //TODO: Add logic to make sure it only goes through one node!!!!!!!!!!!!!!!
+    void local_map(Reader& r) {
+      //create a new row.
+      Row* row = new Row(*this->schema_);
+      //apply the rower to each row.
+      for (size_t i = 0; i < this->schema_->length(); i++) {
+        this->fill_row(i, *row);
+        row->set_idx(i);
+        r.visit(*row);
       }
       delete row;
     }
@@ -568,6 +596,21 @@ public:
       }
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
       df->add_column(dc, nullptr);
+      Value* val = new Value(df->serialize(), 0);
+      kv->put(key, val);
+      return df;
+    }
+
+    /** Given a visitor, builds a df to those specifications **/
+    static DistributedDataFrame* fromVisitor(Key* key, KVStore* kv, const char* schema, Writer* v) {
+      Schema* s = new Schema(schema);
+      DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
+      while(!v->done()) {
+        Row* row = new Row(*s);
+        v->visit(*row);
+        df->add_row(*row);
+       // delete row;
+      }
       Value* val = new Value(df->serialize(), 0);
       kv->put(key, val);
       return df;

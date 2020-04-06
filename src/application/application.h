@@ -1,3 +1,4 @@
+#pragma once
 #include "../object.h"
 #include "../store/kvstore.h"
 #include "../dataframe/distributedDataframe.h"
@@ -12,6 +13,8 @@ public:
         this->this_node_ = idx;
         this->kv_ = new KVStore(1, idx, network);
     }
+
+    virtual void run_() {}
 
 };
 

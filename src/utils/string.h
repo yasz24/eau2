@@ -84,6 +84,15 @@ public:
     }
  };
 
+ struct StringCompare {
+     bool operator() (const String* s1, const String* s2) const {
+         if(strcmp(s1->cstr_, s2->cstr_) < 0) {
+             return true;
+         }
+         return false;
+     }
+ };
+
 /** A string buffer builds a string from various pieces.
  *  author: jv */
 class StrBuff : public Object {
@@ -96,6 +105,7 @@ public:
         val_ = new char[capacity_ = 10];
         size_ = 0;
     }
+
     void grow_by_(size_t step) {
         if (step + size_ < capacity_) return;
         capacity_ *= 2;
@@ -120,7 +130,8 @@ public:
         grow_by_(1);     // ensure space for terminator
         val_[size_] = '\0'; // terminate
         String *res = new String(true, val_, size_);
-        val_ = nullptr; // val_ was consumed above
+        val_ = new char[capacity_ = 10]; // val_ was consumed above
+        size_ = 0;
         return res;
     }
 };

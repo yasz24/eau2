@@ -580,8 +580,8 @@ public:
         return df;
     }
 
-    static DataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
-      Schema* s = new Schema("D");
+    // static DataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
+    //   Schema* s = new Schema("D");
 
-    }
+    // }
 };
