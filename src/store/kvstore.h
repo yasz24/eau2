@@ -9,7 +9,7 @@
 #include <thread>
 #include <mutex>
 #include "../utils/lock.h"
-
+#include "../network/network_ip.h"
 class KVStore : public Object {
 public:
     size_t num_nodes_;
@@ -23,10 +23,18 @@ public:
     std::thread listening_thread_;
     bool msg_consumed = false;
 
+    //Network Enabled Constructor
     KVStore(size_t num_nodes, size_t this_node, NetworkIP* network) {
         this->num_nodes_ = num_nodes;
         this->this_node_ = this_node;
         network_ = network;
+    }
+
+    //Legacy Non networked Constructor
+    KVStore(size_t num_nodes, size_t this_node) {
+        this->num_nodes_ = num_nodes;
+        this->this_node_ = this_node;
+        //this->local_store_ = new Map();
     }
 
     KVStore(char* serialized) {
