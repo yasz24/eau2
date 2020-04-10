@@ -1,5 +1,6 @@
 //code adapted from jan vitek's networking video
 #include "network_ip.h"
+#include "../application/application.h"
 
 //authors: shetty.y@husky.neu.edu, eldrid.s@husky.neu.edu
 
@@ -23,5 +24,11 @@ int main(int argc , char *argv[]) {
     NetworkIP* client_ = new NetworkIP();
 
     client_->server_init(0, ip, port, num_nodes);
+	Demo* demo = new Demo(0, client_);
+	demo->start_kv();
+	demo->run_();
+	while (true) {
+
+	}
     return 0;
 }

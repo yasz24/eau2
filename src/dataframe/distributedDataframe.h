@@ -601,6 +601,30 @@ public:
       return df;
     }
 
+    static DistributedDataFrame* fromScalar(Key* key, KVStore* kv, double scalar) {
+      Schema* s = new Schema(); 
+      DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv);
+      s->add_row(nullptr);
+      dc->push_back(scalar);
+      DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
+      df->add_column(dc, nullptr);
+      Value* val = new Value(df->serialize(), 0);
+      kv->put(key, val);
+      return df;
+    }
+
+    static DistributedDataFrame* fromScalar(Key* key, KVStore* kv, int scalar) {
+      Schema* s = new Schema(); 
+      DistributedIntColumn* dc = new DistributedIntColumn(kv);
+      s->add_row(nullptr);
+      dc->push_back(scalar);
+      DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
+      df->add_column(dc, nullptr);
+      Value* val = new Value(df->serialize(), 0);
+      kv->put(key, val);
+      return df;
+    }
+
     /** Given a visitor, builds a df to those specifications **/
     static DistributedDataFrame* fromVisitor(Key* key, KVStore* kv, const char* schema, Writer* v) {
       Schema* s = new Schema(schema);

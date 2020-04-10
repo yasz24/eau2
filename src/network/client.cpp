@@ -1,5 +1,6 @@
 //code adapted from jan vitek's networking video
 #include "network_ip.h"
+#include "../application/application.h"
 #include <iostream>
 #define PORT 3000
 #define SERVER_IP "127.0.0.1"
@@ -24,5 +25,11 @@ int main(int argc, char *argv[])
 	NetworkIP* client_ = new NetworkIP();
 
 	client_->client_init(node_idx, ip, port, SERVER_IP, PORT);
+	Demo* demo = new Demo(node_idx, client_);
+	demo->start_kv();
+	demo->run_();
+	while (true) {
+		
+	}
 	return 0; 
 } 

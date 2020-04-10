@@ -211,7 +211,7 @@ public:
         sb->write("sender_", sender_);
         sb->write("target_", target_);
         sb->write("id_", id_);
-        sb->write("msg_", reply_msg_);
+        sb->write("msg_", reply_msg_, false);
         sb->endSerialize();
         char* value = sb->get();
         delete sb;
@@ -219,11 +219,18 @@ public:
     }
     //Special constructor that given a serialized representation of an object of this class, generates a new one with the same data
     Reply(char* s) {
+        Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(s)->c_str();
         kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
         sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
         target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
         id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+        char* serialData = JSONHelper::getValueFromKey("msg_", payload)->c_str();
+        if(JSONHelper::isObject(serialData)) {
+            reply_msg_ = ds->deserialize(serialData)->serialize();
+        } else {
+            reply_msg_ = serialData;
+        }
         reply_msg_ = JSONHelper::getValueFromKey("msg_", payload)->c_str();
     }
 };

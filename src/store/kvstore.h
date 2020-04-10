@@ -45,7 +45,7 @@ public:
 
     bool put(Key* key, Value* value) {
         store_mtx_.lock(); //acquire lock ownership
-        //std::cout << "put: " << "key: " << key->serialize() << " val: " << value->serialize() << "\n";
+        std::cout << "KV " << this_node_ <<" put: " << "key: " << key->serialize() << "\n";
         size_t target = key->node();
         bool res = true;
         if (target == this->this_node_) {
@@ -54,6 +54,9 @@ public:
             Put put(key, value, this_node_, target, network_->msg_id);
             network_->send_msg(&put); // send put msg over the network to appropriate KVStore.
             store_mtx_.wait();
+            std::cout << "trying to access\n";
+            received_msg->serialize();
+            std::cout << "here\n";
             Message* m = received_msg; //wait to receive resp. Ack or Nack.
             //expect Ack or Nack
             if (m->kind_ == MsgKind::Nack) {
@@ -164,9 +167,11 @@ public:
 
     //think about case when recv calls accept first, because select would still unblock i think.
     void listen() {
+        std::cout << "started listening on separate thread\n";
         //listen for any incoming requests to the store.
         while (true) {
             Message* message = network_->recv_msg();
+            std::cout << "incoming message\n";
             process_message_(message);
         }
     }
@@ -174,7 +179,7 @@ public:
     //figure out the type of request and act accordingly.
     void process_message_(Message* m) {
         MsgKind kind = m->kind_;
-
+        std::cout << "msg serialized: " << m->serialize() << "\n";
         //switch on the kind and call the appropriate processing function.
         switch (kind) {
         case MsgKind::Put: {
@@ -194,22 +199,23 @@ public:
         }
         case MsgKind::Reply: {
             store_mtx_.lock();
-            Reply* reply = dynamic_cast<Reply*>(m);
-            received_msg = reply;
+            received_msg = m;
             store_mtx_.notify_all();
             store_mtx_.unlock();
         }
         case MsgKind::Ack: {
             store_mtx_.lock();
-            Ack* reply = dynamic_cast<Ack*>(m);
-            received_msg = reply;
+            received_msg = m;
+            if (received_msg == nullptr) {
+                std::cout << "msg is nullptr\n";
+            }
             store_mtx_.notify_all();
+            std::cout << "notified\n";
             store_mtx_.unlock();
         }
         case MsgKind::Nack: {
             store_mtx_.lock();
-            Nack* reply = dynamic_cast<Nack*>(m);
-            received_msg = reply;
+            received_msg = m;
             store_mtx_.notify_all();
             store_mtx_.unlock();
         }
