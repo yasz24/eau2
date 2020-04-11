@@ -46,7 +46,7 @@ public:
 
     bool put(Key* key, Value* value) {
         store_mtx_.lock(); //acquire lock ownership
-        std::cout << "KV " << this_node_ <<" put: " << "\nkey: " << key->serialize() << "\nval:" << value->serialize() << "\n";
+        //std::cout << "KV " << this_node_ <<" put: " << "\nkey: " << key->serialize() << "\nval:" << value->serialize() << "\n";
         size_t target = key->node();
         bool res = true;
         if (target == this->this_node_) {
@@ -55,7 +55,6 @@ public:
             Put put(key, value, this_node_, target, network_->msg_id);
             network_->send_msg(&put); // send put msg over the network to appropriate KVStore.
             store_mtx_.wait();
-            std::cout << "trying to access\n";
             received_msg->serialize();
             Message* m = received_msg; //wait to receive resp. Ack or Nack.
             //expect Ack or Nack
@@ -68,7 +67,6 @@ public:
         resolve_local_wait(key);
         //loop through pendingGets, and resolve any that should be.
         resolve_remote_wait(key, value);
-        std::cout << "here\n";
         store_mtx_.unlock();
         return res;
     }
@@ -98,7 +96,6 @@ public:
             WaitAndGet dummy(key, 0, 0, 0);
             //remove the req from pending reqs list.
             while (pendingGets.get(&dummy) != -1 ) {
-                std::cout << "removed\n";
                 pendingGets.remove(pendingGets.get(&dummy));
             }
         }
@@ -155,7 +152,7 @@ public:
             network_->send_msg(&get); // send get msg over the network to appropriate KVStore.
             store_mtx_.wait();
             Message* m = received_msg;
-            std::cout << "wait and get reply received\n";
+            //std::cout << "wait and get reply received\n";
             //expect Reply. 
             if (m->kind_ == MsgKind::Reply) {
                 Reply* resp = dynamic_cast<Reply*>(m);
@@ -178,7 +175,7 @@ public:
         //listen for any incoming requests to the store.
         while (true) {
             Message* message = network_->recv_msg(this);
-            std::cout << "incoming message\n";
+            //std::cout << "incoming message\n";
             process_message_(message);
         }
     }
@@ -208,16 +205,13 @@ public:
             store_mtx_.lock();
             received_msg = m;
             store_mtx_.notify_all();
-            std::cout << "notified\n";
+            //std::cout << "notified\n";
             store_mtx_.unlock();
             break;
         }
         case MsgKind::Ack: {
             store_mtx_.lock();
             received_msg = m;
-            if (received_msg == nullptr) {
-                std::cout << "msg is nullptr\n";
-            }
             store_mtx_.notify_all();
             store_mtx_.unlock();
             break;

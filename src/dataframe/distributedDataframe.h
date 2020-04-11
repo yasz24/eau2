@@ -74,7 +74,6 @@ public:
       Deserializable* d = new Deserializable();
       char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
       Schema* sch = new Schema(JSONHelper::getValueFromKey("schema_", payload)->c_str());
-      std::cout<< "Dist Dataframe here\n";
       Array* cols = new Array(JSONHelper::getValueFromKey("cols_", payload)->c_str(), kv);
       this->schema_ = sch;
       this->cols_ = cols;
@@ -600,6 +599,7 @@ public:
       df->add_column(dc, nullptr);
       Value* val = new Value(df->serialize(), (size_t)0);
       kv->put(key, val);
+      std::cout << "fromArray: " << df->serialize() << "\n";
       return df;
     }
 
@@ -612,6 +612,7 @@ public:
       df->add_column(dc, nullptr);
       Value* val = new Value(df->serialize(), (size_t)0);
       kv->put(key, val);
+      std::cout << "fromScalar: " << df->serialize() << "\n";
       return df;
     }
 
@@ -623,9 +624,9 @@ public:
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
       df->add_column(dc, nullptr);
       char* serialized = df->serialize();
-      std::cout << "from scalar: " << serialized << "\n";
       Value* val = new Value(serialized, (size_t)0);
       kv->put(key, val);
+      std::cout << "fromScalar: " << serialized << "\n";
       return df;
     }
 

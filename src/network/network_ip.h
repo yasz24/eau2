@@ -132,7 +132,7 @@ public:
         int server_port = ntohs(target.address.sin_port);
         char server_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &target.address.sin_addr, server_ip, INET_ADDRSTRLEN);
-        std::cout << "attempting to send msg to: " << server_ip << ":" << server_port << "\n";
+        //std::cout << "attempting to send msg to: " << server_ip << ":" << server_port << "\n";
         int connection = socket(AF_INET, SOCK_STREAM, 0);
         assert(connection >= 0);
         if (connect(connection, (sockaddr*)&target.address, sizeof(target.address)) < 0) {
@@ -143,7 +143,7 @@ public:
         msg_id++;
         //assert(connect(connection, (sockaddr*)&target.address, sizeof(target.address)) >= 0);
         char* serialized = msg->serialize();
-        std::cout << "sending msg: " << serialized << "\n";
+        //std::cout << "sending msg: " << serialized << "\n";
         size_t length = strlen(serialized);
         send(connection, &length, sizeof(size_t), 0);
         send(connection, serialized, length, 0);
@@ -161,7 +161,7 @@ public:
         while (rd != size) {
             rd+= read(req, buf + rd, size - rd);
         }
-        std::cout << "received msg: " << buf << "\n";
+        //std::cout << "received msg: " << buf << "\n";
         Deserializable ds;
         Message* msg = dynamic_cast<Message*>(ds.deserialize(buf));
         close(req);
@@ -179,7 +179,7 @@ public:
         while (rd != size) {
             rd+= read(req, buf + rd, size - rd);
         }
-        std::cout << "received msg: " << buf << "\n";
+        //std::cout << "received msg: " << buf << "\n";
         Deserializable ds;
         Message* msg = dynamic_cast<Message*>(ds.deserialize(buf, kv));
         close(req);
