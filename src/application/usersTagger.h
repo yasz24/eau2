@@ -15,7 +15,7 @@ public:
   Set& uSet;
   Set newUsers;
 
-  UsersTagger(Set& pSet,Set& uSet, DataFrame* users):
+  UsersTagger(Set& pSet,Set& uSet, DistributedDataFrame* users):
     pSet(pSet), uSet(uSet), newUsers(users->nrows()) { }
 
   bool visit(Row & row) override {

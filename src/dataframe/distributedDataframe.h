@@ -643,4 +643,8 @@ public:
       kv->put(key, val);
       return df;
     }
+
+    static DistributedDataFrame* fromFile(const char* filename, Key* key, KVStore* kv) {
+
+    }
 };

@@ -17,7 +17,7 @@ public:
   Set& pSet; // set of projects of collaborators
   Set newProjects;  // newly tagged collaborator projects
 
-  ProjectsTagger(Set& uSet, Set& pSet, DataFrame* proj):
+  ProjectsTagger(Set& uSet, Set& pSet, DistributedDataFrame* proj):
     uSet(uSet), pSet(pSet), newProjects(proj) {}
 
   /** The data frame must have at least two integer columns. The newProject

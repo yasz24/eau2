@@ -18,13 +18,17 @@ public:
   const char* PROJ = "datasets/projects.ltgt";
   const char* USER = "datasets/users.ltgt";
   const char* COMM = "datasets/commits.ltgt";
-  DataFrame* projects; //  pid x project name
-  DataFrame* users;  // uid x user name
-  DataFrame* commits;  // pid x uid x uid 
+  DistributedDataFrame* projects; //  pid x project name
+  DistributedDataFrame* users;  // uid x user name
+  DistributedDataFrame* commits;  // pid x uid x uid 
   Set* uSet; // Linus' collaborators
   Set* pSet; // projects of collaborators
 
-  Linus(size_t idx, NetworkIfc& net): Application(idx, net) {}
+    //actual constructor
+    //Linus(size_t idx, NetworkIfc& net): Application(idx, net) {}
+
+    //cheapo constructer
+    Linus(size_t idx) : Application(idx) {}
 
   /** Compute DEGREES of Linus.  */
   void run_() override {
@@ -32,10 +36,10 @@ public:
     for (size_t i = 0; i < DEGREES; i++) step(i);
   }
 
-  /** Node 0 reads three files, cointainng projects, users and commits, and
-   *  creates thre dataframes. All other nodes wait and load the three
+  /** Node 0 reads three files, containing projects, users and commits, and
+   *  creates three dataframes. All other nodes wait and load the three
    *  dataframes. Once we know the size of users and projects, we create
-   *  sets of each (uSet and pSet). We also output a data frame with a the
+   *  sets of each (uSet and pSet). We also output a data frame with the
    *  'tagged' users. At this point the dataframe consists of only
    *  Linus. **/
   void readInput() {
@@ -44,18 +48,18 @@ public:
     Key cK("comts");
     if (index == 0) {
       pln("Reading...");
-      projects = DataFrame::fromFile(PROJ, pK.clone(), &kv);
+      projects = DistributedDataFrame::fromFile(PROJ, pK.clone(), kv_);
       p("    ").p(projects->nrows()).pln(" projects");
-      users = DataFrame::fromFile(USER, uK.clone(), &kv);
+      users = DistributedDataFrame::fromFile(USER, uK.clone(), kv_);
       p("    ").p(users->nrows()).pln(" users");
-      commits = DataFrame::fromFile(COMM, cK.clone(), &kv);
+      commits = DistributedDataFrame::fromFile(COMM, cK.clone(), kv_);
        p("    ").p(commits->nrows()).pln(" commits");
        // This dataframe contains the id of Linus.
-       delete DataFrame::fromScalarInt(new Key("users-0-0"), &kv, LINUS);
+       delete DistributedDataFrame::fromScalar(new Key("users-0-0"), kv_, LINUS);
     } else {
-       projects = dynamic_cast<DataFrame*>(kv.waitAndGet(pK));
-       users = dynamic_cast<DataFrame*>(kv.waitAndGet(uK));
-       commits = dynamic_cast<DataFrame*>(kv.waitAndGet(cK));
+       projects = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&pK));
+       users = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&uK));
+       commits = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&cK));
     }
     uSet = new Set(users);
     pSet = new Set(projects);
@@ -69,7 +73,7 @@ public:
     // Key of the shape: users-stage-0
     Key uK(StrBuff("users-").c(stage).c("-0").get());
     // A df with all the users added on the previous round
-    DataFrame* newUsers = dynamic_cast<DataFrame*>(kv.waitAndGet(uK));    
+    DistributedDataFrame* newUsers = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&uK));    
     Set delta(users);
     SetUpdater upd(delta);  
     newUsers->map(upd); // all of the new users are copied to delta.
@@ -96,8 +100,8 @@ public:
   void merge(Set& set, char const* name, int stage) {
     if (this_node() == 0) {
       for (size_t i = 1; i < arg.num_nodes; ++i) {
-	Key nK(StrBuff(name).c(stage).c("-").c(i).get());
-	DataFrame* delta = dynamic_cast<DataFrame*>(kv.waitAndGet(nK));
+	Key* nK = new Key(StrBuff(name).c(stage).c("-").c(i).get());
+	DistributedDataFrame* delta = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(nK));
 	p("    received delta of ").p(delta->nrows())
 	  .p(" elements from node ").pln(i);
 	SetUpdater upd(set);
@@ -105,16 +109,22 @@ public:
 	delete delta;
       }
       p("    storing ").p(set.size()).pln(" merged elements");
-      SetWriter writer(set);
+      SetWriter* writer = new SetWriter(set);
       Key k(StrBuff(name).c(stage).c("-0").get());
-      delete DataFrame::fromVisitor(&k, &kv, "I", writer);
+      delete DistributedDataFrame::fromVisitor(&k, kv_, "I", writer);
     } else {
       p("    sending ").p(set.size()).pln(" elements to master node");
-      SetWriter writer(set);
-      Key k(StrBuff(name).c(stage).c("-").c(index).get());
-      delete DataFrame::fromVisitor(&k, &kv, "I", writer);
-      Key mK(StrBuff(name).c(stage).c("-0").get());
-      DataFrame* merged = dynamic_cast<DataFrame*>(kv.waitAndGet(mK));
+      SetWriter* writer = new SetWriter(set);
+    //expanded key naming - old one had some weird casting issues....
+        StrBuff* temp = new StrBuff(name);
+        temp->c(stage);
+        temp->c("-0");
+        String* keyName = temp->get();
+        Key k(keyName);
+    //  Key k(StrBuff(name).c(stage).c("-").c(index).get());
+      delete DistributedDataFrame::fromVisitor(&k, kv_, "I", writer);
+      Key* mK = new Key(keyName);
+      DistributedDataFrame* merged = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(mK));
       p("    receiving ").p(merged->nrows()).pln(" merged elements");
       SetUpdater upd(set);
       merged->map(upd);
