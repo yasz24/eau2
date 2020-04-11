@@ -1004,6 +1004,7 @@ class DoubleDistributedArray: public Object {
     *   Generates a new Key Value pair with a value
     */
     void storeChunk() {
+        //std::cout << "total nodes: " << totalNodes_ << "\n";
         //creates a unique keyname based on provided ID - could be modified to randomly pick number?
         StrBuff sb;
         sb.c(uid_);

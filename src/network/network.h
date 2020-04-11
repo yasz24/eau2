@@ -211,7 +211,11 @@ public:
         sb->write("sender_", sender_);
         sb->write("target_", target_);
         sb->write("id_", id_);
-        sb->write("msg_", reply_msg_, false);
+        if(JSONHelper::isObject(reply_msg_)) {
+            sb->write("msg_", reply_msg_, false);
+        } else {
+            sb->write("msg_", reply_msg_);
+        }
         sb->endSerialize();
         char* value = sb->get();
         delete sb;

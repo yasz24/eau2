@@ -254,7 +254,9 @@ void testReplySerialization() {
     Sys* tester = new Sys();
     Reply ack("status", 1,2,3);
     char* msg_serialized = ack.serialize();
+    //std::cout << msg_serialized << "\n";
     Reply* msg_two = new Reply(msg_serialized);
+    //std::cout << msg_two->serialize() << "\n";
     tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
     tester->OK("Passed Reply Serialization Tests");
     delete tester;
@@ -618,7 +620,6 @@ int main() {
     testDistributedStringColumn();
     testSchema();
     testDistributedDataframe();
-    //tryMap();
-    testApplication(); //currently fails
+    testApplication();
     return 0;
 }

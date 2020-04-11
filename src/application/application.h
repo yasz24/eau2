@@ -90,6 +90,7 @@ public:
     std::cout << "counter\n";
     Deserializable ds;
     Value* val = kv_->waitAndget(main);
+    std::cout << "got value\n";
     DistributedDataFrame* v = dynamic_cast<DistributedDataFrame*>(ds.deserialize(val->data, kv_));
     size_t sum = 0;
     for (size_t i = 0; i < 100*1000; ++i) sum += v->get_double(0,i);

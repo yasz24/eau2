@@ -19,8 +19,8 @@ public:
 class NetworkIP : public NetworkIfc {
 public:
     NodeInfo* nodes_;
-    size_t num_nodes_;
-    size_t this_node_;
+    size_t num_nodes_ = 1;
+    size_t this_node_ = 0;
     int sock_;
     sockaddr_in ip_;
     size_t msg_id = 0;

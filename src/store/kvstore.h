@@ -28,6 +28,7 @@ public:
         this->num_nodes_ = num_nodes;
         this->this_node_ = this_node;
         network_ = network;
+        wait_for_key_ = nullptr;
     }
 
     //Legacy Non networked Constructor
@@ -56,7 +57,6 @@ public:
             store_mtx_.wait();
             std::cout << "trying to access\n";
             received_msg->serialize();
-            std::cout << "here\n";
             Message* m = received_msg; //wait to receive resp. Ack or Nack.
             //expect Ack or Nack
             if (m->kind_ == MsgKind::Nack) {
@@ -66,6 +66,7 @@ public:
         }
         // notification procedure.
         resolve_local_wait(key);
+        //std::cout << "here\n";
         //loop through pendingGets, and resolve any that should be.
         resolve_remote_wait(key, value);
         store_mtx_.unlock();
@@ -149,6 +150,7 @@ public:
             network_->send_msg(&get); // send get msg over the network to appropriate KVStore.
             store_mtx_.wait();
             Message* m = received_msg;
+            std::cout << "wait and get reply received\n";
             //expect Reply. 
             if (m->kind_ == MsgKind::Reply) {
                 Reply* resp = dynamic_cast<Reply*>(m);
@@ -179,7 +181,7 @@ public:
     //figure out the type of request and act accordingly.
     void process_message_(Message* m) {
         MsgKind kind = m->kind_;
-        std::cout << "msg serialized: " << m->serialize() << "\n";
+        //std::cout << "msg serialized: " << m->serialize() << "\n";
         //switch on the kind and call the appropriate processing function.
         switch (kind) {
         case MsgKind::Put: {
