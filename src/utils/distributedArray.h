@@ -145,7 +145,7 @@ class IntDistributedArray: public Object {
 
         int prevVal = intVals->get(index % chunkSize_); //get int at given index for this array in this chunk
         intVals->set((index % chunkSize_), val); //sets index of this array to provided val
-        kv_->put(curKey, new Value(intVals->serialize(), 0)); //reserialize IntArray with updated value and using same key - put into kv
+        kv_->put(curKey, new Value(intVals->serialize(), (size_t)0)); //reserialize IntArray with updated value and using same key - put into kv
         return prevVal;
   }; //sets the object at index to be o, returns former object
     
@@ -161,7 +161,7 @@ class IntDistributedArray: public Object {
         String* s = sb.get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
-        kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
+        kv_->put(k, new Value(chunkArray_->serialize(), (size_t)0)); //adds new IntArray to kvStore
         //std::cout << "in store chunk\n";
         delete chunkArray_;
         chunkArray_ = new IntArray(chunkSize_); //creates new Int array to store values for new chunk
@@ -358,7 +358,7 @@ class FloatDistributedArray: public Object {
 
         float prevVal = floatVals->get(index % chunkSize_); //get int at given index for this array in this chunk
         floatVals->set((index % chunkSize_), val); //sets index of this array to provided val
-        kv_->put(curKey, new Value(floatVals->serialize(), 0)); //reserialize FloatArray with updated value and using same key - put into kv
+        kv_->put(curKey, new Value(floatVals->serialize(), (size_t)0)); //reserialize FloatArray with updated value and using same key - put into kv
         return prevVal;
   }; //sets the object at index to be o, returns former object
   
@@ -374,7 +374,7 @@ class FloatDistributedArray: public Object {
         String* s = sb.get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
-        kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
+        kv_->put(k, new Value(chunkArray_->serialize(), (size_t)0)); //adds new IntArray to kvStore
         delete chunkArray_;
         chunkArray_ = new FloatArray(chunkSize_);         
         curNode_+=1;
@@ -570,7 +570,7 @@ class StringDistributedArray: public Object {
 
         String* prevVal = strVals->get(index % chunkSize_); //get int at given index for this array in this chunk
         strVals->set((index % chunkSize_), val); //sets index of this array to provided val
-        kv_->put(curKey, new Value(strVals->serialize(), 0)); //reserialize IntArray with updated value and using same key - put into kv
+        kv_->put(curKey, new Value(strVals->serialize(), (size_t)0)); //reserialize IntArray with updated value and using same key - put into kv
         return prevVal;
   }; //sets the object at index to be o, returns former object
     
@@ -586,7 +586,7 @@ class StringDistributedArray: public Object {
         String* s = sb.get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
-        kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
+        kv_->put(k, new Value(chunkArray_->serialize(), (size_t)0)); //adds new IntArray to kvStore
         delete chunkArray_;
         chunkArray_ = new StringArray(chunkSize_); 
         curNode_+=1;
@@ -782,7 +782,7 @@ class BoolDistributedArray: public Object {
 
         bool prevVal = strVals->get(index % chunkSize_); //get int at given index for this array in this chunk
         strVals->set((index % chunkSize_), val); //sets index of this array to provided val
-        kv_->put(curKey, new Value(strVals->serialize(), 0)); //reserialize IntArray with updated value and using same key - put into kv
+        kv_->put(curKey, new Value(strVals->serialize(), (size_t)0)); //reserialize IntArray with updated value and using same key - put into kv
         return prevVal;
   }; //sets the object at index to be o, returns former object
 
@@ -798,7 +798,7 @@ class BoolDistributedArray: public Object {
         String* s = sb.get();
         Key* k = new Key(s->c_str(), curNode_); //create new key with current node and keyName
         keys_->pushBack(k);
-        kv_->put(k, new Value(chunkArray_->serialize(), 0)); //adds new IntArray to kvStore
+        kv_->put(k, new Value(chunkArray_->serialize(), (size_t)0)); //adds new IntArray to kvStore
         delete chunkArray_;
         chunkArray_ = new BoolArray(chunkSize_); 
         curNode_+=1;
@@ -996,7 +996,7 @@ class DoubleDistributedArray: public Object {
 
         double prevVal = strVals->get(index % chunkSize_); //get int at given index for this array in this chunk
         strVals->set((index % chunkSize_), val); //sets index of this array to provided val
-        kv_->put(curKey, new Value(strVals->serialize(), 0)); //reserialize IntArray with updated value and using same key - put into kv
+        kv_->put(curKey, new Value(strVals->serialize(), (size_t)0)); //reserialize IntArray with updated value and using same key - put into kv
         return prevVal;
   }; //sets the object at index to be o, returns former object
     
@@ -1015,7 +1015,7 @@ class DoubleDistributedArray: public Object {
         keys_->pushBack(k);
         char* serialized = chunkArray_->serialize();
         //std::cout << serialized << "\n";
-        kv_->put(k, new Value(serialized, 0)); //adds new IntArray to kvStore
+        kv_->put(k, new Value(serialized, (size_t)0)); //adds new IntArray to kvStore
         delete chunkArray_;
         chunkArray_ = new DoubleArray(chunkSize_); //creates new Int array to store values for new chunk
         curNode_+=1;

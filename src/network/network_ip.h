@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include "../serialize/deserialize.h"
 
+class KVStore;
 class NodeInfo : public Object {
 public:
     size_t id;
@@ -126,7 +127,7 @@ public:
 
     void send_msg(Message* msg) {
         size_t target_node = msg->target();
-        std::cout << "send msg target: " << target_node << "\n";
+        //std::cout << "send msg target: " << target_node << "\n";
         NodeInfo &target = nodes_[target_node];
         int server_port = ntohs(target.address.sin_port);
         char server_ip[INET_ADDRSTRLEN];
@@ -163,6 +164,24 @@ public:
         std::cout << "received msg: " << buf << "\n";
         Deserializable ds;
         Message* msg = dynamic_cast<Message*>(ds.deserialize(buf));
+        close(req);
+        return msg;
+    }
+
+      Message* recv_msg(KVStore* kv) {
+        sockaddr_in sender;
+        socklen_t addrlen = sizeof(sender);
+        int req = accept(sock_, (sockaddr*)&sender, &addrlen);
+        size_t size = 0;
+        read(req, &size, sizeof(size_t));
+        char* buf = new char[size];
+        int rd = 0;
+        while (rd != size) {
+            rd+= read(req, buf + rd, size - rd);
+        }
+        std::cout << "received msg: " << buf << "\n";
+        Deserializable ds;
+        Message* msg = dynamic_cast<Message*>(ds.deserialize(buf, kv));
         close(req);
         return msg;
     }

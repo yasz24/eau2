@@ -16,8 +16,8 @@
 
 //helper methods for testbuilding
 KVStore* tempStore() {
-    Value* v1 = new Value("muffin", 6);
-    Value* v3 = new Value("carrot", 6);
+    Value* v1 = new Value("muffin", (size_t)6);
+    Value* v3 = new Value("carrot", (size_t)6);
     Key* k1 = new Key("payload_1", 0);
     Key* k3 = new Key("payload_3", 0);
 
@@ -299,8 +299,8 @@ void testDirectorySerialization() {
 
 void testValueSerialization() {
     Sys* system = new Sys();
-    Value* v1 = new Value("muffin", 6);
-    Value* v3 = new Value("carrot", 6);
+    Value* v1 = new Value("muffin", (size_t)6);
+    Value* v3 = new Value("carrot", (size_t)6);
     char* serialized = v1->serialize();
     Value* v2 = new Value(serialized);
     system->t_true(v1->equals(v2));
@@ -572,8 +572,8 @@ void testApplication() {
 }
 
 void tryMap() {
-    Value* v1 = new Value("muffin", 6);
-    Value* v3 = new Value("carrot", 6);
+    Value* v1 = new Value("muffin", (size_t)6);
+    Value* v3 = new Value("carrot", (size_t)6);
     Key* k1 = new Key("payload_1", 0);
     Key* k3 = new Key("payload_1", 0);
     char* c1 =  "payload_1";

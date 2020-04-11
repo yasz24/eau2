@@ -92,6 +92,7 @@
     Object* Deserializable::deserialize(char* s, KVStore* kv) {
         String* classString = JSONHelper::getPayloadKey(s);
         char* className = classString->c_str();
+        std::cout << "deserialization class: " << className << "\n";
         String* valueString = JSONHelper::getPayloadValue(s);
         char* valueName = valueString->c_str();
         //figure out correct deserialization method to call...
@@ -120,6 +121,7 @@
         } else if(0 == strncmp(className, "DistributedStringColumn", strlen(className))) {
             return new DistributedStringColumn(s, kv);
         } else if(0 == strncmp(className, "DistributedDataFrame", strlen(className))) {
+            std::cout << "deserializing dataframe\n";
             return new DistributedDataFrame(s, kv);
         } else if(0 == strncmp(className,"IntArray", strlen(className))) {
             return new IntArray(s);
@@ -154,7 +156,7 @@
         } else if(0 == strncmp(className, "KeyVal", strlen(className))) {
             return KeyVal::deserialize(valueName);
         } else if(0 == strncmp(className, "Value", strlen(className))) {
-            return new Value(s);
+            return new Value(s, kv);
         } else if(0 == strncmp(className, "KVStore", strlen(className))) {
             return new KVStore(s);
         } else if(0 == strncmp(className, "Message", strlen(className))) {
@@ -164,9 +166,9 @@
         } else if(0 == strncmp(className, "Nack", strlen(className))) {
             return new Nack(s);
         } else if(0 == strncmp(className, "Put", strlen(className))) {
-            return new Put(s);
+            return new Put(s, kv);
         } else if(0 == strncmp(className, "Reply", strlen(className))) {
-            return new Reply(s);
+            return new Reply(s, kv);
         } else if(0 == strncmp(className, "Get", strlen(className))) {
             return new Get(s);
         } else if(0 == strncmp(className, "WaitAndGet", strlen(className))) {

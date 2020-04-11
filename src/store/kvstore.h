@@ -46,7 +46,7 @@ public:
 
     bool put(Key* key, Value* value) {
         store_mtx_.lock(); //acquire lock ownership
-        std::cout << "KV " << this_node_ <<" put: " << "key: " << key->serialize() << "\n";
+        std::cout << "KV " << this_node_ <<" put: " << "\nkey: " << key->serialize() << "\nval:" << value->serialize() << "\n";
         size_t target = key->node();
         bool res = true;
         if (target == this->this_node_) {
@@ -66,9 +66,9 @@ public:
         }
         // notification procedure.
         resolve_local_wait(key);
-        //std::cout << "here\n";
         //loop through pendingGets, and resolve any that should be.
         resolve_remote_wait(key, value);
+        std::cout << "here\n";
         store_mtx_.unlock();
         return res;
     }
@@ -84,17 +84,22 @@ public:
 
     void resolve_remote_wait(Key* key, Value* val) {
         size_t outstandingReqs = pendingGets.length();
+
         if (outstandingReqs > 0) {
             for (size_t i = 0; i < outstandingReqs; i++) {
                 WaitAndGet* req = dynamic_cast<WaitAndGet*>(pendingGets.get(i));
                 if (req->key_->equals(key)) {
-                    //remove the req from pending reqs list.
-                    pendingGets.remove(i);
                     //compose a response to the sender
                     Reply resp(val->serialize(), this_node_, req->sender_, network_->msg_id);
                     //send the message
                     network_->send_msg(&resp);
                 }   
+            }
+            WaitAndGet dummy(key, 0, 0, 0);
+            //remove the req from pending reqs list.
+            while (pendingGets.get(&dummy) != -1 ) {
+                std::cout << "removed\n";
+                pendingGets.remove(pendingGets.get(&dummy));
             }
         }
     }
@@ -119,7 +124,7 @@ public:
             if (m->kind_ == MsgKind::Reply) {
                 Reply* resp = dynamic_cast<Reply*>(m);
                 char* serializedValue = resp->reply_msg_;
-                val = new Value(serializedValue);
+                val = new Value(serializedValue, this);
             } else if (m->kind_ == MsgKind::Nack) {
                 std::cout << "unable to get key from node " << target <<"\n";
             }
@@ -155,7 +160,7 @@ public:
             if (m->kind_ == MsgKind::Reply) {
                 Reply* resp = dynamic_cast<Reply*>(m);
                 char* serializedValue = resp->reply_msg_;
-                val = new Value(serializedValue);
+                val = new Value(serializedValue, this);
             } 
             received_msg = nullptr;
         }
@@ -172,7 +177,7 @@ public:
         std::cout << "started listening on separate thread\n";
         //listen for any incoming requests to the store.
         while (true) {
-            Message* message = network_->recv_msg();
+            Message* message = network_->recv_msg(this);
             std::cout << "incoming message\n";
             process_message_(message);
         }
@@ -203,7 +208,9 @@ public:
             store_mtx_.lock();
             received_msg = m;
             store_mtx_.notify_all();
+            std::cout << "notified\n";
             store_mtx_.unlock();
+            break;
         }
         case MsgKind::Ack: {
             store_mtx_.lock();
@@ -212,14 +219,15 @@ public:
                 std::cout << "msg is nullptr\n";
             }
             store_mtx_.notify_all();
-            std::cout << "notified\n";
             store_mtx_.unlock();
+            break;
         }
         case MsgKind::Nack: {
             store_mtx_.lock();
             received_msg = m;
             store_mtx_.notify_all();
             store_mtx_.unlock();
+            break;
         }
         default:
             break;

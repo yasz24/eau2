@@ -90,10 +90,10 @@ public:
     std::cout << "counter\n";
     Deserializable ds;
     Value* val = kv_->waitAndget(main);
-    std::cout << "got value\n";
+    //std::cout << "counter val: " << val->serialize() <<"\n";
     DistributedDataFrame* v = dynamic_cast<DistributedDataFrame*>(ds.deserialize(val->data, kv_));
     size_t sum = 0;
-    for (size_t i = 0; i < 100*1000; ++i) sum += v->get_double(0,i);
+    for (size_t i = 0; i < 2*1000; ++i) sum += v->get_double(0,i);
     p("The sum is  ").pln(sum);
     DistributedDataFrame::fromScalar(verify, kv_, (int)sum);
   }
@@ -103,8 +103,11 @@ public:
     Deserializable ds;
     Value* verify_val = kv_->waitAndget(verify);
     Value* check_val = kv_->waitAndget(check);
+    std::cout << verify_val->serialize() << "\n";
+    std::cout << check_val->serialize() << "\n";
+    std::cout << "got both values\n";
     DistributedDataFrame* result = dynamic_cast<DistributedDataFrame*>(ds.deserialize(verify_val->data, kv_));
     DistributedDataFrame* expected = dynamic_cast<DistributedDataFrame*>(ds.deserialize(check_val->data, kv_));
-    pln(expected->get_double(0,0)==result->get_double(0,0) ? "SUCCESS":"FAILURE");
+    pln(expected->get_double(0,0)==result->get_int(0,0) ? "SUCCESS":"FAILURE");
   }
 };

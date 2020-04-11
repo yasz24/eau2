@@ -19,13 +19,27 @@ public:
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         char* serialData = JSONHelper::getValueFromKey("data", payload)->c_str();
         this->data = serialData;
-        // if(JSONHelper::isObject(serialData)) {
-        //     this->data = ds->deserialize(JSONHelper::getValueFromKey("data", payload)->c_str())->serialize();
-        // } else {
-        //     this->data = serialData;
-        // }
+        if(JSONHelper::isObject(serialData)) {
+            this->data = ds->deserialize(JSONHelper::getValueFromKey("data", payload)->c_str())->serialize();
+        } else {
+            this->data = serialData;
+        }
         this->length = std::stoi(JSONHelper::getValueFromKey("length", payload)->c_str());
     }
+
+     Value(char* serialized, KVStore* kv) {
+        Deserializable* ds = new Deserializable();
+        char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
+        char* serialData = JSONHelper::getValueFromKey("data", payload)->c_str();
+        this->data = serialData;
+        if(JSONHelper::isObject(serialData)) {
+            this->data = ds->deserialize(serialData, kv)->serialize();
+        } else {
+            this->data = serialData;
+        }
+        this->length = std::stoi(JSONHelper::getValueFromKey("length", payload)->c_str());
+    }
+
 
     size_t hash() {
         size_t hash = 0;
