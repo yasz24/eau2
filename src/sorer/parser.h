@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include "../utils/string.h"
 #include "../dataframe/dataframe.h"
+#include "../dataframe/distributedDataframe.h"
+#include "../dataframe/distributedRow.h"
 #include "../dataframe/row.h"
 #include "sorer_column.h"
 //adapted from euhlmann by Chev Eldrid and Yash Shetty
@@ -603,6 +605,58 @@ class SorParser : public Object {
         DataFrame* df = new DataFrame(*s);
         //now to populate with values...
         Row* r = new Row(*s);
+        for(int j = 0; j < _columns->getColumn(0)->getLength(); j++) {
+            //do the thing
+             for(int i = 0; i < _num_columns; i++) {
+                BaseColumn* thisColumn = _columns->getColumn(i);
+                switch (thisColumn->getType()) {
+                    case ColumnType::STRING: {
+                        SorerStringColumn* sc = dynamic_cast<SorerStringColumn*>(thisColumn);
+                        String* svalue = new String(sc->getEntry(j));
+                        r->set(i, svalue);
+                        break;
+                    }
+                    case ColumnType::INTEGER: {
+                        SorerIntegerColumn* ic = dynamic_cast<SorerIntegerColumn*>(thisColumn);
+                        int ivalue = ic->getEntry(j);
+                        r->set(i, ivalue);
+                        break;
+                    }
+                    case ColumnType::FLOAT: {
+                        SorerFloatColumn* fc = dynamic_cast<SorerFloatColumn*>(thisColumn);
+                        float fvalue = fc->getEntry(j);
+                        r->set(i, fvalue);
+                        break;
+                    }
+                    case ColumnType::BOOL: {
+                        SorerBoolColumn* bc = dynamic_cast<SorerBoolColumn*>(thisColumn);
+                        bool bvalue = bc->getEntry(j);
+                        r->set(i, bvalue);
+                        break;
+                    }
+                    default:
+                        assert(false);
+                }
+            }
+            df->add_row(*r);
+            //add row to df
+        }
+        return df;
+    }
+
+    DistributedDataFrame* getDistributedDataFrame(KVStore* kv) {
+        assert(_columns != nullptr);
+        //generate schema
+        StrBuff* sb = new StrBuff();
+        for(int i = 0; i < _num_columns; i++) {
+            sb->c(columnTypeToChar(_columns->getColumn(i)->getType()));
+        }
+        String* temp = sb->get();
+        Schema* s = new Schema(temp->c_str());
+        //create new DistributedDataFrame
+        DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
+        //now to populate with values...
+        DistributedRow* r = new DistributedRow(*s, kv);
         for(int j = 0; j < _columns->getColumn(0)->getLength(); j++) {
             //do the thing
              for(int i = 0; i < _num_columns; i++) {

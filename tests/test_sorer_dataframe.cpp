@@ -105,6 +105,17 @@ void testDataFrame() {
     system->OK("Passed Dataframe creation test");
 }
 
+void testDistributedDataFrame() {
+    Sys* system = new Sys();
+    Key uK("usrs");
+    KVStore* kv_ = new KVStore(1, 0);
+    // Parse arguments
+    const char* filename = "../data/data.sor";
+    DistributedDataFrame* df = DistributedDataFrame::fromFile(filename, &uK, kv_);
+    system->t_true(df->get_int(1,1) == 12);
+    system->t_true(df->get_string(2,0)->equals(new String("hi")));
+}
+
 void testSummationRower() {
     Sys* system = new Sys();
     // Parse arguments
@@ -154,6 +165,7 @@ void testSummationRower() {
 
 int main() {
     testDataFrame();
+    testDistributedDataFrame();
     testSummationRower();
     return 0;
 }
