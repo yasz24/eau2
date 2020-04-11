@@ -67,7 +67,6 @@ public:
 
     Schema(char* serialized) {
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
-         std::cout<< "Schema here\n";
         this->capacity_ = std::stoi(JSONHelper::getValueFromKey("capacity_", payload)->c_str());
         this->empty_index_ = std::stoi(JSONHelper::getValueFromKey("empty_index_", payload)->c_str());
         this->num_rows_ = std::stoi(JSONHelper::getValueFromKey("num_rows_", payload)->c_str());

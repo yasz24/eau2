@@ -67,8 +67,6 @@ public:
   Demo(size_t idx, NetworkIP* network): Application(idx, network) {}
  
   void run_() override {
-    std::cout << "in demo run\n";
-    std::cout << this_node() << "\n";
     switch(this_node()) {
     case 0:   producer();     break;
     case 1:   counter();      break;
@@ -78,7 +76,7 @@ public:
  
   void producer() {
     std::cout << "producer\n";
-    size_t SZ = 2*1000;
+    size_t SZ = 50*1000;
     double* vals = new double[SZ];
     double sum = 0;
     for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
@@ -93,7 +91,7 @@ public:
     //std::cout << "counter val: " << val->serialize() <<"\n";
     DistributedDataFrame* v = dynamic_cast<DistributedDataFrame*>(ds.deserialize(val->data, kv_));
     size_t sum = 0;
-    for (size_t i = 0; i < 2*1000; ++i) sum += v->get_double(0,i);
+    for (size_t i = 0; i < 50*1000; ++i) sum += v->get_double(0,i);
     p("The sum is  ").pln(sum);
     DistributedDataFrame::fromScalar(verify, kv_, (int)sum);
   }
@@ -105,7 +103,6 @@ public:
     Value* check_val = kv_->waitAndget(check);
     std::cout << verify_val->serialize() << "\n";
     std::cout << check_val->serialize() << "\n";
-    std::cout << "got both values\n";
     DistributedDataFrame* result = dynamic_cast<DistributedDataFrame*>(ds.deserialize(verify_val->data, kv_));
     DistributedDataFrame* expected = dynamic_cast<DistributedDataFrame*>(ds.deserialize(check_val->data, kv_));
     pln(expected->get_double(0,0)==result->get_int(0,0) ? "SUCCESS":"FAILURE");
