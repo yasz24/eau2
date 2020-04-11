@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include "../serialize/deserialize.h"
 
+class KVStore;
 class NodeInfo : public Object {
 public:
     size_t id;
@@ -19,8 +20,8 @@ public:
 class NetworkIP : public NetworkIfc {
 public:
     NodeInfo* nodes_;
-    size_t num_nodes_;
-    size_t this_node_;
+    size_t num_nodes_ = 1;
+    size_t this_node_ = 0;
     int sock_;
     sockaddr_in ip_;
     size_t msg_id = 0;
@@ -72,6 +73,7 @@ public:
         nodes_ = new NodeInfo[1];
         nodes_[0].id = 0;
         nodes_[0].address.sin_family = AF_INET;
+
         nodes_[0].address.sin_addr.s_addr = inet_addr(ip);
         nodes_[0].address.sin_port = htons(server_port);
         
@@ -88,13 +90,18 @@ public:
         for (size_t i = 0; i < num_nodes_; i++) {
             char* node_ip = ipd->addresses[i]->c_str();
             size_t node_port = ipd->ports[i];
-            std::cout << "Directory: node " << i << ", ip: " <<  node_ip << ", port: " << node_port << "\n";
             nodes[i].id = i;
             nodes[i].address.sin_family = AF_INET;
+            if (inet_pton(AF_INET, node_ip, &nodes[i].address.sin_addr) < 0) {
+                perror("Node storage:");
+            }
             nodes[i].address.sin_port = htons(node_port);
-            nodes[i].address.sin_addr.s_addr = inet_addr(node_ip);
+            int decoded_port = ntohs(nodes[i].address.sin_port);
+            char decoded_ip[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &nodes[i].address.sin_addr, decoded_ip, INET_ADDRSTRLEN);
+            std::cout << "Directory: node " << i << ", ip: " <<  decoded_ip << ", port: " << decoded_port << "\n";
+            //nodes[i].address.sin_addr.s_addr = inet_addr(node_ip);
         }
-        delete[] nodes;
         nodes_ = nodes;
         delete ipd;
     }
@@ -104,8 +111,8 @@ public:
         int opt =1;
         assert(setsockopt(sock_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt) == 0));
         ip_.sin_family = AF_INET;
-        ip_.sin_addr.s_addr = inet_addr(ip);
-        //inet_pton(AF_INET, ip, &ip_.sin_addr);
+        //ip_.sin_addr.s_addr = inet_addr(ip);
+        inet_pton(AF_INET, ip, &ip_.sin_addr);
         ip_.sin_port = htons(port);
         //int res = bind(sock_, (sockaddr*) &ip_, sizeof(ip_));
         if( bind(sock_, (sockaddr*) &ip_, sizeof(ip_)) < 0){
@@ -119,7 +126,9 @@ public:
     }
 
     void send_msg(Message* msg) {
-        NodeInfo &target = nodes_[msg->target()];
+        size_t target_node = msg->target();
+        //std::cout << "send msg target: " << target_node << "\n";
+        NodeInfo &target = nodes_[target_node];
         int server_port = ntohs(target.address.sin_port);
         char server_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &target.address.sin_addr, server_ip, INET_ADDRSTRLEN);
@@ -155,6 +164,24 @@ public:
         std::cout << "received msg: " << buf << "\n";
         Deserializable ds;
         Message* msg = dynamic_cast<Message*>(ds.deserialize(buf));
+        close(req);
+        return msg;
+    }
+
+      Message* recv_msg(KVStore* kv) {
+        sockaddr_in sender;
+        socklen_t addrlen = sizeof(sender);
+        int req = accept(sock_, (sockaddr*)&sender, &addrlen);
+        size_t size = 0;
+        read(req, &size, sizeof(size_t));
+        char* buf = new char[size];
+        int rd = 0;
+        while (rd != size) {
+            rd+= read(req, buf + rd, size - rd);
+        }
+        std::cout << "received msg: " << buf << "\n";
+        Deserializable ds;
+        Message* msg = dynamic_cast<Message*>(ds.deserialize(buf, kv));
         close(req);
         return msg;
     }

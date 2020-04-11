@@ -74,6 +74,7 @@ public:
       Deserializable* d = new Deserializable();
       char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
       Schema* sch = new Schema(JSONHelper::getValueFromKey("schema_", payload)->c_str());
+      std::cout<< "Dist Dataframe here\n";
       Array* cols = new Array(JSONHelper::getValueFromKey("cols_", payload)->c_str(), kv);
       this->schema_ = sch;
       this->cols_ = cols;
@@ -170,6 +171,7 @@ public:
       assert(col_type == 'D');
       //std::cout<< "get_double: " << this->cols_->get(col) << "\n";
       DistributedDoubleColumn* doubCol = dynamic_cast<DistributedDoubleColumn*>(this->cols_->get(col));
+      //std::cout << "get_double row: " << row << "length: "<< schema_->length() << "\n";
       assert(row < this->schema_->length());
       return doubCol->get(row);
     }
@@ -596,7 +598,33 @@ public:
       }
       DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
       df->add_column(dc, nullptr);
-      Value* val = new Value(df->serialize(), 0);
+      Value* val = new Value(df->serialize(), (size_t)0);
+      kv->put(key, val);
+      return df;
+    }
+
+    static DistributedDataFrame* fromScalar(Key* key, KVStore* kv, double scalar) {
+      Schema* s = new Schema(); 
+      DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv);
+      s->add_row(nullptr);
+      dc->push_back(scalar);
+      DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
+      df->add_column(dc, nullptr);
+      Value* val = new Value(df->serialize(), (size_t)0);
+      kv->put(key, val);
+      return df;
+    }
+
+    static DistributedDataFrame* fromScalar(Key* key, KVStore* kv, int scalar) {
+      Schema* s = new Schema(); 
+      DistributedIntColumn* dc = new DistributedIntColumn(kv);
+      s->add_row(nullptr);
+      dc->push_back(scalar);
+      DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
+      df->add_column(dc, nullptr);
+      char* serialized = df->serialize();
+      std::cout << "from scalar: " << serialized << "\n";
+      Value* val = new Value(serialized, (size_t)0);
       kv->put(key, val);
       return df;
     }
@@ -611,7 +639,7 @@ public:
         df->add_row(*row);
        // delete row;
       }
-      Value* val = new Value(df->serialize(), 0);
+      Value* val = new Value(df->serialize(), (size_t)0);
       kv->put(key, val);
       return df;
     }

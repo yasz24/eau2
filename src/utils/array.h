@@ -53,7 +53,7 @@ public:
 
     Array(char* serialized, KVStore* kv) {
         Deserializable* ds = new Deserializable();
-        //std::cout<<serialized<<"\n\n";
+        std::cout<< "Array here\n";
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         arraySize_ = std::stoi(JSONHelper::getValueFromKey("arraySize_", payload)->c_str());
         int len = std::stoi(JSONHelper::getValueFromKey("listLength_", payload)->c_str());
@@ -90,6 +90,15 @@ public:
         }
         hash_ = 0; //every time the array is
     }//necessary to extend array size that stores strings
+
+    int get(Object* o) {
+        for (size_t i = 0; i < listLength_; i++) {
+            if (objs_[i]->equals(o)) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
   virtual Object* get(size_t index) {
       if(listLength_ == 0 || index > listLength_-1) {

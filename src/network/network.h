@@ -187,6 +187,16 @@ public:
         key_ = new Key(JSONHelper::getValueFromKey("key_", payload)->c_str());
         value_ = new Value(JSONHelper::getValueFromKey("value_", payload)->c_str()); 
     }
+
+    Put(char* s, KVStore* kv) {
+        char* payload = JSONHelper::getPayloadValue(s)->c_str();
+        kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
+        sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
+        target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
+        id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+        key_ = new Key(JSONHelper::getValueFromKey("key_", payload)->c_str());
+        value_ = new Value(JSONHelper::getValueFromKey("value_", payload)->c_str(), kv); 
+    }
 };
 
 class Reply : public Message {
@@ -194,7 +204,7 @@ public:
     char* reply_msg_; // owned
 
     Reply(char* reply_msg, size_t sender, size_t target, size_t id) {
-        kind_ = (MsgKind)6; 
+        kind_ = (MsgKind)3; 
         sender_ = sender;
         target_ = target;
         id_ = id;
@@ -211,7 +221,11 @@ public:
         sb->write("sender_", sender_);
         sb->write("target_", target_);
         sb->write("id_", id_);
-        sb->write("msg_", reply_msg_);
+        if(JSONHelper::isObject(reply_msg_)) {
+            sb->write("msg_", reply_msg_, false);
+        } else {
+            sb->write("msg_", reply_msg_);
+        }
         sb->endSerialize();
         char* value = sb->get();
         delete sb;
@@ -219,11 +233,34 @@ public:
     }
     //Special constructor that given a serialized representation of an object of this class, generates a new one with the same data
     Reply(char* s) {
+        Deserializable* ds = new Deserializable();
         char* payload = JSONHelper::getPayloadValue(s)->c_str();
         kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
         sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
         target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
         id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+        char* serialData = JSONHelper::getValueFromKey("msg_", payload)->c_str();
+        if(JSONHelper::isObject(serialData)) {
+            reply_msg_ = ds->deserialize(serialData)->serialize();
+        } else {
+            reply_msg_ = serialData;
+        }
+        reply_msg_ = JSONHelper::getValueFromKey("msg_", payload)->c_str();
+    }
+
+     Reply(char* s, KVStore* kv) {
+        Deserializable* ds = new Deserializable();
+        char* payload = JSONHelper::getPayloadValue(s)->c_str();
+        kind_ = (enum MsgKind)std::stoi(JSONHelper::getValueFromKey("kind_", payload)->c_str());
+        sender_ = std::stoi(JSONHelper::getValueFromKey("sender_", payload)->c_str());
+        target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
+        id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
+        char* serialData = JSONHelper::getValueFromKey("msg_", payload)->c_str();
+        if(JSONHelper::isObject(serialData)) {
+            reply_msg_ = ds->deserialize(serialData, kv)->serialize();
+        } else {
+            reply_msg_ = serialData;
+        }
         reply_msg_ = JSONHelper::getValueFromKey("msg_", payload)->c_str();
     }
 };
@@ -300,6 +337,13 @@ public:
         target_ = std::stoi(JSONHelper::getValueFromKey("target_", payload)->c_str());
         id_ = std::stoi(JSONHelper::getValueFromKey("id_", payload)->c_str());
         key_ = new Key(JSONHelper::getValueFromKey("key_", payload)->c_str());
+    }
+
+    bool equals(Object* other) {
+        if (other == this) return true;
+        WaitAndGet* x = dynamic_cast<WaitAndGet *>(other);
+        if (x == nullptr) return false;
+        return this->key_->equals(x->key_);
     }
 };
 

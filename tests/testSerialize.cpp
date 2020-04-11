@@ -16,8 +16,8 @@
 
 //helper methods for testbuilding
 KVStore* tempStore() {
-    Value* v1 = new Value("muffin", 6);
-    Value* v3 = new Value("carrot", 6);
+    Value* v1 = new Value("muffin", (size_t)6);
+    Value* v3 = new Value("carrot", (size_t)6);
     Key* k1 = new Key("payload_1", 0);
     Key* k3 = new Key("payload_3", 0);
 
@@ -254,7 +254,9 @@ void testReplySerialization() {
     Sys* tester = new Sys();
     Reply ack("status", 1,2,3);
     char* msg_serialized = ack.serialize();
+    //std::cout << msg_serialized << "\n";
     Reply* msg_two = new Reply(msg_serialized);
+    //std::cout << msg_two->serialize() << "\n";
     tester->t_true(strcmp(msg_serialized, msg_two->serialize()) == 0);
     tester->OK("Passed Reply Serialization Tests");
     delete tester;
@@ -297,8 +299,8 @@ void testDirectorySerialization() {
 
 void testValueSerialization() {
     Sys* system = new Sys();
-    Value* v1 = new Value("muffin", 6);
-    Value* v3 = new Value("carrot", 6);
+    Value* v1 = new Value("muffin", (size_t)6);
+    Value* v3 = new Value("carrot", (size_t)6);
     char* serialized = v1->serialize();
     Value* v2 = new Value(serialized);
     system->t_true(v1->equals(v2));
@@ -570,8 +572,8 @@ void testApplication() {
 }
 
 void tryMap() {
-    Value* v1 = new Value("muffin", 6);
-    Value* v3 = new Value("carrot", 6);
+    Value* v1 = new Value("muffin", (size_t)6);
+    Value* v3 = new Value("carrot", (size_t)6);
     Key* k1 = new Key("payload_1", 0);
     Key* k3 = new Key("payload_1", 0);
     char* c1 =  "payload_1";
@@ -618,7 +620,6 @@ int main() {
     testDistributedStringColumn();
     testSchema();
     testDistributedDataframe();
-    //tryMap();
-    testApplication(); //currently fails
+    testApplication();
     return 0;
 }
