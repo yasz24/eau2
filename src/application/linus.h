@@ -6,6 +6,7 @@
 #include "setWriter.h"
 #include "projectsTagger.h"
 #include "usersTagger.h"
+#include "../sorer/parser.h"
 /*************************************************************************
  * This computes the collaborators of Linus Torvalds.
  * is the linus example using the adapter.  And slightly revised
@@ -36,6 +37,36 @@ public:
     for (size_t i = 0; i < DEGREES; i++) step(i);
   }
 
+  /**
+   * helper function to generate DistributedDataFrames from files: 
+   * a patchwork solution to deal with the circular
+   * depenency issue of having a parser class that generates a DistributedDataframe and a DistributedDataFrame method
+   * that returns a dataframe using that parser method. 
+   * 
+   * Some other ideas included changing parser.h and distributedDataframe.h to have .cpp files with implementation
+   * details but we believe that increase in complexity wasn't offset by the benefit of not having this helper
+   * 
+   */ 
+  DistributedDataFrame* getddfFromFile(const char* filename, Key* key, KVStore* kv) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+    printf("ERROR! Failed to open file\n");
+    return nullptr;
+    }
+    fseek(file, 0, SEEK_END);
+    size_t file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    //set argument defaults
+    SorParser parser{file, (size_t)0, file_size, file_size};
+
+    parser.guessSchema();
+    parser.parseFile();
+    DistributedDataFrame* df = parser.getDistributedDataFrame(kv);
+    Value* val = new Value(df->serialize(), (size_t)0);
+    kv->put(key, val);
+    return df;
+}
+
   /** Node 0 reads three files, containing projects, users and commits, and
    *  creates three dataframes. All other nodes wait and load the three
    *  dataframes. Once we know the size of users and projects, we create
@@ -48,11 +79,11 @@ public:
     Key cK("comts");
     if (index == 0) {
       pln("Reading...");
-      projects = DistributedDataFrame::fromFile(PROJ, pK.clone(), kv_);
+      projects = getddfFromFile(PROJ, pK.clone(), kv_);
       p("    ").p(projects->nrows()).pln(" projects");
-      users = DistributedDataFrame::fromFile(USER, uK.clone(), kv_);
+      users = getddfFromFile(USER, uK.clone(), kv_);
       p("    ").p(users->nrows()).pln(" users");
-      commits = DistributedDataFrame::fromFile(COMM, cK.clone(), kv_);
+      commits = getddfFromFile(COMM, cK.clone(), kv_);
        p("    ").p(commits->nrows()).pln(" commits");
        // This dataframe contains the id of Linus.
        delete DistributedDataFrame::fromScalar(new Key("users-0-0"), kv_, LINUS);

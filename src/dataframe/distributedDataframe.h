@@ -690,24 +690,4 @@ public:
       kv->put(key, val);
       return df;
     }
-
-    static DistributedDataFrame* fromFile(const char* filename, Key* key, KVStore* kv) {
-      
-      // FILE* file = fopen(filename, "r");
-      // if (file == NULL) {
-      //   printf("ERROR! Failed to open file\n");
-      //   return nullptr;
-      // }
-      // fseek(file, 0, SEEK_END);
-      // size_t file_size = ftell(file);
-      // fseek(file, 0, SEEK_SET);
-      // //set argument defaults
-      // SorParser parser{file, (size_t)0, file_size, file_size};
-      // parser.guessSchema();
-      // parser.parseFile();
-      // DistributedDataFrame* df = parser.getDistributedDataFrame(kv);
-      // Value* val = new Value(df->serialize(), (size_t)0);
-      // kv->put(key, val);
-      // return df;
-    }
 };
