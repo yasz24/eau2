@@ -15,6 +15,10 @@ public:
         this->node_ = node;
     }
 
+    Key(String* name) {
+        this->name_ = name;
+    }
+
     Key(char* serialized) {
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         this->name_ = new String(JSONHelper::getValueFromKey("name_", payload)->c_str());
@@ -53,6 +57,12 @@ public:
         sb->endSerialize();
         char* value = sb->get();
         return value;
+    }
+    //added for linus
+    Key* clone() {
+        Key* temp = new Key(name_->clone());
+        temp->node_ = node_;
+        return temp;
     }
 };
 

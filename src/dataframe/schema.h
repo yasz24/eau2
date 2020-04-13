@@ -125,6 +125,56 @@ public:
     }
 
     /**
+     * Started running into issues that will be addressed in the next sprint:
+     * having a const char* constructor AND a char* instructor that mean to entirely different things
+     * is, as you may have guessed, problematic. Until we can isolate all the effected code and switch it
+     * to this new String* constructor. The old one will remain.
+     * 
+     */  
+    Schema(String* typeString) {
+        char* types = typeString->c_str();
+        assert(types != nullptr);
+        bool schemaValid = true;
+        size_t types_len =  strlen(types);
+        //loop through character by character to validate schema.
+        for (size_t i = 0; i < types_len; i++)
+        {
+            char c = types[i];
+            //todo: find a better way to do this.
+            if (!this->valid_col_char_(c)) {
+                // the schema is invalid, create an empty schema.
+                schemaValid = false;
+                break;
+            }
+        }
+
+        if (schemaValid) {
+            if (this->capacity_ - 1 < types_len) {
+                this->capacity_ = 2 * types_len;
+            }
+            //allocate a buffer.
+            this->val_ = new char[this->capacity_ + 1];
+            for (size_t i=0; i < types_len; i++) {
+			    this->val_[i] = types[i];
+		    }
+            //set the empty_index_ to the length of types.
+            this->empty_index_ = types_len;
+        } else {
+            this->val_ = new char[this->capacity_ + 1];
+        }
+        //null terminate the string.
+        this->val_[this->capacity_] = '\0';
+
+        //initialize num_rows
+        this->num_rows_ = 0;
+        //initialize the row and col maps.
+        this->col_name_idx = new Map();
+        this->row_name_idx = new Map();
+        this->col_idx_name = new Map();
+        this->row_idx_name = new Map();
+    }
+
+    /**
      * Destructor.
     */
     ~Schema() {

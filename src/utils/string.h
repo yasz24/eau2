@@ -106,6 +106,16 @@ public:
         size_ = 0;
     }
 
+    //added for linus
+    StrBuff(const char* name) {
+        StrBuff* temp = new StrBuff();
+        temp->c(name);
+        val_ = temp->val_;
+        capacity_ = temp->capacity_;
+        size_ = temp->size_;
+        //delete [] temp
+    }
+
     void grow_by_(size_t step) {
         if (step + size_ < capacity_) return;
         capacity_ *= 2;

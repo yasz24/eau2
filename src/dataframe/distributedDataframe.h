@@ -420,6 +420,53 @@ public:
         return;
       }
     }
+
+     /** Add a distributed row at the end of this DistributedDataFrame. The row is expected to have
+     *  the right schema and be filled with values, otherwise no row information added to the DistributedDataFrame.  */
+    void add_row(DistributedRow& row) {
+      Schema* row_schema = row.get_schema();
+      bool schemas_equal = this->schema_->equals(row_schema);
+      delete row_schema;
+      if (schemas_equal) {
+        for (size_t i = 0; i < row.width(); i++) {
+            char col_type = this->schema_->col_type(i);
+            switch (col_type) {
+            case 'I': {
+                DistributedIntColumn* intCol = dynamic_cast<DistributedIntColumn*>(this->cols_->get(i));
+                intCol->push_back(row.get_int(i));
+                break;
+              }
+            case 'S': {
+                DistributedStringColumn* strCol = dynamic_cast<DistributedStringColumn*>(this->cols_->get(i));
+                strCol->push_back(row.get_string(i));
+                break;
+              }
+            case 'B': {
+                DistributedBoolColumn* boolCol = dynamic_cast<DistributedBoolColumn*>(this->cols_->get(i));
+                boolCol->push_back(row.get_bool(i));       
+                break;
+              }
+            case 'F': {
+                DistributedFloatColumn* floatCol = dynamic_cast<DistributedFloatColumn*>(this->cols_->get(i));
+                floatCol->push_back(row.get_float(i));  
+                break;
+              }
+            case 'D': {
+                DistributedDoubleColumn* doubleCol = dynamic_cast<DistributedDoubleColumn*>(this->cols_->get(i));
+                doubleCol->push_back(row.get_double(i));  
+                break;
+              }
+            default:
+              //do nothing.
+              break;
+            }
+        }
+        //update the schema with a new row.
+        this->schema_->add_row(nullptr);
+      } else {
+        return;
+      }
+    }
   
     /** The number of rows in the DistributedDataFrame. */
     size_t nrows() {
