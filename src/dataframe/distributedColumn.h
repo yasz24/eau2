@@ -115,10 +115,17 @@ class DistributedIntColumn : public Column {
         Value* val = kv_->get(key);
         Deserializable ds;
         IntArray* chunk = dynamic_cast<IntArray*>(ds.deserialize(val->data));
-        for (size_t j = 0; j < chunk->length(); i++) {
+        for (size_t j = 0; j < chunk->length(); j++) {
           col->push_back(chunk->get(j));
         }
         delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      IntArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
       }
     }
     return col;
@@ -224,10 +231,17 @@ class DistributedDoubleColumn : public Column {
         Value* val = kv_->get(key);
         Deserializable ds;
         DoubleArray* chunk = dynamic_cast<DoubleArray*>(ds.deserialize(val->data));
-        for (size_t j = 0; j < chunk->length(); i++) {
+        for (size_t j = 0; j < chunk->length(); j++) {
           col->push_back(chunk->get(j));
         }
         delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      DoubleArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
       }
     }
     return col;
@@ -336,10 +350,17 @@ class DistributedFloatColumn : public Column {
         Value* val = kv_->get(key);
         Deserializable ds;
         FloatArray* chunk = dynamic_cast<FloatArray*>(ds.deserialize(val->data));
-        for (size_t j = 0; j < chunk->length(); i++) {
+        for (size_t j = 0; j < chunk->length(); j++) {
           col->push_back(chunk->get(j));
         }
         delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      FloatArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
       }
     }
     return col;
@@ -446,10 +467,17 @@ class DistributedBoolColumn : public Column {
         Value* val = kv_->get(key);
         Deserializable ds;
         BoolArray* chunk = dynamic_cast<BoolArray*>(ds.deserialize(val->data));
-        for (size_t j = 0; j < chunk->length(); i++) {
+        for (size_t j = 0; j < chunk->length(); j++) {
           col->push_back(chunk->get(j));
         }
         delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      BoolArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
       }
     }
     return col;
@@ -556,10 +584,17 @@ class DistributedStringColumn : public Column {
         Value* val = kv_->get(key);
         Deserializable ds;
         StringArray* chunk = dynamic_cast<StringArray*>(ds.deserialize(val->data));
-        for (size_t j = 0; j < chunk->length(); i++) {
+        for (size_t j = 0; j < chunk->length(); j++) {
           col->push_back(chunk->get(j));
         }
         delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      StringArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
       }
     }
     return col;

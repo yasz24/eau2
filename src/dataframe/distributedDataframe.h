@@ -100,8 +100,11 @@ public:
         return;
       }
       size_t col_size = col->size();
-      if (col_size > this->schema_->length()) {
-        return;
+      // if (col_size > this->schema_->length()) {
+      //   return;
+      // }
+      if (schema_->num_rows_ == 0) {
+        schema_->num_rows_ = col_size;
       }
       char col_type = col->get_type();
       this->schema_->add_column(col_type, name);
@@ -506,7 +509,9 @@ public:
       delete row;
     }
 
-    //TODO: Add logic to make sure it only goes through one node!!!!!!!!!!!!!!!
+    /**
+     * Apply the reader to only the data on this node.
+    */
     void local_map(Reader& r) {
       //create a mini distributed dataframe from the larger dataframe
       Schema sch;
@@ -514,19 +519,22 @@ public:
 
       for (size_t i = 0; i < cols_->length(); i++) {
         Column* col = dynamic_cast<Column*>(cols_->get(i));
-        Column* local_col
+        Column* local_col = col->getColumnOnNode(); //a column that only contains data that lives on this node.
+        minidf.add_column(local_col, nullptr);
       }
       
+      //hopefully schema gets updated correctly here. check the numrows, schema_str!!!
       //create a new row.
-      Row* row = new Row(*this->schema_);
+      Row* row = new Row(minidf.get_schema());
       //apply the rower to each row.
-      for (size_t i = 0; i < this->schema_->length(); i++) {
-        this->fill_row(i, *row);
+      for (size_t i = 0; i < minidf.nrows(); i++) {
+        minidf.fill_row(i, *row);
         row->set_idx(i);
         r.visit(*row);
       }
       delete row;
     }
+
     /**
      * A multi-threaded map that divides the work of iterating over a DistributedDataFrame into two threads before combining their payload
      * In order to decrease the amount of code needed to be stored for the various threads, instead of sending the whole schema
@@ -644,14 +652,14 @@ public:
      }
 
     static DistributedDataFrame* fromArray(Key* key, KVStore* kv, size_t length, double* vals) {
-      Schema* s = new Schema();
+      Schema s;
       DistributedDoubleColumn* dc = new DistributedDoubleColumn(kv);
       for (size_t i = 0; i < length; i++) {
         //std::cout << i <<" in from array\n";
-        s->add_row(nullptr);
+        s.add_row(nullptr);
         dc->push_back(vals[i]);
       }
-      DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
+      DistributedDataFrame* df = new DistributedDataFrame(s, kv);
       df->add_column(dc, nullptr);
       Value* val = new Value(df->serialize(), (size_t)0);
       kv->put(key, val);
