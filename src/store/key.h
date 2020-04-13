@@ -17,6 +17,7 @@ public:
 
     Key(String* name) {
         this->name_ = name;
+        this->node_ = 0;
     }
 
     Key(char* serialized) {

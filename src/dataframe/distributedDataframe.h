@@ -508,6 +508,15 @@ public:
 
     //TODO: Add logic to make sure it only goes through one node!!!!!!!!!!!!!!!
     void local_map(Reader& r) {
+      //create a mini distributed dataframe from the larger dataframe
+      Schema sch;
+      DataFrame minidf(sch);
+
+      for (size_t i = 0; i < cols_->length(); i++) {
+        Column* col = dynamic_cast<Column*>(cols_->get(i));
+        Column* local_col
+      }
+      
       //create a new row.
       Row* row = new Row(*this->schema_);
       //apply the rower to each row.
