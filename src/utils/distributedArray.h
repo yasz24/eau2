@@ -133,7 +133,11 @@ class IntDistributedArray: public Object {
     */
   int set(size_t index, int val) {
       //new logic to check if current chunk
-        assert(index < itemCount_);
+       assert(index <= itemCount_);
+        if(index == itemCount_) {
+            pushBack(val);
+            return val;
+        }
         if(index/chunkSize_ == chunkCount_) {
             return chunkArray_->set(index % chunkSize_, val);
         }
@@ -346,7 +350,11 @@ class FloatDistributedArray: public Object {
     * Given an index, updates the value at that index
     */
   float set(size_t index, float val) {
-        assert(index < itemCount_);
+        assert(index <= itemCount_);
+        if(index == itemCount_) {
+            pushBack(val);
+            return val;
+        }
         if(index/chunkSize_ == chunkCount_) {
             return chunkArray_->set(index % chunkSize_, val);
         }
@@ -558,7 +566,11 @@ class StringDistributedArray: public Object {
     * Given an index, updates the value at that index
     */
   String* set(size_t index, String* val) {
-        assert(index < itemCount_);
+        assert(index <= itemCount_);
+        if(index == itemCount_) {
+            pushBack(val);
+            return val;
+        }
         if(index/chunkSize_ == chunkCount_) {
             return chunkArray_->set(index % chunkSize_, val);
         }
@@ -770,7 +782,11 @@ class BoolDistributedArray: public Object {
     * Given an index, updates the value at that index
     */
   bool set(size_t index, bool val) {
-        assert(index < itemCount_);
+        assert(index <= itemCount_);
+        if(index == itemCount_) {
+            pushBack(val);
+            return val;
+        }
         if(index/chunkSize_ == chunkCount_) {
             return chunkArray_->set(index % chunkSize_, val);
         }
@@ -984,7 +1000,11 @@ class DoubleDistributedArray: public Object {
     * Given an index, updates the value at that index
     */
     double set(size_t index, double val) {
-        assert(index < itemCount_);
+        assert(index <= itemCount_);
+        if(index == itemCount_) {
+            pushBack(val);
+            return val;
+        }
         if(index/chunkSize_ == chunkCount_) {
             return chunkArray_->set(index % chunkSize_, val);
         }

@@ -105,15 +105,35 @@ void testDataFrame() {
     system->OK("Passed Dataframe creation test");
 }
 
+DistributedDataFrame* getddfFromFile(const char* filename, Key* key, KVStore* kv) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+    printf("ERROR! Failed to open file\n");
+    return nullptr;
+    }
+    fseek(file, 0, SEEK_END);
+    size_t file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    //set argument defaults
+    SorParser parser{file, (size_t)0, file_size, file_size};
+
+    parser.guessSchema();
+    parser.parseFile();
+    DistributedDataFrame* df = parser.getDistributedDataFrame(kv);
+    return df;
+}
+
 void testDistributedDataFrame() {
+    
     Sys* system = new Sys();
-    Key uK("usrs");
+    Key uK(new String("usrs"));
     KVStore* kv_ = new KVStore(1, 0);
     // Parse arguments
     const char* filename = "../data/data.sor";
-    DistributedDataFrame* df = DistributedDataFrame::fromFile(filename, &uK, kv_);
+    DistributedDataFrame* df = getddfFromFile(filename, &uK, kv_);
     system->t_true(df->get_int(1,1) == 12);
     system->t_true(df->get_string(2,0)->equals(new String("hi")));
+    system->OK("passed test Distributed Dataframe");
 }
 
 void testSummationRower() {
@@ -164,8 +184,8 @@ void testSummationRower() {
 }
 
 int main() {
-    testDataFrame();
+    //testDataFrame();
     testDistributedDataFrame();
-    testSummationRower();
+    //testSummationRower();
     return 0;
 }

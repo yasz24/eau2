@@ -14,6 +14,7 @@
 /**
  * The maximum allowed length for string columns.
  */
+
 constexpr const size_t MAX_STRING = 255;
 
 /**
@@ -651,8 +652,9 @@ class SorParser : public Object {
         for(int i = 0; i < _num_columns; i++) {
             sb->c(columnTypeToChar(_columns->getColumn(i)->getType()));
         }
+        
         String* temp = sb->get();
-        Schema* s = new Schema(temp->c_str());
+        Schema* s = new Schema(temp);
         //create new DistributedDataFrame
         DistributedDataFrame* df = new DistributedDataFrame(*s, kv);
         //now to populate with values...
