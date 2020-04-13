@@ -125,10 +125,13 @@ public:
         this->row_idx_name = new Map();
     }
 
-    /** Create a schema from a string of types. A string that contains
-        * characters other than those identifying the four type results in
-        * undefined behavior. The argument is external, a nullptr argument 
-        * breaks the program. **/
+    /**
+     * Started running into issues that will be addressed in the next sprint:
+     * having a const char* constructor AND a char* instructor that mean to entirely different things
+     * is, as you may have guessed, problematic. Until we can isolate all the effected code and switch it
+     * to this new String* constructor. The old one will remain.
+     * 
+     */  
     Schema(String* typeString) {
         char* types = typeString->c_str();
         assert(types != nullptr);
