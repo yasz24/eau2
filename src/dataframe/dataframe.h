@@ -115,8 +115,11 @@ public:
         return;
       }
       size_t col_size = col->size();
-      if (col_size > this->schema_->length()) {
-        return;
+      // if (col_size > this->schema_->length()) {
+      //   return;
+      // }
+      if (schema_->num_rows_ == 0) {
+        schema_->num_rows_ = col_size;
       }
       char col_type = col->get_type();
       this->schema_->add_column(col_type, name);

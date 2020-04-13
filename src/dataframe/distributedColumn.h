@@ -101,6 +101,35 @@ class DistributedIntColumn : public Column {
     char* value = sb.get();
     return value;
   }
+
+  /**
+   * Build and return a non-distributed Column containing data from chunks that live in the local kv_store.
+  */
+  Column* getColumnOnNode() override {
+    size_t _node = kv_->this_node_;
+    IntColumn* col = new IntColumn();
+    Array* keys = val_->keys_;
+    for (size_t i = 0; i < keys->length(); i++) {
+      Key* key = dynamic_cast<Key*>(val_->keys_->get(i));
+      if (key->node_ == _node) { //only get the chunks that live locally on this node.
+        Value* val = kv_->get(key);
+        Deserializable ds;
+        IntArray* chunk = dynamic_cast<IntArray*>(ds.deserialize(val->data));
+        for (size_t j = 0; j < chunk->length(); j++) {
+          col->push_back(chunk->get(j));
+        }
+        delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      IntArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
+      }
+    }
+    return col;
+  }
 };
 /*************************************************************************
  * DistributedDoubleColumn::
@@ -187,6 +216,35 @@ class DistributedDoubleColumn : public Column {
     char* value = sb->get();
     delete sb;
     return value;
+  }
+
+  /**
+   * Build and return a non-distributed Column containing data from chunks that live in the local kv_store.
+  */
+  Column* getColumnOnNode() override {
+    size_t _node = kv_->this_node_;
+    DoubleColumn* col = new DoubleColumn();
+    Array* keys = val_->keys_;
+    for (size_t i = 0; i < keys->length(); i++) {
+      Key* key = dynamic_cast<Key*>(val_->keys_->get(i));
+      if (key->node_ == _node) { //only get the chunks that live locally on this node.
+        Value* val = kv_->get(key);
+        Deserializable ds;
+        DoubleArray* chunk = dynamic_cast<DoubleArray*>(ds.deserialize(val->data));
+        for (size_t j = 0; j < chunk->length(); j++) {
+          col->push_back(chunk->get(j));
+        }
+        delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      DoubleArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
+      }
+    }
+    return col;
   }
 };
 /*************************************************************************
@@ -278,6 +336,35 @@ class DistributedFloatColumn : public Column {
     delete sb;
     return value;
   }
+
+  /**
+   * Build and return a non-distributed Column containing data from chunks that live in the local kv_store.
+  */
+  Column* getColumnOnNode() override {
+    size_t _node = kv_->this_node_;
+    FloatColumn* col = new FloatColumn();
+    Array* keys = val_->keys_;
+    for (size_t i = 0; i < keys->length(); i++) {
+      Key* key = dynamic_cast<Key*>(val_->keys_->get(i));
+      if (key->node_ == _node) { //only get the chunks that live locally on this node.
+        Value* val = kv_->get(key);
+        Deserializable ds;
+        FloatArray* chunk = dynamic_cast<FloatArray*>(ds.deserialize(val->data));
+        for (size_t j = 0; j < chunk->length(); j++) {
+          col->push_back(chunk->get(j));
+        }
+        delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      FloatArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
+      }
+    }
+    return col;
+  }
 };
 /*************************************************************************
  * DistributedBoolColumn::
@@ -366,6 +453,35 @@ class DistributedBoolColumn : public Column {
     delete sb;
     return value;
   }
+
+  /**
+   * Build and return a non-distributed Column containing data from chunks that live in the local kv_store.
+  */
+  Column* getColumnOnNode() override {
+    size_t _node = kv_->this_node_;
+    BoolColumn* col = new BoolColumn();
+    Array* keys = val_->keys_;
+    for (size_t i = 0; i < keys->length(); i++) {
+      Key* key = dynamic_cast<Key*>(val_->keys_->get(i));
+      if (key->node_ == _node) { //only get the chunks that live locally on this node.
+        Value* val = kv_->get(key);
+        Deserializable ds;
+        BoolArray* chunk = dynamic_cast<BoolArray*>(ds.deserialize(val->data));
+        for (size_t j = 0; j < chunk->length(); j++) {
+          col->push_back(chunk->get(j));
+        }
+        delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      BoolArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
+      }
+    }
+    return col;
+  }
 };
 /*************************************************************************
  * DistributedStringColumn::
@@ -453,5 +569,34 @@ class DistributedStringColumn : public Column {
     char* value = sb->get();
     delete sb;
     return value;
+  }
+
+  /**
+   * Build and return a non-distributed Column containing data from chunks that live in the local kv_store.
+  */
+  Column* getColumnOnNode() override {
+    size_t _node = kv_->this_node_;
+    StringColumn* col = new StringColumn();
+    Array* keys = val_->keys_;
+    for (size_t i = 0; i < keys->length(); i++) {
+      Key* key = dynamic_cast<Key*>(val_->keys_->get(i));
+      if (key->node_ == _node) { //only get the chunks that live locally on this node.
+        Value* val = kv_->get(key);
+        Deserializable ds;
+        StringArray* chunk = dynamic_cast<StringArray*>(ds.deserialize(val->data));
+        for (size_t j = 0; j < chunk->length(); j++) {
+          col->push_back(chunk->get(j));
+        }
+        delete chunk;
+      }
+    }
+    //if node 0, append the chunk_array_ at the end too.
+    if (_node == 0) {
+      StringArray* chunk_array = val_->chunkArray_;
+      for (size_t j = 0; j < chunk_array->length(); j++) {
+          col->push_back(chunk_array->get(j));
+      }
+    }
+    return col;
   }
 };

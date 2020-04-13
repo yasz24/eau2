@@ -42,7 +42,8 @@ public:
   /** Performs set union in place. */
   void union_(Set& from) {
     for (size_t i = 0; i < from.size_; i++) 
-      if (from.test(i))
-	set(i);
-  }
+      if (from.test(i)) {
+	      set(i);
+      }
+    }
 };

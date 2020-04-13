@@ -1,6 +1,7 @@
 #pragma once
 #include "../utils/set.h"
 #include "application.h"
+#include "../network/network_ip.h"
 //new stuff
 #include "setUpdater.h"
 #include "setWriter.h"
@@ -26,7 +27,7 @@ public:
   Set* pSet; // projects of collaborators
 
     //actual constructor
-    //Linus(size_t idx, NetworkIfc& net): Application(idx, net) {}
+    Linus(size_t idx, NetworkIP* net): Application(idx, net) {}
 
     //cheapo constructer
     Linus(size_t idx) : Application(idx) {}
@@ -130,14 +131,14 @@ public:
    */ 
   void merge(Set& set, char const* name, int stage) {
     if (this_node() == 0) {
-      for (size_t i = 1; i < arg.num_nodes; ++i) {
-	Key* nK = new Key(StrBuff(name).c(stage).c("-").c(i).get());
-	DistributedDataFrame* delta = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(nK));
-	p("    received delta of ").p(delta->nrows())
-	  .p(" elements from node ").pln(i);
-	SetUpdater upd(set);
-	delta->map(upd);
-	delete delta;
+      for (size_t i = 1; i < kv_->num_nodes_; ++i) {
+        Key* nK = new Key(StrBuff(name).c(stage).c("-").c(i).get());
+        DistributedDataFrame* delta = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(nK));
+        p("    received delta of ").p(delta->nrows())
+          .p(" elements from node ").pln(i);
+        SetUpdater upd(set);
+        delta->map(upd);
+        delete delta;
       }
       p("    storing ").p(set.size()).pln(" merged elements");
       SetWriter* writer = new SetWriter(set);
@@ -146,16 +147,10 @@ public:
     } else {
       p("    sending ").p(set.size()).pln(" elements to master node");
       SetWriter* writer = new SetWriter(set);
-    //expanded key naming - old one had some weird casting issues....
-        StrBuff* temp = new StrBuff(name);
-        temp->c(stage);
-        temp->c("-0");
-        String* keyName = temp->get();
-        Key k(keyName);
-    //  Key k(StrBuff(name).c(stage).c("-").c(index).get());
-      delete DistributedDataFrame::fromVisitor(&k, kv_, "I", writer);
-      Key* mK = new Key(keyName);
-      DistributedDataFrame* merged = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(mK));
+      Key k(StrBuff(name).c(stage).c("-").c(this_node()).get()); // lives on node 0?
+      delete DistributedDataFrame::fromVisitor(&k, kv_, "I", writer); // where the send "happens"
+      Key mK(StrBuff(name).c(stage).c("-0").get());
+      DistributedDataFrame* merged = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&mK));
       p("    receiving ").p(merged->nrows()).pln(" merged elements");
       SetUpdater upd(set);
       merged->map(upd);

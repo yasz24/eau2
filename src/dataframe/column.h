@@ -40,7 +40,11 @@ class Column : public Object {
   virtual DistributedBoolColumn*  as_dist_bool() = 0;
   virtual DistributedFloatColumn* as_dist_float() = 0;
   virtual DistributedStringColumn* as_dist_string() = 0;
- 
+
+  virtual Column* getColumnOnNode() {
+    return this;
+  } 
+  
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
   virtual void push_back(int val) = 0;
