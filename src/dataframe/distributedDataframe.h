@@ -663,7 +663,6 @@ public:
       df->add_column(dc, nullptr);
       Value* val = new Value(df->serialize(), (size_t)0);
       kv->put(key, val);
-      std::cout << "fromArray: " << df->serialize() << "\n";
       return df;
     }
 
@@ -676,7 +675,6 @@ public:
       df->add_column(dc, nullptr);
       Value* val = new Value(df->serialize(), (size_t)0);
       kv->put(key, val);
-      std::cout << "fromScalar: " << df->serialize() << "\n";
       return df;
     }
 
@@ -690,7 +688,6 @@ public:
       char* serialized = df->serialize();
       Value* val = new Value(serialized, (size_t)0);
       kv->put(key, val);
-      std::cout << "fromScalar: " << serialized << "\n";
       return df;
     }
 
