@@ -1,6 +1,7 @@
 //lang::CwC
 #pragma once
 #include "../src/application/wordCount.h"
+#include "../src/network/network_ip.h"
 #include "../src/dataframe/distributedDataframe.h"
 #include <iostream>
 
@@ -12,7 +13,8 @@
 * to show of the 100k in a single node environment
 */
 void test() {
-    WordCount wc = WordCount(0, "100k.txt", 1);
+    NetworkIP network;
+    WordCount wc = WordCount(0, &network,"100k.txt", 1);
     wc.run_();
 }
 

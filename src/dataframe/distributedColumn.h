@@ -28,6 +28,7 @@ class DistributedIntColumn : public Column {
 
 
   DistributedIntColumn(char* serialized, KVStore* kv) {
+    kv_ = kv;
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
     this->val_ = new IntDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
@@ -146,6 +147,7 @@ class DistributedDoubleColumn : public Column {
   };
 
   DistributedDoubleColumn(char* serialized, KVStore* kv) {
+    kv_ = kv;
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
     this->val_ = new DoubleDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
@@ -262,6 +264,7 @@ class DistributedFloatColumn : public Column {
   };
 
   DistributedFloatColumn(char* serialized, KVStore* kv) {
+    kv_ = kv;
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
     this->val_ = new FloatDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
@@ -381,6 +384,7 @@ class DistributedBoolColumn : public Column {
   };
 
   DistributedBoolColumn(char* serialized, KVStore* kv) {
+    kv_ = kv;
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
     this->val_ = new BoolDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
@@ -499,6 +503,7 @@ class DistributedStringColumn : public Column {
   };
 
   DistributedStringColumn(char* serialized, KVStore* kv) {
+    kv_ = kv;
     char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
     this->val_ = new StringDistributedArray(JSONHelper::getValueFromKey("val_", payload)->c_str(), kv);
   }
@@ -578,9 +583,11 @@ class DistributedStringColumn : public Column {
     size_t _node = kv_->this_node_;
     StringColumn* col = new StringColumn();
     Array* keys = val_->keys_;
+    // std::cout << "keys length: " << keys->length() << "\n";
     for (size_t i = 0; i < keys->length(); i++) {
       Key* key = dynamic_cast<Key*>(val_->keys_->get(i));
       if (key->node_ == _node) { //only get the chunks that live locally on this node.
+        // std::cout << "here\n";
         Value* val = kv_->get(key);
         Deserializable ds;
         StringArray* chunk = dynamic_cast<StringArray*>(ds.deserialize(val->data));

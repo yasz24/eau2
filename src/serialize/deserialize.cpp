@@ -120,8 +120,6 @@
             return new DistributedBoolColumn(s, kv);
         } else if(0 == strncmp(className, "DistributedStringColumn", strlen(className))) {
             return new DistributedStringColumn(s, kv);
-        } else if(0 == strncmp(className, "DistributedDataFrame", strlen(className))) {
-            return new DistributedDataFrame(s, kv);
         } else if(0 == strncmp(className,"IntArray", strlen(className))) {
             return new IntArray(s);
         } else if(0 == strncmp(className,"FloatArray", strlen(className))) {

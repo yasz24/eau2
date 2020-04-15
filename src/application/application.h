@@ -19,11 +19,6 @@ public:
         this_node_ = idx;
         kv_ = new KVStore(network->num_nodes_, idx, network);
     }
-    //Legacy single-node constructor. Currently used in WordCount app, hoping to phase out
-    Application(size_t idx) {
-        this_node_ = idx;
-        kv_ = new KVStore(1, idx);
-    }
 
     void start_kv() {
       kv_->start();

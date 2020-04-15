@@ -75,6 +75,7 @@ public:
       char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
       Schema* sch = new Schema(JSONHelper::getValueFromKey("schema_", payload)->c_str());
       Array* cols = new Array(JSONHelper::getValueFromKey("cols_", payload)->c_str(), kv);
+      this->kv_ = kv;
       this->schema_ = sch;
       this->cols_ = cols;
     }
@@ -516,7 +517,6 @@ public:
       //create a mini distributed dataframe from the larger dataframe
       Schema sch;
       DataFrame minidf(sch);
-
       for (size_t i = 0; i < cols_->length(); i++) {
         Column* col = dynamic_cast<Column*>(cols_->get(i));
         Column* local_col = col->getColumnOnNode(); //a column that only contains data that lives on this node.
