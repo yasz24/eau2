@@ -29,8 +29,6 @@ public:
     //actual constructor
     Linus(size_t idx, NetworkIP* net): Application(idx, net) {}
 
-    //cheapo constructer
-    Linus(size_t idx) : Application(idx) {}
 
   /** Compute DEGREES of Linus.  */
   void run_() override {
