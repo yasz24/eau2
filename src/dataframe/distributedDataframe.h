@@ -499,8 +499,7 @@ public:
     /** Visit rows in order for a reader - NOT a rower*/
     void map(Reader& r) {
       //create a new row.
-      Row* row = new Row(*this->schema_);
-
+      Row* row = new Row(*schema_);
       //apply the rower to each row.
       for (size_t i = 0; i < this->schema_->length(); i++) {
         this->fill_row(i, *row);

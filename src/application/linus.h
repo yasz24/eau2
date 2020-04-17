@@ -17,9 +17,9 @@ class Linus : public Application {
 public:
   int DEGREES = 4;  // How many degrees of separation form linus?
   int LINUS = 4967;   // The uid of Linus (offset in the user df)
-  const char* PROJ = "datasets/projects.ltgt";
-  const char* USER = "datasets/users.ltgt";
-  const char* COMM = "datasets/commits.ltgt";
+  const char* PROJ = "../src/application/projects.ltgt";
+  const char* USER = "../src/application/users.ltgt";
+  const char* COMM = "../src/application/commits.ltgt";
   DistributedDataFrame* projects; //  pid x project name
   DistributedDataFrame* users;  // uid x user name
   DistributedDataFrame* commits;  // pid x uid x uid 
@@ -33,6 +33,7 @@ public:
   /** Compute DEGREES of Linus.  */
   void run_() override {
     readInput();
+    pln("read input...");
     for (size_t i = 0; i < DEGREES; i++) step(i);
   }
 
@@ -47,6 +48,7 @@ public:
    * 
    */ 
   DistributedDataFrame* getddfFromFile(const char* filename, Key* key, KVStore* kv) {
+    std::cout<<"filename: "<<filename<<"\n";
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
     printf("ERROR! Failed to open file\n");
@@ -73,11 +75,10 @@ public:
    *  'tagged' users. At this point the dataframe consists of only
    *  Linus. **/
   void readInput() {
-    Key pK("projs");
-    Key uK("usrs");
-    Key cK("comts");
-    if (index == 0) {
-      pln("Reading...");
+    Key pK("projs", this_node_);
+    Key uK("usrs", this_node_);
+    Key cK("comts", this_node_);
+    if (this_node_ == 0) {
       projects = getddfFromFile(PROJ, pK.clone(), kv_);
       p("    ").p(projects->nrows()).pln(" projects");
       users = getddfFromFile(USER, uK.clone(), kv_);
@@ -85,7 +86,7 @@ public:
       commits = getddfFromFile(COMM, cK.clone(), kv_);
        p("    ").p(commits->nrows()).pln(" commits");
        // This dataframe contains the id of Linus.
-       delete DistributedDataFrame::fromScalar(new Key("users-0-0"), kv_, LINUS);
+       delete DistributedDataFrame::fromScalar(new Key("users-0-0", this_node_), kv_, LINUS);
     } else {
        projects = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&pK));
        users = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&uK));
@@ -103,9 +104,10 @@ public:
     // Key of the shape: users-stage-0
     Key uK(StrBuff("users-").c(stage).c("-0").get());
     // A df with all the users added on the previous round
-    DistributedDataFrame* newUsers = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&uK));    
+    DistributedDataFrame* newUsers = new DistributedDataFrame(kv_->waitAndget(&uK)->data, kv_);    
+    pln(newUsers->schema_->val_);
     Set delta(users);
-    SetUpdater upd(delta);  
+    SetUpdater upd(delta);
     newUsers->map(upd); // all of the new users are copied to delta.
     delete newUsers;
     ProjectsTagger ptagger(delta, *pSet, projects);
@@ -131,7 +133,7 @@ public:
     if (this_node() == 0) {
       for (size_t i = 1; i < kv_->num_nodes_; ++i) {
         Key* nK = new Key(StrBuff(name).c(stage).c("-").c(i).get());
-        DistributedDataFrame* delta = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(nK));
+        DistributedDataFrame* delta = new DistributedDataFrame(kv_->waitAndget(nK)->data, kv_);
         p("    received delta of ").p(delta->nrows())
           .p(" elements from node ").pln(i);
         SetUpdater upd(set);
@@ -148,7 +150,7 @@ public:
       Key k(StrBuff(name).c(stage).c("-").c(this_node()).get()); // lives on node 0?
       delete DistributedDataFrame::fromVisitor(&k, kv_, "I", writer); // where the send "happens"
       Key mK(StrBuff(name).c(stage).c("-0").get());
-      DistributedDataFrame* merged = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&mK));
+      DistributedDataFrame* merged = new DistributedDataFrame(kv_->waitAndget(&mK)->data, kv_);
       p("    receiving ").p(merged->nrows()).pln(" merged elements");
       SetUpdater upd(set);
       merged->map(upd);
