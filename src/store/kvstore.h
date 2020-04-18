@@ -44,7 +44,8 @@ public:
         this->this_node_ = std::stoi(JSONHelper::getValueFromKey("this_node_", payload)->c_str());
     }
 
-    bool put(Key* key, Value* value) {
+    bool put(Key* k, Value* value) {
+        Key *key = k->clone();
         store_mtx_.lock(); //acquire lock ownership
         //std::cout << "KV " << this_node_ <<" put: " << "\nkey: " << key->serialize() << "\nval:" << value->serialize() << "\n";
         size_t target = key->node();
