@@ -7,7 +7,7 @@
 //todo: write hash, equals.
 class Key : public Object{
 public:
-    String name_; //owned
+    String* name_; //owned
     size_t node_; 
 
     Key(char* name, size_t node) {
