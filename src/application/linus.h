@@ -17,9 +17,9 @@ class Linus : public Application {
 public:
   int DEGREES = 4;  // How many degrees of separation form linus?
   int LINUS = 4967;   // The uid of Linus (offset in the user df)
-  const char* PROJ = "../src/application/projects.ltgt";
-  const char* USER = "../src/application/users.ltgt";
-  const char* COMM = "../src/application/commits.ltgt";
+  const char* PROJ = "../data/projects_subset.ltgt";
+  const char* USER = "../data/users_subset.ltgt";
+  const char* COMM = "../data/commits_subset.ltgt";
   DistributedDataFrame* projects; //  pid x project name
   DistributedDataFrame* users;  // uid x user name
   DistributedDataFrame* commits;  // pid x uid x uid 
@@ -104,8 +104,10 @@ public:
     // Key of the shape: users-stage-0
     Key uK(StrBuff("users-").c(stage).c("-0").get());
     // A df with all the users added on the previous round
-    DistributedDataFrame* newUsers = new DistributedDataFrame(kv_->waitAndget(&uK)->data, kv_);    
-    pln(newUsers->schema_->val_);
+    //std::cout << kv_->waitAndget(&uK)->data << "\n";
+    DistributedDataFrame* newUsers = new DistributedDataFrame(kv_->waitAndget(&uK)->data, kv_);
+    std::cout<< "here\n";    
+    //pln(newUsers->schema_->val_);
     Set delta(users);
     SetUpdater upd(delta);
     newUsers->map(upd); // all of the new users are copied to delta.

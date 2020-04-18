@@ -700,6 +700,9 @@ public:
         df->add_row(*row);
        // delete row;
       }
+      std::cout << "key: " << key->serialize() << "\n";
+      char* serialized = df->serialize();
+      std::cout << "from visitor: "<< serialized << "\n";
       Value* val = new Value(df->serialize(), (size_t)0);
       kv->put(key, val);
       return df;

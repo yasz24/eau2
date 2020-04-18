@@ -21,7 +21,7 @@ class Row : public Object {
   //row is an array of cols of size 1.
   /** Build a row following a schema. */
   Row(Schema& scm) {
-    std::cout<<scm.val_<<"\n";
+    //std::cout<<scm.val_<<"\n";
     val_ = new Column*[scm.width()];
     schema = scm;
     

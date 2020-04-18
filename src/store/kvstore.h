@@ -50,6 +50,7 @@ public:
         size_t target = key->node();
         bool res = true;
         if (target == this->this_node_) {
+            //std::cout << "KV " << this_node_ <<" put: " << "\nkey: " << key->serialize() << "\nval:" << value->serialize() << "\n";
             local_store_.insert(std::pair<Key*, Value*>(key, value));
         } else {
             Put put(key, value, this_node_, target, network_->msg_id);
@@ -136,9 +137,11 @@ public:
         size_t node = key->node();
         Value* val = nullptr;
         if (node == this->this_node_) {
+            std::cout << "waitAndget: trying to find key: " << key->serialize() << "\n"; 
             std::map<Key*, Value*, KeyCompare>::iterator iter;
             iter = local_store_.find(key);
             if (iter != local_store_.end()) {
+                std::cout << "waitAndget: found key: " << key->serialize() << "\n"; 
                 val = iter->second;
             } else {
                 wait_for_key_ = key;
