@@ -69,7 +69,9 @@ public:
 
 struct KeyCompare {
     bool operator() (const Key* k1, const Key* k2) const {
+        std::cout << k2 << "\n";
         std::cout << k2->name_->c_str() << "\n";
+        std::cout << k1 << "\n";
         std::cout << k1->name_->c_str() << "\n";
        std::cout << "operator" << " key1: " << k1->name_->c_str() << " key2: " << k2->name_->c_str() << "\n";
        if (strcmp(k1->name_->c_str(), k2->name_->c_str()) < 0) {

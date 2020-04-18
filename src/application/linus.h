@@ -102,7 +102,7 @@ public:
   void step(int stage) {
     p("Stage ").pln(stage);
     // Key of the shape: users-stage-0
-    Key uK(StrBuff("users-").c(stage).c("-0").get());
+    Key uK(StrBuff("users-").c(stage).c("-0").get()->c_str(), this_node_);
     // A df with all the users added on the previous round
     //std::cout << kv_->waitAndget(&uK)->data << "\n";
     DistributedDataFrame* newUsers = new DistributedDataFrame(kv_->waitAndget(&uK)->data, kv_);
@@ -134,7 +134,7 @@ public:
   void merge(Set& set, char const* name, int stage) {
     if (this_node() == 0) {
       for (size_t i = 1; i < kv_->num_nodes_; ++i) {
-        Key* nK = new Key(StrBuff(name).c(stage).c("-").c(i).get());
+        Key* nK = new Key(StrBuff(name).c(stage).c("-").c(i).get()->c_str(), this_node_);
         DistributedDataFrame* delta = new DistributedDataFrame(kv_->waitAndget(nK)->data, kv_);
         p("    received delta of ").p(delta->nrows())
           .p(" elements from node ").pln(i);
@@ -144,14 +144,14 @@ public:
       }
       p("    storing ").p(set.size()).pln(" merged elements");
       SetWriter* writer = new SetWriter(set);
-      Key k(StrBuff(name).c(stage).c("-0").get());
+      Key k(StrBuff(name).c(stage).c("-0").get()->c_str(), this_node_);
       delete DistributedDataFrame::fromVisitor(&k, kv_, "I", writer);
     } else {
       p("    sending ").p(set.size()).pln(" elements to master node");
       SetWriter* writer = new SetWriter(set);
-      Key k(StrBuff(name).c(stage).c("-").c(this_node()).get()); // lives on node 0?
+      Key k(StrBuff(name).c(stage).c("-").c(this_node()).get()->c_str(), this_node_); // lives on node 0?
       delete DistributedDataFrame::fromVisitor(&k, kv_, "I", writer); // where the send "happens"
-      Key mK(StrBuff(name).c(stage).c("-0").get());
+      Key mK(StrBuff(name).c(stage).c("-0").get()->c_str(), this_node_);
       DistributedDataFrame* merged = new DistributedDataFrame(kv_->waitAndget(&mK)->data, kv_);
       p("    receiving ").p(merged->nrows()).pln(" merged elements");
       SetUpdater upd(set);
