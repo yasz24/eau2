@@ -14,6 +14,8 @@ public:
   /** Assume a row with at least one column of type I. Assumes that there
    * are no missing. Reads the value and sets the corresponding position.
    * The return value is irrelevant here. */
-  bool visit(Row & row) { set_.set(row.get_int(0));  return false; }
-
+  bool visit(Row & row) { 
+    set_.set(row.get_int(0));  
+    return false; 
+  }
 };

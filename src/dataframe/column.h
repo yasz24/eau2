@@ -150,7 +150,7 @@ class IntColumn : public Column {
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
   void push_back(int val) {
-    if(arraySize_*val_->length() >= listLength_ - 1) {
+    if (listLength_  >= ((arraySize_* val_->length()))) {
       val_->pushBack(new IntArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;
@@ -287,7 +287,7 @@ class DoubleColumn : public Column {
   /** Type appropriate push_back methods. Calling the wrong method results
     * in no data change. **/
   void push_back(double val) {
-    if(arraySize_*val_->length() >= listLength_ - 1) {
+    if (listLength_  >= ((arraySize_* val_->length()))) {
       val_->pushBack(new DoubleArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;
@@ -433,7 +433,7 @@ class FloatColumn : public Column {
   /** Type appropriate push_back methods. Calling the wrong method results 
     * in no data change. **/
   void push_back(float val) {
-    if(arraySize_*val_->length() >= listLength_ - 1) {
+    if (listLength_  >= ((arraySize_* val_->length()))) {
       val_->pushBack(new FloatArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;
@@ -579,7 +579,7 @@ class BoolColumn : public Column {
   /** Type appropriate push_back methods. Calling the wrong method results in
     * no data change. **/
   void push_back(bool val) {
-    if(arraySize_*val_->length() >= listLength_ - 1) {
+    if (listLength_  >= ((arraySize_* val_->length()))) {
       val_->pushBack(new BoolArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;
@@ -733,7 +733,7 @@ class StringColumn : public Column {
   /** Type appropriate push_back methods. Calling the wrong method is
     * undefined behavior. **/
   void push_back(String* val) {
-    if(arraySize_*val_->length() >= listLength_ - 1) {
+    if (listLength_  >= ((arraySize_* val_->length()))) {
       val_->pushBack(new StringArray(arraySize_));
     }
     int array_index = listLength_ / arraySize_;

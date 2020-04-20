@@ -2,6 +2,7 @@
 #pragma once
 #include "application.h"
 #include "../dataframe/distributedDataframe.h"
+#include "../network/network_ip.h"
 #include "../utils/keyBuff.h"
 #include "fileReader.h"
 #include "adder.h"
@@ -31,8 +32,8 @@ public:
   char* fileName_;
   size_t num_nodes_;
  
-  WordCount(size_t idx, char* fileName, size_t num_nodes):
-    Application(idx), in("data", idx), kbuf{ new KeyBuff(new Key("wc-map-",0))}, fileName_{ fileName }, num_nodes_{num_nodes} {}
+  WordCount(size_t idx, NetworkIP* network, char* fileName, size_t num_nodes):
+    Application(idx, network), in("data", idx), kbuf{ new KeyBuff(new Key("wc-map-",0))}, fileName_{ fileName }, num_nodes_{num_nodes} {}
  
   /** The master nodes reads the input, then all of the nodes count. */
   void run_() override {

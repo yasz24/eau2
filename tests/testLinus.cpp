@@ -1,6 +1,6 @@
 //lang::CwC
 #pragma once
-#include "../src/application/wordCount.h"
+#include "../src/application/linus.h"
 #include "../src/network/network_ip.h"
 #include "../src/dataframe/distributedDataframe.h"
 #include <iostream>
@@ -14,8 +14,8 @@
 */
 void test() {
     NetworkIP network;
-    WordCount wc = WordCount(0, &network,"100k.txt", 1);
-    wc.run_();
+    Linus li = Linus(0, &network);
+    li.run_();
 }
 
 int main(int argc, char **argv) {

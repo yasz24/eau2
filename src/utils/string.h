@@ -42,7 +42,10 @@ public:
     }
 
     /** Delete the string */
-    ~String() { delete[] cstr_; }
+    ~String() {
+        std::cout << "deleting: " << cstr_ << "\n"; 
+        delete[] cstr_; 
+    }
     
     /** Return the number characters in the string (does not count the terminator) */
     size_t size() { return size_; }

@@ -75,6 +75,7 @@ public:
       char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
       Schema* sch = new Schema(JSONHelper::getValueFromKey("schema_", payload)->c_str());
       Array* cols = new Array(JSONHelper::getValueFromKey("cols_", payload)->c_str(), kv);
+      this->kv_ = kv;
       this->schema_ = sch;
       this->cols_ = cols;
     }
@@ -498,8 +499,7 @@ public:
     /** Visit rows in order for a reader - NOT a rower*/
     void map(Reader& r) {
       //create a new row.
-      Row* row = new Row(*this->schema_);
-
+      Row* row = new Row(*schema_);
       //apply the rower to each row.
       for (size_t i = 0; i < this->schema_->length(); i++) {
         this->fill_row(i, *row);
@@ -516,7 +516,6 @@ public:
       //create a mini distributed dataframe from the larger dataframe
       Schema sch;
       DataFrame minidf(sch);
-
       for (size_t i = 0; i < cols_->length(); i++) {
         Column* col = dynamic_cast<Column*>(cols_->get(i));
         Column* local_col = col->getColumnOnNode(); //a column that only contains data that lives on this node.
@@ -701,6 +700,9 @@ public:
         df->add_row(*row);
        // delete row;
       }
+      std::cout << "key: " << key->serialize() << "\n";
+      char* serialized = df->serialize();
+      std::cout << "from visitor: "<< serialized << "\n";
       Value* val = new Value(df->serialize(), (size_t)0);
       kv->put(key, val);
       return df;
