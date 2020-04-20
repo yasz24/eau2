@@ -17,9 +17,9 @@ class Linus : public Application {
 public:
   int DEGREES = 4;  // How many degrees of separation form linus?
   int LINUS = 4967;   // The uid of Linus (offset in the user df)
-  const char* PROJ = "../data/projects_subset.ltgt";
-  const char* USER = "../data/users_subset.ltgt";
-  const char* COMM = "../data/commits_subset.ltgt";
+  const char* PROJ = "../../data/projects_subset.ltgt";
+  const char* USER = "../../data/users_subset.ltgt";
+  const char* COMM = "../../data/commits_subset.ltgt";
   DistributedDataFrame* projects; //  pid x project name
   DistributedDataFrame* users;  // uid x user name
   DistributedDataFrame* commits;  // pid x uid x uid 
@@ -88,9 +88,9 @@ public:
        // This dataframe contains the id of Linus.
        delete DistributedDataFrame::fromScalar(new Key("users-0-0", 0), kv_, LINUS);
     } else {
-       projects = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&pK));
-       users = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&uK));
-       commits = dynamic_cast<DistributedDataFrame*>(kv_->waitAndget(&cK));
+       projects = new DistributedDataFrame(kv_->waitAndget(&pK)->data, kv_);
+       users = new DistributedDataFrame(kv_->waitAndget(&uK)->data, kv_);
+       commits = new DistributedDataFrame(kv_->waitAndget(&cK)->data, kv_);
     }
     uSet = new Set(users);
     pSet = new Set(projects);
@@ -105,8 +105,7 @@ public:
     Key uK(StrBuff("users-").c(stage).c("-0").get()->c_str(), 0);
     // A df with all the users added on the previous round
     //std::cout << kv_->waitAndget(&uK)->data << "\n";
-    DistributedDataFrame* newUsers = new DistributedDataFrame(kv_->waitAndget(&uK)->data, kv_);
-    std::cout<< "here\n";    
+    DistributedDataFrame* newUsers = new DistributedDataFrame(kv_->waitAndget(&uK)->data, kv_);   
     //pln(newUsers->schema_->val_);
     Set delta(users);
     SetUpdater upd(delta);
@@ -135,7 +134,7 @@ public:
     if (this_node() == 0) {
       for (size_t i = 1; i < kv_->num_nodes_; ++i) {
         Key* nK = new Key(StrBuff(name).c(stage).c("-").c(i).get()->c_str(), i);
-        DistributedDataFrame* delta = new DistributedDataFrame(kv_->waitAndget(nK)->data, kv_);
+        DistributedDataFrame* delta = new DistributedDataFrame(kv_->waitAndget(nK)->data, kv_); 
         p("    received delta of ").p(delta->nrows())
           .p(" elements from node ").pln(i);
         SetUpdater upd(set);
