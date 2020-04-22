@@ -104,9 +104,7 @@ public:
     // Key of the shape: users-stage-0
     Key uK(StrBuff("users-").c(stage).c("-0").get()->c_str(), 0);
     // A df with all the users added on the previous round
-    //std::cout << kv_->waitAndget(&uK)->data << "\n";
     DistributedDataFrame* newUsers = new DistributedDataFrame(kv_->waitAndget(&uK)->data, kv_);   
-    //pln(newUsers->schema_->val_);
     Set delta(users);
     SetUpdater upd(delta);
     newUsers->map(upd); // all of the new users are copied to delta.
@@ -148,7 +146,7 @@ public:
     } else {
       p("    sending ").p(set.size()).pln(" elements to master node");
       SetWriter* writer = new SetWriter(set);
-      Key k(StrBuff(name).c(stage).c("-").c(this_node()).get()->c_str(), this_node_); // lives on node 0?
+      Key k(StrBuff(name).c(stage).c("-").c(this_node()).get()->c_str(), this_node_); 
       delete DistributedDataFrame::fromVisitor(&k, kv_, "I", writer); // where the send "happens"
       Key mK(StrBuff(name).c(stage).c("-0").get()->c_str(), 0);
       DistributedDataFrame* merged = new DistributedDataFrame(kv_->waitAndget(&mK)->data, kv_);

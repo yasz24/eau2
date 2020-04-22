@@ -10,6 +10,14 @@
 #include <mutex>
 #include "../utils/lock.h"
 #include "../network/network_ip.h"
+
+
+//authors: eldrid.s@husky.neu.edu shetty.y@husky.neu.edu
+/****************************************************************************
+ * KVStore::
+ *
+ * A distributed KVStore
+ */
 class KVStore : public Object {
 public:
     size_t num_nodes_;
@@ -38,20 +46,21 @@ public:
         //this->local_store_ = new Map();
     }
 
+    //deserialize constructor
     KVStore(char* serialized) {
         char* payload = JSONHelper::getPayloadValue(serialized)->c_str();
         this->num_nodes_ = std::stoi(JSONHelper::getValueFromKey("num_nodes_", payload)->c_str());
         this->this_node_ = std::stoi(JSONHelper::getValueFromKey("this_node_", payload)->c_str());
     }
 
+    //put the key-value pair in the local store of the appropriate KVstore node.
     bool put(Key* k, Value* value) {
         Key *key = k->clone();
         store_mtx_.lock(); //acquire lock ownership
-        //std::cout << "KV " << this_node_ <<" put: " << "\nkey: " << key->serialize() << "\nval:" << value->serialize() << "\n";
+        std::cout << "KV " << this_node_ <<" put: " << "\nkey: " << key->serialize() << "\n";
         size_t target = key->node();
         bool res = true;
         if (target == this->this_node_) {
-            //std::cout << "KV " << this_node_ <<" put: " << "\nkey: " << key->serialize() << "\nval:" << value->serialize() << "\n";
             local_store_.insert(std::pair<Key*, Value*>(key, value));
         } else {
             Put put(key, value, this_node_, target, network_->msg_id);
@@ -73,6 +82,7 @@ public:
         return res;
     }
 
+    //resolve any local conditional variables waiting on the key that was just put into the store.
     void resolve_local_wait(Key* key) {
          // notification procedure.
         if (wait_for_key_ != nullptr) {
@@ -82,6 +92,7 @@ public:
         }
     }
 
+    //resolve any waitAndGet requests from remote nodes, waiting on the key that was just put into the store.
     void resolve_remote_wait(Key* key, Value* val) {
         size_t outstandingReqs = pendingGets.length();
 
@@ -103,6 +114,7 @@ public:
         }
     }
 
+    //get the value for the given key from the appropriate node. non-blocking, so nullptr if key doesn't exist
     Value* get(Key* key) {
         store_mtx_.lock();
         size_t target = key->node();
@@ -133,6 +145,7 @@ public:
         return val;
     }
 
+    //get the value for the given key from the appropriate node. block, till the key exists in the KVStore
     Value* waitAndget(Key* key) {
         store_mtx_.lock();
         size_t node = key->node();
@@ -169,11 +182,12 @@ public:
         return val;
     }
 
+    //start the listening thread that will be responsible for serving any external requests.
     void start() {
         listening_thread_ = std::thread(&KVStore::listen, this);
     }
 
-    //think about case when recv calls accept first, because select would still unblock i think.
+    //serves any external requests from remote nodes.
     void listen() {
         std::cout << "started listening on separate thread\n";
         //listen for any incoming requests to the store.
@@ -187,7 +201,6 @@ public:
     //figure out the type of request and act accordingly.
     void process_message_(Message* m) {
         MsgKind kind = m->kind_;
-        //std::cout << "msg serialized: " << m->serialize() << "\n";
         //switch on the kind and call the appropriate processing function.
         switch (kind) {
         case MsgKind::Put: {
